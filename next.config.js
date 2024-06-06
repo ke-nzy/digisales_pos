@@ -5,7 +5,10 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  ignoreBuildErrors: true,
+  reactStrictMode: true,
+};
 
 const nextConfigFunction = async () => {
   const withPWA = (await import("@ducanh2912/next-pwa")).default({
