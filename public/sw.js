@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+// @ts-check
+
 // If the loader is already loaded, just stop.
 if (!self.define) {
   let registry = {};
@@ -43,10 +45,10 @@ if (!self.define) {
       })
     );
   };
+
   /**
    * @type {(depsNames: string[], factory: (...deps: any[]) => void) => void}
    */
-
   self.define = (depsNames, factory) => {
     const uri =
       nextDefineUri ||
@@ -71,6 +73,7 @@ if (!self.define) {
     });
   };
 }
+
 self.define(["./workbox-7144475a"], function (workbox) {
   "use strict";
 
@@ -87,14 +90,16 @@ self.define(["./workbox-7144475a"], function (workbox) {
            * @param {{ response: Response }} param0
            * @returns {Promise<Response>}
            */
-          cacheWillUpdate: async ({ response: e }) =>
-            e && "opaqueredirect" === e.type
-              ? new Response(e.body, {
-                  status: 200,
-                  statusText: "OK",
-                  headers: e.headers,
-                })
-              : e,
+          cacheWillUpdate: async ({ response }) => {
+            if (response && response.type === "opaqueredirect") {
+              return new Response(response.body, {
+                status: 200,
+                statusText: "OK",
+                headers: response.headers,
+              });
+            }
+            return response;
+          },
         },
       ],
     }),
