@@ -7,4 +7,19 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {};
 
-export default config;
+const nextConfigFunction = async () => {
+  const withPWA = (await import("@ducanh2912/next-pwa")).default({
+    dest: "public",
+    // cacheOnFrontEndNav: true,
+    // aggressiveFrontEndNavCaching: true,
+    // reloadOnOnline: true,
+    // //   swMinFiles: true,
+    // disable: false,
+    // workboxOptions: {
+    //   disableDevLogs: true,
+    // },
+  });
+  return withPWA(config);
+};
+
+export default nextConfigFunction;
