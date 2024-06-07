@@ -1,17 +1,16 @@
 import "~/styles/globals.css";
 
-// import { GeistSans } from "geist/font/sans";
-import { Inter as FontSans } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+// import { Inter as FontSans } from "next/font/google";
 
 import type { Viewport } from "next";
 
-import { cn } from "~/lib/utils";
 import { ThemeProvider } from "~/providers/theme-provider";
 
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+// const fontSans = FontSans({
+//   subsets: ["latin"],
+//   variable: "--font-sans",
+// });
 
 export const metadata = {
   manifest: "/manifest.json",
@@ -30,14 +29,14 @@ export default function RootLayout({
 }) {
   return (
     // <html lang="en" className={`${GeistSans.variable}`}>
-    <html lang="en">
-      {/* <body> */}
-      <body
+    <html lang="en" suppressHydrationWarning>
+      <body className={GeistSans.className}>
+        {/* <body
         className={cn(
           "bg-background min-h-screen font-sans antialiased",
           fontSans.variable,
         )}
-      >
+      > */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
