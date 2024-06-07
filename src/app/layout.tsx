@@ -1,6 +1,7 @@
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
+import { Toaster } from "~/components/ui/sonner";
 // import { Inter as FontSans } from "next/font/google";
 
 import type { Viewport } from "next";
@@ -40,6 +41,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
+        <Toaster richColors />
       </body>
     </html>
   );

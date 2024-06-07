@@ -39,6 +39,7 @@ const CustomInput = ({
             <FormControl>
               <Input
                 className="input-class"
+                id={name}
                 placeholder={placeholder}
                 type={type}
                 {...field}
