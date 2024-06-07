@@ -5,7 +5,7 @@
 - [x] Make it deployable (Vercel)
 - [x] Add PWA Support
 - [x] Scaffold basic ui with mock data
-- [ ] Authentication
+- [x] Authentication
 - [ ] Error Handling (Sentry)
 - [ ] Fetch User Roles
 - [ ] Parallel Routing

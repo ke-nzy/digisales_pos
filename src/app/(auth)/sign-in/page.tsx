@@ -23,14 +23,34 @@ import {
   fetch_sites,
   signIn,
 } from "~/lib/actions/user.actions";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthStore } from "~/hooks/use-auth";
 const SignIn = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [siteInfo, setSiteInfo] = useState<SiteCompany[] | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<SiteCompany | null>(
     null,
   );
   const [isLoading, setIsLoading] = useState(false);
+
+  {
+    /** auth store info -start */
+  }
+
+  const update_site_info = useAuthStore((state) => state.set_site_info);
+  const set_site_url = useAuthStore((state) => state.set_site_url);
+  const set_receipt_info = useAuthStore((state) => state.set_receipt_info);
+  const update_company_site = useAuthStore((state) => state.set_site_company);
+  const update_account = useAuthStore((state) => state.set_account_info);
+  // const update_bypass_login_info = useAuthStore(
+  //   (state) => state.set_without_sign_in_auth,
+  // );
+  {
+    /** auth store info -end */
+  }
 
   const formSchema = authFormSchema();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -93,20 +113,35 @@ const SignIn = () => {
           //TODO:  show error message
           return;
         }
-        // update_account(login_result);
-        // update_site_info(company_information[0]);
-        // set_receipt_info(receipt_info);
-        // set_site_url(company_information[0].company_url);
-        // update_company_site(selectedCompany!);
+        update_account(login_result);
+        update_site_info(company_information[0]!);
+        set_receipt_info(receipt_info);
+        set_site_url(company_information[0]!.company_url);
+        update_company_site(selectedCompany!);
 
-        // // ReRoute
-        // handle_page_to_navigate_to();
+        // ReRoute
+        handle_page_to_navigate_to();
       }
     } catch (error) {
+      toast.error("Login Failed:  Contact Support");
       console.log(error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Page Actions
+  const handle_page_to_navigate_to = () => {
+    const query_search_params = new URLSearchParams(searchParams);
+    const page_flag = query_search_params.get("page_flag");
+
+    console.log("PAGE FLAG", page_flag);
+
+    if (page_flag === "manual-milk-collection") {
+      // navigate("/manual-milk-collection");
+    }
+
+    router.replace("/");
   };
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
@@ -134,14 +169,6 @@ const SignIn = () => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
-                {/* <div className="grid gap-2"> */}
-                {/* <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              /> */}
                 <CustomInput
                   control={form.control}
                   label="Site Name"
@@ -169,19 +196,7 @@ const SignIn = () => {
                   data={siteInfo}
                   setSelected={setSelectedCompany}
                 />
-                {/* </div> */}
-                {/* <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="#"
-                    className="ml-auto inline-block text-sm underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input id="password" type="password" required />
-              </div> */}
+
                 <>
                   <Button type="submit" disabled={isLoading} className="w-full">
                     {isLoading ? (
@@ -196,12 +211,6 @@ const SignIn = () => {
               </form>
             </Form>
           </div>
-          {/* <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="#" className="underline">
-              Sign up
-            </Link>
-          </div> */}
         </CardContent>
       </Card>
     </div>

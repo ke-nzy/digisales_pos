@@ -10,7 +10,9 @@ export default function AdminPanelLayout({
   children: React.ReactNode;
 }) {
   const sidebar = useStore(useSidebarToggle, (state) => state);
+
   if (!sidebar) return null;
+
   return (
     <>
       <Sidebar />
