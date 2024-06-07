@@ -12,7 +12,7 @@
     /* Strictness */
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    // "checkJs": false,
+    // "checkJs": true,
 
     /* Bundled projects */
     "lib": ["dom", "dom.iterable", "ES2022"],
@@ -30,8 +30,8 @@
     }
   },
   "include": [
+    ".eslintrc.cjs",
     "next-env.d.ts",
-    "./types/*.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "**/*.cjs",
