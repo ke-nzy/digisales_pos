@@ -1,9 +1,25 @@
+"use client";
 import { ContentLayout } from "~/components/common/content-layout";
+import ItemSearchBox from "~/components/item-searchbox";
+import { useAuthStore } from "~/hooks/use-auth";
+import ShoppingCart from "~/components/cart";
+import InvoiceSummary from "~/components/invoice-summary";
 
 export default function HomePage() {
+  const { site_company } = useAuthStore();
   return (
-    <ContentLayout title="BudgetWear POS">
-      <>POS Dev in progress</>
+    <ContentLayout title={site_company!.branch}>
+      <div className=" flex flex-col items-start gap-4  md:flex-row ">
+        <div className="">
+          <ShoppingCart />
+        </div>
+        <div className=" sticky top-0 overflow-hidden ">
+          <InvoiceSummary />
+        </div>
+      </div>
+      <div className=" sticky bottom-0 z-10 mt-4 bg-zinc-50 p-2  dark:bg-zinc-900">
+        <ItemSearchBox />
+      </div>
     </ContentLayout>
   );
 }

@@ -20,8 +20,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { useAuthStore } from "~/hooks/use-auth";
 
 export function UserNav() {
+  const { account } = useAuthStore();
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -34,7 +36,9 @@ export function UserNav() {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">JD</AvatarFallback>
+                  <AvatarFallback className="bg-transparent">
+                    {account?.real_name[0]}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -46,9 +50,11 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-muted-foreground text-xs leading-none">
-              johndoe@example.com
+            <p className="text-sm font-medium leading-none">
+              {account?.real_name}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {account?.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -56,13 +62,13 @@ export function UserNav() {
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/dashboard" className="flex items-center">
-              <LayoutGrid className="text-muted-foreground mr-3 h-4 w-4" />
+              <LayoutGrid className="mr-3 h-4 w-4 text-muted-foreground" />
               Dashboard
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/account" className="flex items-center">
-              <User className="text-muted-foreground mr-3 h-4 w-4" />
+              <User className="mr-3 h-4 w-4 text-muted-foreground" />
               Account
             </Link>
           </DropdownMenuItem>
@@ -74,7 +80,7 @@ export function UserNav() {
             console.log("Log out");
           }}
         >
-          <LogOut className="text-muted-foreground mr-3 h-4 w-4" />
+          <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
