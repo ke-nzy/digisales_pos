@@ -109,9 +109,9 @@ export function getMenuList(pathname: string): Group[] {
           submenus: [],
         },
         {
-          href: "/tags",
-          label: "Orders",
-          active: pathname.includes("/tags"),
+          href: "/reservations",
+          label: "Reservations",
+          active: pathname.includes("/reservations"),
           icon: ShoppingBag,
           submenus: [],
         },
@@ -120,13 +120,13 @@ export function getMenuList(pathname: string): Group[] {
     {
       groupLabel: "Settings",
       menus: [
-        {
-          href: "/users",
-          label: "Users",
-          active: pathname.includes("/users"),
-          icon: Users,
-          submenus: [],
-        },
+        // {
+        //   href: "/users",
+        //   label: "Users",
+        //   active: pathname.includes("/users"),
+        //   icon: Users,
+        //   submenus: [],
+        // },
         {
           href: "/account",
           label: "Account",
