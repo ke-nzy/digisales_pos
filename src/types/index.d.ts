@@ -98,3 +98,16 @@ declare type AuthInfo = {
   get_auth_data: () => EndpointAuthInfo;
   is_authenticated: () => boolean;
 };
+
+// Inventory Types
+
+declare type InventoryItem = {
+  stock_id: string;
+  description: string;
+  rate: string;
+  kit: string;
+  units: string;
+  mb_flag: string;
+};
+
+declare type ItemType = "Sales" | "Purchases" | "All";

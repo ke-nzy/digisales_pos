@@ -6,7 +6,7 @@ import { Toaster } from "~/components/ui/sonner";
 
 import type { Viewport } from "next";
 
-import { ThemeProvider } from "~/providers/theme-provider";
+import Providers from "~/providers/providers";
 
 // const fontSans = FontSans({
 //   subsets: ["latin"],
@@ -38,9 +38,7 @@ export default function RootLayout({
           fontSans.variable,
         )}
       > */}
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
+        <Providers>{children}</Providers>
         <Toaster richColors />
       </body>
     </html>

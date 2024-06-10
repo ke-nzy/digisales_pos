@@ -1,10 +1,13 @@
 "use client";
+import dynamic from "next/dynamic";
 import { ContentLayout } from "~/components/common/content-layout";
-import ItemSearchBox from "~/components/item-searchbox";
+// import ItemSearchBox from "~/components/item-searchbox";
 import { useAuthStore } from "~/hooks/use-auth";
 import ShoppingCart from "~/components/cart";
 import InvoiceSummary from "~/components/invoice-summary";
-
+const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
+  ssr: false,
+});
 export default function HomePage() {
   const { site_company } = useAuthStore();
   return (
