@@ -1,17 +1,16 @@
 "use client";
 import dynamic from "next/dynamic";
 import { ContentLayout } from "~/components/common/content-layout";
-// import ItemSearchBox from "~/components/item-searchbox";
-import { useAuthStore } from "~/hooks/use-auth";
 import ShoppingCart from "~/components/cart";
 import InvoiceSummary from "~/components/invoice-summary";
+import { useAuthStore } from "~/store/auth";
 const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
   ssr: false,
 });
 export default function HomePage() {
   const { site_company } = useAuthStore();
   return (
-    <ContentLayout title={site_company!.branch}>
+    <ContentLayout title={site_company?.branch ?? ""}>
       <div className=" flex flex-col items-start gap-4  md:flex-row ">
         <div className="">
           <ShoppingCart />

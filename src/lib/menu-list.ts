@@ -1,7 +1,5 @@
 import {
-  Tag,
   Settings,
-  Bookmark,
   SquarePen,
   LayoutGrid,
   ScrollText,
@@ -43,40 +41,33 @@ export function getMenuList(pathname: string): Group[] {
       ],
     },
     {
-      groupLabel: "Inventory",
+      groupLabel: "Items & Inventory",
       menus: [
         {
-          href: "/stock-take",
-          label: "Stock Take",
+          href: "/inventory",
+          label: "Inventory",
           active: pathname.includes("/products"),
           icon: SquarePen,
           submenus: [
-            // {
-            //   href: "/posts",
-            //   label: "All Posts",
-            //   active: pathname === "/posts",
-            // },
-            // {
-            //   href: "/posts/new",
-            //   label: "New Post",
-            //   active: pathname === "/posts/new",
-            // },
+            {
+              href: "/inventory",
+              label: "Branch Inventory",
+              active: pathname === "/inventory",
+            },
+            {
+              href: "/inventory/stocktake",
+              label: "Stock Take",
+              active: pathname === "/inventory/stocktake",
+            },
           ],
         },
-        {
-          href: "/categories",
-          label: "Categories",
-          active: pathname.includes("/categories"),
-          icon: Bookmark,
-          submenus: [],
-        },
-        {
-          href: "/tags",
-          label: "Tags",
-          active: pathname.includes("/tags"),
-          icon: Tag,
-          submenus: [],
-        },
+        // {
+        //   href: "/categories",
+        //   label: "Categories",
+        //   active: pathname.includes("/categories"),
+        //   icon: Bookmark,
+        //   submenus: [],
+        // },
       ],
     },
     {

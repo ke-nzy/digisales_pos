@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/tooltip";
 import { getMenuList } from "~/lib/menu-list";
 import { CollapseMenuButton } from "./collapse-menu-button";
+import { useAuthStore } from "~/store/auth";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -23,6 +24,7 @@ interface MenuProps {
 export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
+  const { clear_auth_session } = useAuthStore();
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -31,7 +33,7 @@ export function Menu({ isOpen }: MenuProps) {
           {menuList.map(({ groupLabel, menus }, index) => (
             <li className={cn("w-full", groupLabel ? "pt-5" : "")} key={index}>
               {(isOpen && groupLabel) ?? isOpen === undefined ? (
-                <p className="text-muted-foreground max-w-[248px] truncate px-4 pb-2 text-sm font-medium">
+                <p className="max-w-[248px] truncate px-4 pb-2 text-sm font-medium text-muted-foreground">
                   {groupLabel}
                 </p>
               ) : !isOpen && isOpen !== undefined && groupLabel ? (
@@ -109,7 +111,7 @@ export function Menu({ isOpen }: MenuProps) {
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => {
-                      console.log("Sign out");
+                      clear_auth_session();
                     }}
                     variant="outline"
                     className="mt-5 h-10 w-full justify-center"

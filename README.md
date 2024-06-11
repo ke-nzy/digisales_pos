@@ -6,7 +6,7 @@
 - [x] Add PWA Support
 - [x] Scaffold basic ui with mock data
 - [x] Authentication
-- [ ] Redirect user based on local storage
+- [x] Redirect user based on local storage
 - [ ] Setup Cart Slice with Zustand
 - [ ] Add Store cart to indexedDB and Backend
 - [ ] Add Push Notification Hook

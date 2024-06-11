@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -26,7 +26,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "~/hooks/use-auth";
+import { useAuthStore } from "~/store/auth"; // Adjust the path as needed
 const SignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,9 +36,7 @@ const SignIn = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  {
-    /** auth store info -start */
-  }
+  const { account } = useAuthStore();
 
   const update_site_info = useAuthStore((state) => state.set_site_info);
   const set_site_url = useAuthStore((state) => state.set_site_url);
@@ -143,6 +141,13 @@ const SignIn = () => {
 
     router.replace("/");
   };
+
+  useEffect(() => {
+    if (account) {
+      handle_page_to_navigate_to();
+    }
+  }, [account]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
       <Card className="mx-auto max-w-md">

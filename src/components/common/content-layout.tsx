@@ -7,7 +7,7 @@ interface ContentLayoutProps {
 
 export function ContentLayout({ title, children }: ContentLayoutProps) {
   return (
-    <div className="">
+    <div className="min-h-[100vh]">
       <Navbar title={title} />
       <div className="container  px-4 pb-8 pt-8 sm:px-8">{children}</div>
     </div>

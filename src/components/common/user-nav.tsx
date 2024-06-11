@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { useAuthStore } from "~/hooks/use-auth";
+import { useAuthStore } from "~/store/auth";
 
 export function UserNav() {
   const { account } = useAuthStore();

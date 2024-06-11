@@ -1,8 +1,8 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetch_all_sellable_items } from "~/lib/actions/inventory.actions";
+import { useAuthStore } from "~/store/auth";
 import { getMetadata, setInventory, setMetadata } from "~/utils/indexeddb";
-import { useAuthStore } from "./use-auth";
 
 const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
