@@ -15,7 +15,7 @@ import {
 } from "~/components/ui/tooltip";
 import { getMenuList } from "~/lib/menu-list";
 import { CollapseMenuButton } from "./collapse-menu-button";
-import { useAuthStore } from "~/store/auth";
+import { useAuthStore } from "~/store/auth-store";
 
 interface MenuProps {
   isOpen: boolean | undefined;

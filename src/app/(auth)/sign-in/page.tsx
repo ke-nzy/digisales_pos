@@ -26,7 +26,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "~/store/auth"; // Adjust the path as needed
+import { useAuthStore } from "~/store/auth-store"; // Adjust the path as needed
 const SignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -1,6 +1,6 @@
 // hooks/useAuth.ts
 import { useMutation } from "@tanstack/react-query";
-import { useAuthStore } from "~/store/auth";
+import { useAuthStore } from "~/store/auth-store";
 
 const fetchAuthState = async () => {
   const authState = JSON.parse(localStorage.getItem("auth-storage") || "{}");

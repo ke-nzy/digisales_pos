@@ -1,7 +1,7 @@
 "use client";
 import AdminPanelLayout from "~/components/admin-panel-layout";
 import useAuth from "~/hooks/use-auth";
-import { useAuthStore } from "~/store/auth";
+import { useAuthStore } from "~/store/auth-store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 export default function MainLayout({
