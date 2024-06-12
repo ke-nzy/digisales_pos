@@ -12,7 +12,7 @@ import { useAuthStore } from "~/store/auth-store";
 const ItemSearchBox = () => {
   const { inventory, loading, error } = useInventory();
   const { site_url, site_company, account } = useAuthStore.getState();
-  const { addItemToCart } = useCartStore();
+  const { addItemToCart, currentCart } = useCartStore();
   const itemSearchRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const selectedItem = useRef<InventoryItem | null>(null);
@@ -36,11 +36,12 @@ const ItemSearchBox = () => {
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
           user: "current_user", // Replace with actual user info
-          max_quantity: 3, // Example field
+          max_quantity: details.quantity_available, // Example field
           item,
           details,
           quantity: 1,
         };
+
         addItemToCart(directSalesItem);
         setSearchTerm(""); // Clear the input field
       }

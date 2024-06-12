@@ -27,14 +27,42 @@ export const useCartStore = create<CartState>((set, get) => ({
         console.error("Failed to set cart:", error),
       );
     } else {
-      const updatedCart: Cart = {
-        ...state.currentCart,
-        items: [...state.currentCart.items, item],
-      };
-      set({ currentCart: updatedCart });
-      setCart(updatedCart).catch((error) =>
-        console.error("Failed to update cart:", error),
+      const existingItemIndex = state.currentCart.items.findIndex(
+        (cartItem) => cartItem.item.stock_id === item.item.stock_id,
       );
+
+      if (existingItemIndex !== -1) {
+        const existingItem = state.currentCart.items[existingItemIndex];
+        const newQuantity = Math.min(
+          existingItem!.quantity + item.quantity,
+          item.max_quantity,
+        );
+
+        const updatedItems = state.currentCart.items.map((cartItem, index) =>
+          index === existingItemIndex
+            ? { ...cartItem, quantity: newQuantity }
+            : cartItem,
+        );
+
+        const updatedCart: Cart = {
+          ...state.currentCart,
+          items: updatedItems,
+        };
+
+        set({ currentCart: updatedCart });
+        setCart(updatedCart).catch((error) =>
+          console.error("Failed to update cart:", error),
+        );
+      } else {
+        const updatedCart: Cart = {
+          ...state.currentCart,
+          items: [...state.currentCart.items, item],
+        };
+        set({ currentCart: updatedCart });
+        setCart(updatedCart).catch((error) =>
+          console.error("Failed to update cart:", error),
+        );
+      }
     }
   },
   saveCart: () => {
