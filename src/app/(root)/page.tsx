@@ -1,9 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
 import { ContentLayout } from "~/components/common/content-layout";
 import InvoiceSummary from "~/components/invoice-summary";
-import { useCartStore } from "~/store/cart-store";
 import { useAuthStore } from "~/store/auth-store";
 const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
   ssr: false,
@@ -11,9 +9,9 @@ const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
 const ShoppingCart = dynamic(() => import("~/components/cart"), {
   ssr: false,
 });
+
 export default function HomePage() {
   const { site_company } = useAuthStore();
-  const { loadCart, currentCart } = useCartStore();
 
   // useEffect(() => {
   //   // Load the most recent cart when the page loads
