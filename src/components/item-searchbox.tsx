@@ -15,7 +15,6 @@ const ItemSearchBox = () => {
   const { addItemToCart, currentCart } = useCartStore();
   const itemSearchRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const selectedItem = useRef<InventoryItem | null>(null);
 
   const item = inventory.find((invItem) => invItem.stock_id === searchTerm);
   const {
@@ -35,18 +34,19 @@ const ItemSearchBox = () => {
       if (details) {
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
-          user: "current_user", // Replace with actual user info
-          max_quantity: details.quantity_available, // Example field
+          user: "current_user",
+          max_quantity: details.quantity_available,
           item,
           details,
           quantity: 1,
         };
 
         addItemToCart(directSalesItem);
-        setSearchTerm(""); // Clear the input field
+        setSearchTerm("");
       }
     } else if (searchTerm.length >= 13) {
       toast.error("Item not found in inventory");
+      setSearchTerm(""); // Clear the input field
     }
   }, [searchTerm, item, details, addItemToCart]);
 

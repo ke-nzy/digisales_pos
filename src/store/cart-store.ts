@@ -15,6 +15,8 @@ interface CartState {
   holdCart: () => void;
 }
 
+const LOCAL_STORAGE_KEY = "currentCart";
+
 export const useCartStore = create<CartState>((set, get) => ({
   currentCart: null,
   addItemToCart: (item: DirectSales) => {
@@ -27,6 +29,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       setCart(newCart).catch((error) =>
         console.error("Failed to set cart:", error),
       );
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCart));
     } else {
       const existingItemIndex = state.currentCart.items.findIndex(
         (cartItem) => cartItem.item.stock_id === item.item.stock_id,
@@ -57,6 +60,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         setCart(updatedCart).catch((error) =>
           console.error("Failed to update cart:", error),
         );
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
       } else {
         const updatedCart: Cart = {
           ...state.currentCart,
@@ -66,6 +70,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         setCart(updatedCart).catch((error) =>
           console.error("Failed to update cart:", error),
         );
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
       }
     }
   },
@@ -75,6 +80,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       setCart(state.currentCart).catch((error) =>
         console.error("Failed to save cart:", error),
       );
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(state.currentCart),
+      );
     }
   },
   clearCart: () => {
@@ -83,6 +92,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       deleteCart(state.currentCart.cart_id)
         .then(() => set({ currentCart: null }))
         .catch((error) => console.error("Failed to clear cart:", error));
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   },
   loadCart: (cart_id: string) => {
@@ -105,5 +115,15 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   holdCart: () => {
     set({ currentCart: null });
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
   },
 }));
+
+const loadCartFromLocalStorage = () => {
+  const storedCart = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (storedCart) {
+    useCartStore.setState({ currentCart: JSON.parse(storedCart) });
+  }
+};
+
+loadCartFromLocalStorage();
