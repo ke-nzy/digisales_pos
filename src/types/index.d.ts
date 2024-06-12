@@ -110,4 +110,54 @@ declare type InventoryItem = {
   mb_flag: string;
 };
 
+declare type PricingMode = {
+  id: string;
+  sales_type: string;
+};
+
+declare type ProductPriceDetails = {
+  price: number;
+  quantity_available: number;
+  tax_mode: number;
+};
+
 declare type ItemType = "Sales" | "Purchases" | "All";
+
+// Sales Order Types
+declare type Customer = {
+  br_name: string;
+  branch_code: string;
+  branch_ref: string;
+  debtor_no: string;
+  lat: string;
+  lng: string;
+  is_farmer: string;
+};
+declare type CustomerBranch = {
+  branch_code: string;
+  br_name: string;
+  branch_ref: string;
+  debtor_no: string;
+  lat: string;
+  lon: string;
+};
+declare type DirectSalesType = {
+  __typename: "direct_sales";
+  customer: Customer;
+  branches: CustomerBranch[];
+  user: string;
+  bottles_issued?: string;
+  bottles_returned?: string;
+  max_quantity: number;
+  discount?: string;
+};
+declare type OrderEntryItem = {
+  item: InventoryItem;
+  details: ProductPriceDetails;
+  quantity: number;
+} & DirectSalesType;
+
+declare type DirectSales = Omit<
+  OrderEntryItem & DirectSalesType,
+  "customer" | "branches"
+>;

@@ -100,5 +100,29 @@ export async function fetch_company_details(
     console.log(e);
     return null;
   }
-  return null;
+}
+
+export async function fetch_user_roles(
+  site_url: string,
+  cp: string,
+  roleid: string,
+  id: string,
+) {
+  const form = new FormData();
+  form.append("tp", "roles");
+  form.append("roleid", roleid);
+  form.append("id", id);
+  form.append("cp", cp);
+
+  try {
+    const response = await axios.postForm<string[]>(
+      `${site_url}process.php`,
+      form,
+    );
+
+    return response.data;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
 }

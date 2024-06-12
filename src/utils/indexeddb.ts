@@ -10,8 +10,14 @@ interface InventoryItem {
   mb_flag: string;
 }
 
+interface Cart {
+  cart_id: string;
+  items: DirectSales[];
+}
+
 interface Database {
   inventory: InventoryItem[];
+  carts: Cart[];
   metadata: Record<string, string>;
   // add other items e.g transactions
 }
@@ -19,6 +25,7 @@ interface Database {
 const dbPromise = openDB<Database>("posdatabase", 1, {
   upgrade(db) {
     db.createObjectStore("inventory", { keyPath: "stock_id" });
+    db.createObjectStore("carts", { keyPath: "cart_id" });
     db.createObjectStore("metadata");
   },
 });
@@ -48,6 +55,29 @@ export const getInventory = async (
     return allItems;
   }
   return await db.get(storeName, key);
+};
+
+export const setCart = async (cart: Cart): Promise<void> => {
+  const db = await dbPromise;
+  const tx = db.transaction("carts", "readwrite");
+  const store = tx.objectStore("carts");
+  await store.put(cart);
+  await tx.done;
+};
+
+export const getCart = async (cart_id: string): Promise<Cart | undefined> => {
+  const db = await dbPromise;
+  const tx = db.transaction("carts", "readonly");
+  const store = tx.objectStore("carts");
+  return await store.get(cart_id);
+};
+
+export const deleteCart = async (cart_id: string): Promise<void> => {
+  const db = await dbPromise;
+  const tx = db.transaction("carts", "readwrite");
+  const store = tx.objectStore("carts");
+  await store.delete(cart_id);
+  await tx.done;
 };
 
 export const setMetadata = async (
