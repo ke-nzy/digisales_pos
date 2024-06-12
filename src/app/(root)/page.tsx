@@ -2,11 +2,13 @@
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { ContentLayout } from "~/components/common/content-layout";
-import ShoppingCart from "~/components/cart";
 import InvoiceSummary from "~/components/invoice-summary";
 import { useCartStore } from "~/store/cart-store";
 import { useAuthStore } from "~/store/auth-store";
 const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
+  ssr: false,
+});
+const ShoppingCart = dynamic(() => import("~/components/cart"), {
   ssr: false,
 });
 export default function HomePage() {
