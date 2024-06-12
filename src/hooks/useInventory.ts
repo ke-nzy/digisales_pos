@@ -9,9 +9,9 @@ import { getMetadata, setInventory, setMetadata } from "~/utils/indexeddb";
 
 const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
-  // const lastUpdate = await getMetadata("metadata");
+  const lastUpdate = await getMetadata("metadata");
   const now = new Date();
-  // const aDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24);
+  const aDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24);
 
   //  / console.log("fes", new Date(lastUpdate!) < aDayAgo);
 
@@ -33,22 +33,6 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   //   SHOULD WE FETCH FROM INDEXEDDB HERE AS A FALLBACK?
 };
 
-const fetchItemDetails = async (
-  stock_id: string,
-  kit: string,
-  pricing_id: PricingMode | undefined,
-): Promise<ProductPriceDetails> => {
-  const { site_company, account, site_url } = useAuthStore.getState();
-  const details = await fetch_item_details(
-    site_url!,
-    site_company!.company_prefix,
-    account!.id,
-    stock_id,
-    kit,
-    pricing_id,
-  );
-  return details!;
-};
 export const useInventory = () => {
   const queryClient = useQueryClient();
 
@@ -67,23 +51,23 @@ export const useInventory = () => {
 };
 
 export const useItemDetails = (
-  stock_id: string,
-  kit: string,
-  pricing_id: PricingMode | undefined,
+  site_url: string,
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+  stock_id?: string,
+  kit?: string,
 ) => {
-  const queryClient = useQueryClient();
-
-  const { data, error, isLoading } = useQuery<ProductPriceDetails, Error>({
-    queryKey: ["item-details"],
-    queryFn: () => fetchItemDetails(stock_id, kit, pricing_id),
-    // staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  return useQuery({
+    queryKey: ["itemDetails", stock_id],
+    queryFn: () =>
+      fetch_item_details(
+        site_url,
+        site_company.company_prefix,
+        account.id,
+        stock_id!,
+        kit!,
+        undefined,
+      ),
+    enabled: !!stock_id && !!kit,
   });
-
-  return {
-    itemDetails: data || null,
-    loading: isLoading,
-    error: error ? error.message : null,
-    refetch: () =>
-      queryClient.invalidateQueries({ queryKey: ["item-details"] }),
-  };
 };

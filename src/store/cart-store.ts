@@ -20,6 +20,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     const state = get();
     if (!state.currentCart) {
       const newCart: Cart = { cart_id: `cart_${Date.now()}`, items: [item] };
+      console.log("new cart", newCart);
+
       set({ currentCart: newCart });
       setCart(newCart).catch((error) =>
         console.error("Failed to set cart:", error),
