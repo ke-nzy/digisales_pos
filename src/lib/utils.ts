@@ -40,3 +40,17 @@ export function generateRandomString(length: number) {
   }
   return result;
 }
+
+export const calculateCartTotal = (cart: Cart): number => {
+  if (!cart) return 0;
+  return cart.items.reduce((total, cartItem) => {
+    return total + cartItem.quantity * cartItem.details.price;
+  }, 0);
+};
+
+export const calculateDiscount = (cart: Cart): number => {
+  if (!cart) return 0;
+  return cart.items.reduce((total, cartItem) => {
+    return total + parseInt(cartItem.discount ?? "0.00");
+  }, 0);
+};

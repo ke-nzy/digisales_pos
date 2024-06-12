@@ -161,3 +161,8 @@ declare type DirectSales = Omit<
   OrderEntryItem & DirectSalesType,
   "customer" | "branches"
 >;
+
+declare type Cart = {
+  cart_id: string;
+  items: DirectSales[];
+};

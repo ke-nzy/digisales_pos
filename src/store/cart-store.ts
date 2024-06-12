@@ -1,10 +1,6 @@
 import { toast } from "sonner";
 import { create } from "zustand";
 import { setCart, getCart, deleteCart } from "~/utils/indexeddb";
-interface Cart {
-  cart_id: string;
-  items: DirectSales[];
-}
 
 interface CartState {
   currentCart: Cart | null;

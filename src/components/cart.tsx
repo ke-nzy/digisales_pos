@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { Input } from "~/components/ui/input";
 import {
   Card,
   CardContent,
@@ -17,22 +16,14 @@ import {
   TableRow,
   TableCell,
 } from "./ui/table";
-import { Label } from "./ui/label";
 import { TicketPercent, Trash2 } from "lucide-react";
 import { useCartStore } from "../store/cart-store";
 
 const ShoppingCart = () => {
-  const { currentCart, clearCart, holdCart } = useCartStore();
+  const { currentCart } = useCartStore();
 
-  const handleClearCart = () => {
-    clearCart();
-    alert("Cart cleared successfully");
-  };
+  if (!currentCart) return null;
 
-  const handleHoldCart = () => {
-    holdCart();
-    alert("Cart held successfully");
-  };
   return (
     <Card className="">
       <CardHeader>

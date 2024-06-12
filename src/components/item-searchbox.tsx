@@ -38,6 +38,7 @@ const ItemSearchBox = () => {
           item,
           details,
           quantity: 1,
+          discount: "0.00",
         };
 
         addItemToCart(directSalesItem);

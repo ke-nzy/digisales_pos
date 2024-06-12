@@ -14,7 +14,9 @@
 - [ ] Add Payment Store with Zustand
 - [ ] Add Payment in installments
 - [ ] Add Payment Methods
+- [ ] Add Cart Holding Functionality
 - [ ] Add Discount and Delete Functionality on Cart
+- [ ] Add Cart Editing Restrictions
 - [ ] Add Push Notification Hook
 - [ ] Scaffold basic payment modal
 - [ ] Fetch All Transactions
@@ -23,4 +25,3 @@
 - [ ] Add Inventory Requisitions
 - [ ] Add Inventory Reports
 - [ ] Add Sales Reports
-- [ ] Add Cart Editing Restrictions

@@ -1,7 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
 import { ContentLayout } from "~/components/common/content-layout";
-import InvoiceSummary from "~/components/invoice-summary";
 import { useAuthStore } from "~/store/auth-store";
 const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
   ssr: false,
@@ -9,17 +8,16 @@ const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
 const ShoppingCart = dynamic(() => import("~/components/cart"), {
   ssr: false,
 });
+const InvoiceSummary = dynamic(() => import("~/components/invoice-summary"), {
+  ssr: false,
+});
 
 export default function HomePage() {
   const { site_company } = useAuthStore();
 
-  // useEffect(() => {
-  //   // Load the most recent cart when the page loads
-  //   loadCart("current-cart-id");
-  // }, [loadCart]);
   return (
     <ContentLayout title={site_company?.branch ?? ""}>
-      <div className=" flex flex-col items-start gap-4  md:flex-row ">
+      <div className="flex min-h-[69vh] flex-col items-start gap-4  md:flex-row ">
         <div className="">
           <ShoppingCart />
         </div>

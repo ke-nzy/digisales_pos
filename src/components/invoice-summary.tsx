@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import {
   Card,
@@ -6,7 +7,12 @@ import {
   CardTitle,
   CardDescription,
 } from "~/components/ui/card";
-import { CopyIcon, MoveVerticalIcon } from "lucide-react";
+import {
+  CopyIcon,
+  MoveVerticalIcon,
+  PauseCircleIcon,
+  Trash2Icon,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +21,34 @@ import {
   DropdownMenuSeparator,
 } from "~/components/ui/dropdown-menu";
 import { Separator } from "~/components/ui/separator";
-
 import { Button } from "~/components/ui/button";
-import { generateRandomString } from "~/lib/utils";
+import {
+  calculateCartTotal,
+  calculateDiscount,
+  generateRandomString,
+} from "~/lib/utils";
+import { useCartStore } from "~/store/cart-store";
+import { toast } from "sonner";
 
 const InvoiceSummary = () => {
+  const { currentCart, clearCart, holdCart } = useCartStore();
   const invNo = generateRandomString(8);
+  const total = calculateCartTotal(currentCart!);
+  const discount = calculateDiscount(currentCart!);
+  const handleClearCart = () => {
+    clearCart();
+    toast.success("Cart cleared successfully");
+  };
+
+  const handleHoldCart = () => {
+    holdCart();
+    toast.success("Cart held successfully");
+  };
+
+  if (!currentCart) return null;
+
   return (
-    <div>
+    <div className="">
       <Card className="h-full  ">
         <CardHeader className="flex flex-row items-start bg-muted/50">
           <div className="grid gap-0.5">
@@ -46,7 +72,7 @@ const InvoiceSummary = () => {
             <Button size="sm" variant="outline" className="h-8 gap-1">
               <CopyIcon className="h-3.5 w-3.5" />
               <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-                Copy Inv Id
+                Pause Cart
               </span>
             </Button>
             <DropdownMenu>
@@ -72,42 +98,47 @@ const InvoiceSummary = () => {
             <ul className="grid gap-3">
               <li className="flex items-center justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-right">KSH299.00</span>
+                <span className="text-right">KSH {total ?? "0.00"}</span>
               </li>
               <li className="flex items-center justify-between">
                 <span className="text-muted-foreground">Discount</span>
-                <span className="text-right">KSH5.00</span>
+                <span className="text-right">KSH {discount ?? "0.00"}</span>
               </li>
-              <li className="flex items-center justify-between">
-                <span className="text-muted-foreground">Tax</span>
-                <span>KSH25.00</span>
-              </li>
+
               <li className="flex items-center justify-between font-semibold">
                 <span className="text-muted-foreground">Total</span>
-                <span>KSH329.00</span>
+
+                <span>KSH {total + discount}</span>
               </li>
             </ul>
           </div>
 
           <Separator className="my-4" />
           <div className="grid gap-3">
-            <div className="font-semibold">Customer Information</div>
-            <dl className="grid  gap-6">
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Customer</dt>
-                <dd>Liam Okello</dd>
+            <div className="font-semibold">Cart Actions</div>
+            <dl className="grid  gap-4">
+              <div className="flex items-center ">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className=" h-12 w-full justify-center  gap-1 "
+                  onClick={() => handleHoldCart()}
+                >
+                  <PauseCircleIcon className="h-4 w-4 text-green-800" />
+                  Hold Transaction
+                </Button>
+                {/* <span className="sr-only">More</span> */}
               </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Email</dt>
-                <dd>
-                  <a href="#">liam@gmail.com</a>
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Phone</dt>
-                <dd>
-                  <a href="#">+254 234 567 890</a>
-                </dd>
+              <div className="flex items-center ">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className=" h-12 w-full justify-center gap-1 "
+                  onClick={handleClearCart}
+                >
+                  <Trash2Icon className="h-4 w-4 text-red-800" />
+                  Delete Transaction
+                </Button>
               </div>
             </dl>
           </div>
