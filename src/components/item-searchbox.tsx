@@ -6,13 +6,12 @@ import { Button } from "./ui/button";
 import { useInventory, useItemDetails } from "~/hooks/useInventory";
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
-import { fetch_item_details } from "~/lib/actions/inventory.actions";
 import { useAuthStore } from "~/store/auth-store";
 
 const ItemSearchBox = () => {
   const { inventory, loading, error } = useInventory();
   const { site_url, site_company, account } = useAuthStore.getState();
-  const { addItemToCart, currentCart } = useCartStore();
+  const { addItemToCart } = useCartStore();
   const itemSearchRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -50,8 +49,16 @@ const ItemSearchBox = () => {
     }
   }, [searchTerm, item, details, addItemToCart]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading || detailsLoading)
+    return (
+      <div className="max-w-full animate-pulse">
+        <div className="mb-2.5 h-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+        <div className="mb-2.5 h-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+        <div className="mb-2.5 h-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+    );
   if (error) return <div>Error: {error}</div>;
+  if (detailsError) return <div>Error: {detailsError.message}</div>;
 
   return (
     <form
@@ -62,6 +69,7 @@ const ItemSearchBox = () => {
         <ScanBarcodeIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           ref={itemSearchRef}
+          autoFocus={true}
           type="search"
           placeholder="Search..."
           className="pl-8 sm:w-[300px] md:w-full"

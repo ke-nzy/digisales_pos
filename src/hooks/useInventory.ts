@@ -5,7 +5,12 @@ import {
   fetch_item_details,
 } from "~/lib/actions/inventory.actions";
 import { useAuthStore } from "~/store/auth-store";
-import { getMetadata, setInventory, setMetadata } from "~/utils/indexeddb";
+import {
+  getMetadata,
+  setInventory,
+  setMetadata,
+  getInventory,
+} from "~/utils/indexeddb";
 
 const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
@@ -13,9 +18,13 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const now = new Date();
   const aDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24);
 
-  //  / console.log("fes", new Date(lastUpdate!) < aDayAgo);
-
-  // if (!lastUpdate || new Date(lastUpdate) < aDayAgo) {
+  if (lastUpdate && new Date(lastUpdate) >= aDayAgo) {
+    // Fetch from IndexedDB
+    const inventory = await getInventory("inventory", "");
+    if (inventory) {
+      return inventory;
+    }
+  }
   const sellable = await fetch_all_sellable_items(
     site_company!,
     account!,
@@ -26,11 +35,6 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   await setMetadata("metadata", now.toISOString());
   await setInventory("inventory", list);
   return list;
-  // }
-
-  // TODO: handle fetching from IndexedDB if data is already up-to-date
-  return [];
-  //   SHOULD WE FETCH FROM INDEXEDDB HERE AS A FALLBACK?
 };
 
 export const useInventory = () => {

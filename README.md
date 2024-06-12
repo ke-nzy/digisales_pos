@@ -8,7 +8,13 @@
 - [x] Authentication
 - [x] Redirect user based on local storage
 - [x] Setup Cart Slice with Zustand
-- [ ] Add Store cart to indexedDB and Backend
+- [x] Add cart Store to indexedDB and Backend
+- [ ] Modify Order Summary to show totals and discounts
+- [ ] Add Payment Modal
+- [ ] Add Payment Store with Zustand
+- [ ] Add Payment in installments
+- [ ] Add Payment Methods
+- [ ] Add Discount and Delete Functionality on Cart
 - [ ] Add Push Notification Hook
 - [ ] Scaffold basic payment modal
 - [ ] Fetch All Transactions
