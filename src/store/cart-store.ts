@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { create } from "zustand";
 import { setCart, getCart, deleteCart } from "~/utils/indexeddb";
 interface Cart {
@@ -33,6 +34,9 @@ export const useCartStore = create<CartState>((set, get) => ({
 
       if (existingItemIndex !== -1) {
         const existingItem = state.currentCart.items[existingItemIndex];
+        if (existingItem!.quantity + item.quantity > item.max_quantity) {
+          toast.error("You can't add more than the max quantity");
+        }
         const newQuantity = Math.min(
           existingItem!.quantity + item.quantity,
           item.max_quantity,
