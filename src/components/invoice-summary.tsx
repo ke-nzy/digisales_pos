@@ -8,33 +8,41 @@ import {
   CardDescription,
 } from "~/components/ui/card";
 import {
-  CopyIcon,
-  MoveVerticalIcon,
+  BookmarkCheckIcon,
+  // CopyIcon,
+  // MoveVerticalIcon,
   PauseCircleIcon,
   Trash2Icon,
+  XIcon,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "~/components/ui/dropdown-menu";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+//   DropdownMenuSeparator,
+// } from "~/components/ui/dropdown-menu";
 import { Separator } from "~/components/ui/separator";
 import { Button } from "~/components/ui/button";
 import {
   calculateCartTotal,
   calculateDiscount,
   generateRandomString,
+  tallyTotalAmountPaid,
 } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
+import { usePayStore } from "~/store/pay-store";
 
 const InvoiceSummary = () => {
   const { currentCart, clearCart, holdCart } = useCartStore();
+  const { paymentCarts, removeItemFromPayments } = usePayStore();
+  console.log("paymentCart", paymentCarts);
+
   const invNo = generateRandomString(8);
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
+  const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const handleClearCart = () => {
     clearCart();
     toast.success("Cart cleared successfully");
@@ -70,12 +78,12 @@ const InvoiceSummary = () => {
 
           <div className="ml-auto flex items-center gap-1">
             <Button size="sm" variant="outline" className="h-8 gap-1">
-              <CopyIcon className="h-3.5 w-3.5" />
+              <BookmarkCheckIcon className="h-3.5 w-3.5" />
               <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-                Pause Cart
+                Process Transaction
               </span>
             </Button>
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="outline" className="h-8 w-8">
                   <MoveVerticalIcon className="h-3.5 w-3.5" />
@@ -87,12 +95,12 @@ const InvoiceSummary = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Trash</DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
         </CardHeader>
         <CardContent className="p-6 text-sm">
           <div className="grid gap-3">
-            <div className="font-semibold">Payment Details</div>
+            <div className="font-semibold">Invoice Details</div>
 
             <Separator className="my-2" />
             <ul className="grid gap-3">
@@ -104,13 +112,78 @@ const InvoiceSummary = () => {
                 <span className="text-muted-foreground">Discount</span>
                 <span className="text-right">KSH {discount ?? "0.00"}</span>
               </li>
-
+              <Separator className="my-2" />
               <li className="flex items-center justify-between font-semibold">
                 <span className="text-muted-foreground">Total</span>
 
                 <span>KSH {total + discount}</span>
               </li>
+              <li className="flex items-center justify-between font-semibold">
+                <span className="text-green-900/80">Paid</span>
+                <span className="text-right">KSH {totalPaid ?? "0.00"}</span>
+              </li>
+              <li className="flex items-center justify-between font-semibold">
+                <span className="text-orange-900/80">Balance</span>
+                <span className="text-right text-orange-900/80">
+                  KSH {total - totalPaid ?? "0.00"}
+                </span>
+              </li>
             </ul>
+          </div>
+          <Separator className="my-4" />
+
+          <div className="grid gap-3">
+            <div className="font-semibold">Payment Details</div>
+            {paymentCarts.map((cart, index) => (
+              <ul key={index} className="grid gap-3">
+                <li className="flex items-center ">
+                  <span className="font-medium text-gray-600">
+                    {cart.paymentType}
+                  </span>
+                </li>
+                {cart.payments.map((detail, index) => (
+                  <ul key={index} className="grid gap-3 font-normal">
+                    <li className="flex items-center justify-between">
+                      <span className="text-muted-foreground">
+                        {detail.TransID}
+                      </span>
+                      <span className="overflow-hidden text-clip text-center">
+                        {detail.name}
+                      </span>
+                      <span className="text-right">{detail.TransAmount}</span>
+                      <span className="text-right">
+                        <XIcon
+                          onClick={() =>
+                            removeItemFromPayments(
+                              cart.paymentType!,
+                              detail.TransID,
+                            )
+                          }
+                          className="h-3 w-3 cursor-pointer hover:h-4 hover:w-4"
+                        />
+                      </span>
+                    </li>
+                  </ul>
+                ))}
+              </ul>
+            ))}
+
+            {/* <ul className="grid gap-3">
+              <li className="flex items-center justify-between">
+                <span className="text-muted-foreground">MPESA</span>
+                <span className="text-right">KSH {total ?? "0.00"}</span>
+              </li>
+              <li className="flex items-center justify-between">
+                <span className="text-muted-foreground">CASH SALES</span>
+                <span className="text-right">KSH {discount ?? "0.00"}</span>
+              </li>
+
+              <li className="flex items-center justify-between font-semibold">
+                <span className="text-muted-foreground">Balance</span>
+
+                <span>KSH {total + discount}</span>
+              </li>
+            </ul> */}
           </div>
 
           <Separator className="my-4" />
@@ -121,14 +194,14 @@ const InvoiceSummary = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  className=" h-12 w-full justify-center  gap-1 "
-                  onClick={() => handleHoldCart()}
+                  className=" h-12 w-full justify-center gap-1 "
+                  // onClick={handleClearCart}
                 >
-                  <PauseCircleIcon className="h-4 w-4 text-green-800" />
-                  Hold Transaction
+                  <BookmarkCheckIcon className="h-4 w-4 text-left text-blue-800" />
+                  Process Transaction
                 </Button>
-                {/* <span className="sr-only">More</span> */}
               </div>
+
               <div className="flex items-center ">
                 <Button
                   size="sm"
@@ -136,9 +209,21 @@ const InvoiceSummary = () => {
                   className=" h-12 w-full justify-center gap-1 "
                   onClick={handleClearCart}
                 >
-                  <Trash2Icon className="h-4 w-4 text-red-800" />
-                  Delete Transaction
+                  <Trash2Icon className="h-4 w-4 text-left text-red-800" />
+                  <span className="text-center">Delete Transaction</span>
                 </Button>
+              </div>
+              <div className="flex items-center ">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className=" h-12 w-full   gap-1 "
+                  onClick={() => handleHoldCart()}
+                >
+                  <PauseCircleIcon className="h-4 w-4 text-left text-green-800" />
+                  <span className=" text-center">Hold Transaction</span>
+                </Button>
+                {/* <span className="sr-only">More</span> */}
               </div>
             </dl>
           </div>

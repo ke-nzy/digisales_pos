@@ -17,11 +17,11 @@ export default function HomePage() {
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>
-      <div className="flex min-h-[69vh] flex-col items-start gap-4  md:flex-row ">
+      <div className="flex min-h-[69vh] w-full flex-col items-start gap-4  md:flex-row ">
         <div className="">
           <ShoppingCart />
         </div>
-        <div className=" sticky top-0 overflow-hidden ">
+        <div className=" sticky top-0  flex-grow overflow-hidden ">
           <InvoiceSummary />
         </div>
       </div>

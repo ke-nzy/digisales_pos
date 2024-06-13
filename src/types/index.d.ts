@@ -166,3 +166,17 @@ declare type Cart = {
   cart_id: string;
   items: DirectSales[];
 };
+
+// Payment Types
+declare type Payment = {
+  Auto: number | string;
+  name: string;
+  TransID: number | string;
+  TransAmount: number | string;
+  TransTime: number | string;
+};
+
+declare type PaymentCart = {
+  paymentType?: string;
+  payments: Payment[];
+};

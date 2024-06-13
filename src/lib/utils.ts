@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
+import { type ColumnDef } from "@tanstack/react-table";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -54,3 +55,31 @@ export const calculateDiscount = (cart: Cart): number => {
     return total + parseInt(cartItem.discount ?? "0.00");
   }, 0);
 };
+
+export const tallyTotalAmountPaid = (paymentCarts: PaymentCart[]): number => {
+  return paymentCarts.reduce((total, cart) => {
+    const cartTotal = cart.payments.reduce((cartSum, payment) => {
+      const amount =
+        typeof payment.TransAmount === "string"
+          ? parseFloat(payment.TransAmount)
+          : payment.TransAmount;
+      return cartSum + (isNaN(amount) ? 0 : amount);
+    }, 0);
+    return total + cartTotal;
+  }, 0);
+};
+
+export const paymentColumns: ColumnDef<Payment>[] = [
+  {
+    accessorKey: "TransID",
+    header: "RefNo",
+  },
+  {
+    accessorKey: "name",
+    header: "Name",
+  },
+  {
+    accessorKey: "TransAmount",
+    header: "Amnt",
+  },
+];
