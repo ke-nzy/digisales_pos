@@ -97,7 +97,7 @@ const ItemSearchBox = () => {
   };
 
   useEffect(() => {
-    if (searchTerm.length >= 8 && item) {
+    if (searchTerm.length >= 13 && item) {
       if (details) {
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
@@ -112,7 +112,7 @@ const ItemSearchBox = () => {
         addItemToCart(directSalesItem);
         setSearchTerm("");
       }
-    } else if (searchTerm.length >= 8) {
+    } else if (searchTerm.length >= 13) {
       toast.error("Item not found in inventory");
       setSearchTerm(""); // Clear the input field
     }

@@ -14,12 +14,12 @@
 - [x] Add Payment Store with Zustand
 - [x] Add Payment Methods
 - [x] Add Cart Holding Functionality
-- [ ] Add Submit Sale Functionality
+- [x] Add Submit Sale Functionality
+- [ ] Add Inventory Reports
+- [ ] Add Sales Reports
 - [ ] Add Discount and Delete Functionality on Cart
 - [ ] Add Cart Editing Restrictions
 - [ ] Add Inventory Requisitions
-- [ ] Add Inventory Reports
-- [ ] Add Sales Reports
 - [ ] Send Held Cart to DB Functionality
 - [ ] Add Payment in installments
 - [ ] Add Push Notification Hook
