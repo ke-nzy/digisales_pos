@@ -196,7 +196,7 @@ const InvoiceSummary = () => {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={() => handleProcessInvoice()}>Submit</Button>
+                  <Button onClick={() => setDialogOpen(true)}>Submit</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
