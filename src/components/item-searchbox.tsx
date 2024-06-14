@@ -160,7 +160,7 @@ const ItemSearchBox = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Dialog open={dialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant={"default"} onClick={() => setDialogOpen(true)}>
               Pay Now

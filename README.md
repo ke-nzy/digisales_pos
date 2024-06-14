@@ -10,18 +10,18 @@
 - [x] Setup Cart Slice with Zustand
 - [x] Add cart Store to indexedDB and Backend
 - [x] Modify Order Summary to show totals and discounts
-- [ ] Add Payment Modal
-- [ ] Add Payment Store with Zustand
-- [ ] Add Payment in installments
-- [ ] Add Payment Methods
-- [ ] Add Cart Holding Functionality
+- [x] Add Payment Modal
+- [x] Add Payment Store with Zustand
+- [x] Add Payment Methods
+- [x] Add Cart Holding Functionality
+- [ ] Add Submit Sale Functionality
 - [ ] Add Discount and Delete Functionality on Cart
 - [ ] Add Cart Editing Restrictions
-- [ ] Add Push Notification Hook
-- [ ] Scaffold basic payment modal
-- [ ] Fetch All Transactions
-- [ ] Error Handling (Sentry)
-- [ ] Fetch Sales Reports
 - [ ] Add Inventory Requisitions
 - [ ] Add Inventory Reports
 - [ ] Add Sales Reports
+- [ ] Send Held Cart to DB Functionality
+- [ ] Add Payment in installments
+- [ ] Add Push Notification Hook
+- [ ] Fetch All Transactions
+- [ ] Error Handling (Sentry)
