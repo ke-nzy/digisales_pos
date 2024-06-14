@@ -180,3 +180,17 @@ declare type PaymentCart = {
   paymentType?: string;
   payments: Payment[];
 };
+
+declare type SalesReceiptInformation = {
+  controlCode: string;
+  middlewareInvoiceNumber: string;
+  mpesaRef: string | null;
+  posSaleInsertId: number;
+  qrCode: string;
+  qrDate: string;
+  ttpAuto: string | null;
+  weight: string;
+  delNo: string;
+  invNo: string;
+  message: "Success" | object;
+};

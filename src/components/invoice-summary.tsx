@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -33,11 +33,31 @@ import {
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
 import { usePayStore } from "~/store/pay-store";
+import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
+import { useAuthStore } from "~/store/auth-store";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+  DialogFooter,
+} from "./ui/dialog";
+import { Label } from "./ui/label";
+import { CustomerComboBox } from "./common/customercombo";
+import { useCustomers } from "~/hooks/use-customer-payments";
 
 const InvoiceSummary = () => {
   const { currentCart, clearCart, holdCart } = useCartStore();
+  const [isLoading, setIsLoading] = useState<boolean | null>(null);
   const { paymentCarts, removeItemFromPayments } = usePayStore();
-  console.log("paymentCart", paymentCarts);
+  const { site_url, site_company, account } = useAuthStore();
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  console.log("paymentCart", selectedCustomer);
 
   const invNo = generateRandomString(8);
   const total = calculateCartTotal(currentCart!);
@@ -53,13 +73,62 @@ const InvoiceSummary = () => {
     toast.success("Cart held successfully");
   };
 
+  const { customer, error, loading } = useCustomers();
+
+  const handleProcessInvoice = async () => {
+    if (isLoading) {
+      return;
+    }
+    if (!currentCart) {
+      toast.error("Please add items to cart");
+      // setIsLoading(false);
+      return;
+    }
+    if (!selectedCustomer) {
+      toast.error("Please select a customer");
+      // setIsLoading(false);
+      return;
+    }
+
+    if (totalPaid < total - discount) {
+      toast.error("Insufficient funds");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const result = await submit_direct_sale_request(
+      site_url!,
+      site_company!.company_prefix,
+      account!.id,
+      account!.user_id,
+      currentCart.items,
+      selectedCustomer,
+      paymentCarts,
+      selectedCustomer.br_name,
+      Date.now(),
+    );
+    console.log("result", result);
+    if (!result) {
+      // sentry.captureException(result);
+      toast.error("Transaction failed");
+      setIsLoading(false);
+      return;
+    }
+
+    // process receipt
+
+    toast.success("Invoice processed successfully");
+    // clearCart();
+  };
+
   if (!currentCart) return null;
 
   return (
     <div className="">
       <Card className="h-full  ">
         <CardHeader className="flex flex-row items-start bg-muted/50">
-          <div className="grid gap-0.5">
+          <div className="grid gap-2">
             <CardTitle className="group flex items-center gap-2 text-lg">
               Invoice {invNo}
               {/* <Button
@@ -77,12 +146,60 @@ const InvoiceSummary = () => {
           </div>
 
           <div className="ml-auto flex items-center gap-1">
-            <Button size="sm" variant="outline" className="h-8 gap-1">
-              <BookmarkCheckIcon className="h-3.5 w-3.5" />
-              <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-                Process Transaction
-              </span>
-            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => setDialogOpen(true)}
+                  className="ml-4 h-8 gap-1"
+                >
+                  <BookmarkCheckIcon className="h-3.5 w-3.5" />
+                  <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
+                    Process Transaction
+                  </span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Checkout</DialogTitle>
+                  <DialogDescription></DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <ul className="grid gap-3">
+                      <li className="flex items-center justify-between font-semibold">
+                        <span className="text-muted-foreground">Total</span>
+
+                        <span>KSH {total + discount}</span>
+                      </li>
+                      <li className="flex items-center justify-between font-semibold">
+                        <span className="text-green-900/80">Paid</span>
+                        <span className="text-right">
+                          KSH {totalPaid ?? "0.00"}
+                        </span>
+                      </li>
+                      <li className="flex items-center justify-between font-semibold">
+                        <span className="text-orange-900/80">Balance</span>
+                        <span className="text-right text-orange-900/80">
+                          KSH {total - totalPaid ?? "0.00"}
+                        </span>
+                      </li>
+                      <Separator className="my-2" />
+                      <Label>Select Customer</Label>
+                      <CustomerComboBox
+                        type="Customer"
+                        data={customer}
+                        setSelected={setSelectedCustomer}
+                      />
+                    </ul>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => handleProcessInvoice()}>Submit</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="outline" className="h-8 w-8">
@@ -195,7 +312,7 @@ const InvoiceSummary = () => {
                   size="sm"
                   variant="outline"
                   className=" h-12 w-full justify-center gap-1 "
-                  // onClick={handleClearCart}
+                  onClick={() => handleProcessInvoice()}
                 >
                   <BookmarkCheckIcon className="h-4 w-4 text-left text-blue-800" />
                   Process Transaction
@@ -207,7 +324,7 @@ const InvoiceSummary = () => {
                   size="sm"
                   variant="outline"
                   className=" h-12 w-full justify-center gap-1 "
-                  onClick={handleClearCart}
+                  onClick={() => handleClearCart()}
                 >
                   <Trash2Icon className="h-4 w-4 text-left text-red-800" />
                   <span className="text-center">Delete Transaction</span>

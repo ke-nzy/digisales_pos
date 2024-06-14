@@ -57,8 +57,8 @@ const ItemSearchBox = () => {
         Auto: "101486",
         name: "LUCY W KIRURI",
         TransID: "QAA5E62PK3",
-        TransAmount: "81400",
-        TransTime: "20220110094602",
+        TransAmount: "600",
+        TransTime: "20240614094602",
       },
       {
         Auto: "101482",
@@ -70,14 +70,14 @@ const ItemSearchBox = () => {
     ],
   };
   const at = {
-    paymentType: "Cash Accounts",
+    paymentType: "CASH",
     payments: [
       {
         Auto: "101463",
         name: "JOYCE WANGARI WARUGURU",
         TransID: "QA97DL3MD5",
-        TransAmount: "18400",
-        TransTime: "20220109195357",
+        TransAmount: "600",
+        TransTime: "1718365989933",
       },
       {
         Auto: "101462",
@@ -97,7 +97,7 @@ const ItemSearchBox = () => {
   };
 
   useEffect(() => {
-    if (searchTerm.length >= 13 && item) {
+    if (searchTerm.length >= 8 && item) {
       if (details) {
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
@@ -112,7 +112,7 @@ const ItemSearchBox = () => {
         addItemToCart(directSalesItem);
         setSearchTerm("");
       }
-    } else if (searchTerm.length >= 13) {
+    } else if (searchTerm.length >= 8) {
       toast.error("Item not found in inventory");
       setSearchTerm(""); // Clear the input field
     }

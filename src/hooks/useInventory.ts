@@ -25,6 +25,8 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
       return inventory;
     }
   }
+
+  // Fetch from API
   const sellable = await fetch_all_sellable_items(
     site_company!,
     account!,
