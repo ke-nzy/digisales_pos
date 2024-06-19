@@ -17,12 +17,13 @@
 - [x] Add Submit Sale Functionality
 - [x] Add Inventory Reports
 - [x] Add Sales Reports
-- [ ] Add Loaders to Reports
+- [x] Add Loaders to Reports
 - [ ] Add Discount and Delete Functionality on Cart
 - [ ] Add Cart Editing Restrictions
-- [ ] Add Inventory Requisitions
+- [ ] Add Payment Pages instead of Modal
 - [ ] Add Payment in installments
+- [ ] Fetch All Transactions
+- [ ] Add Inventory Requisitions
 - [ ] Send Held Cart to DB Functionality
 - [ ] Add Push Notification Hook
-- [ ] Fetch All Transactions
 - [ ] Error Handling (Sentry)
