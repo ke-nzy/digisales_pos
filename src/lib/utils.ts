@@ -165,3 +165,39 @@ export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
     },
   },
 ];
+
+export const cartColumns: ColumnDef<DirectSales>[] = [
+  {
+    id: "description",
+    accessorKey: "item.description",
+    header: "Item Name",
+  },
+
+  {
+    accessorKey: "quantity",
+    header: "Quantity",
+  },
+  {
+    accessorKey: "details.price",
+    header: "Unit Price",
+  },
+  {
+    accessorKey: "details.quantity_available",
+    header: "Stock Available",
+  },
+  {
+    id: "total",
+    header: "Total",
+    cell: (props) => {
+      const row = props.row.original;
+      const rowTotal =
+        parseInt(row.quantity.toString()) *
+        parseFloat(row.details.price.toString());
+      return React.createElement(
+        "span",
+        { className: "text-right" },
+        rowTotal.toFixed(2),
+      );
+    },
+  },
+];

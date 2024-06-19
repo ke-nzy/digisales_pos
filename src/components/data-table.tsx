@@ -81,7 +81,7 @@ export function DataTable<TData, TValue>({
     <>
       <div className="flex items-center py-4">
         <Input
-          placeholder={`Find ${filCol}...`}
+          placeholder={`Find Item...`}
           onChange={(event) =>
             table.getColumn(filCol)?.setFilterValue(event.target.value)
           }

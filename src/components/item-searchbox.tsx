@@ -97,7 +97,7 @@ const ItemSearchBox = () => {
   };
 
   useEffect(() => {
-    if (searchTerm.length >= 13 && item) {
+    if (item) {
       if (details) {
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
