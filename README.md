@@ -15,13 +15,14 @@
 - [x] Add Payment Methods
 - [x] Add Cart Holding Functionality
 - [x] Add Submit Sale Functionality
-- [ ] Add Inventory Reports
-- [ ] Add Sales Reports
+- [x] Add Inventory Reports
+- [x] Add Sales Reports
+- [ ] Add Loaders to Reports
 - [ ] Add Discount and Delete Functionality on Cart
 - [ ] Add Cart Editing Restrictions
 - [ ] Add Inventory Requisitions
-- [ ] Send Held Cart to DB Functionality
 - [ ] Add Payment in installments
+- [ ] Send Held Cart to DB Functionality
 - [ ] Add Push Notification Hook
 - [ ] Fetch All Transactions
 - [ ] Error Handling (Sentry)

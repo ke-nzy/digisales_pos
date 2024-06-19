@@ -118,6 +118,25 @@ const ItemSearchBox = () => {
     }
   }, [searchTerm, item, details, addItemToCart]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "F1") {
+        itemSearchRef.current?.focus();
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F9") {
+        setDialogOpen(true);
+        event.preventDefault(); // Optional: Prevents the default browser action for F9
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   if (loading || detailsLoading)
     return (
       <div className="max-w-full animate-pulse">
@@ -161,7 +180,7 @@ const ItemSearchBox = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger asChild className="flex md:hidden">
             <Button variant={"default"} onClick={() => setDialogOpen(true)}>
               Pay Now
             </Button>

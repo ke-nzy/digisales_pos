@@ -1,9 +1,9 @@
-import { ContentLayout } from "~/components/common/content-layout";
+import { DashboardLayout } from "~/components/common/dashboard-layout";
 
 export default function POSPage() {
   return (
-    <ContentLayout title="BudgetWear POS">
+    <DashboardLayout title="BudgetWear POS">
       <></>
-    </ContentLayout>
+    </DashboardLayout>
   );
 }

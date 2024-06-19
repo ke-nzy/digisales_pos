@@ -13,11 +13,12 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Input } from "./ui/input";
+import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 
 interface DataTableProps<TData, TValue> {
@@ -120,7 +121,7 @@ export function DataTable<TData, TValue>({
                     handleKeyDown(event, rowIndex, row.original)
                   }
                   onFocus={() => setFocusedRowIndex(rowIndex)}
-                  className={focusedRowIndex === rowIndex ? "bg-red-400" : ""}
+                  className={focusedRowIndex === rowIndex ? "bg-gray-100" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -143,6 +144,43 @@ export function DataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            {table.getFooterGroups().map((footerGroup) => (
+              <TableRow key={footerGroup.id}>
+                {footerGroup.headers.length > 0 &&
+                  footerGroup.headers.map((footer) => {
+                    return (
+                      <TableCell key={footer.id}>
+                        {footer.isPlaceholder
+                          ? null
+                          : flexRender(
+                              footer.column.columnDef.footer,
+                              footer.getContext(),
+                            )}
+                      </TableCell>
+                    );
+                  })}
+              </TableRow>
+            ))}
+          </TableFooter>
+          {/* <TableFooter>
+            {table.getFooterGroups().map((footerGroup) => (
+              <TableRow key={footerGroup.id}>
+                {footerGroup.headers.map((footer) => {
+                  return (
+                    <TableCell key={footer.id}>
+                      {footer.isPlaceholder
+                        ? null
+                        : flexRender(
+                            footer.column.columnDef.footer,
+                            footer.getContext(),
+                          )}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableFooter> */}
         </Table>
       </div>
     </>

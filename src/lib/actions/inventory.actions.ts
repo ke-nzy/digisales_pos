@@ -84,3 +84,33 @@ export async function fetch_item_details(
     return null;
   }
 }
+
+export async function fetch_branch_inventory(
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+  site_url: string,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "userStoreBalance");
+  form_data.append("cp", site_company.company_prefix);
+  form_data.append("id", account.id);
+  form_data.append("loc_code", account.default_store);
+
+  try {
+    const response = await axios.postForm<StockItem[]>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    if ((response as unknown as string) === "") {
+      console.error("tp: userStoreBalance failed");
+      //    Add sentry here
+      return [];
+    }
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(error);
+    }
+    return null;
+  }
+}

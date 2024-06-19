@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toDate } from "../utils";
 
 export async function fetch_sites(site: string) {
   const form = new FormData();
@@ -123,6 +124,41 @@ export async function fetch_user_roles(
     return response.data;
   } catch (e) {
     console.log(e);
+    return null;
+  }
+}
+
+export async function fetch_sales_person_summary_report(
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+  site_url: string,
+  sdate: Date,
+  edate: Date,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "salespersonitemsales");
+  form_data.append("cp", site_company.company_prefix);
+  form_data.append("id", account.id);
+  form_data.append("sdate", "2024-05-01");
+  form_data.append("edate", "2024-06-30");
+
+  try {
+    const response = await axios.postForm<SalesReportItem[]>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    if ((response as unknown as string) === "") {
+      console.error("tp: userStoreBalance failed");
+      //    Add sentry here
+      return [];
+    }
+    console.log("response", response.data);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(error);
+    }
     return null;
   }
 }

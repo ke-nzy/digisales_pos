@@ -194,3 +194,18 @@ declare type SalesReceiptInformation = {
   invNo: string;
   message: "Success" | object;
 };
+
+declare type StockItem = {
+  stock_id: string;
+  item: string;
+  balance: string;
+};
+
+declare type SalesReportItem = {
+  stock_id: string;
+  description: string;
+  unit_price: string;
+  quantity: string;
+  category_name: string;
+  parent_item: string;
+};

@@ -2,9 +2,18 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
+import React from "react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function toDate(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1 < 10 ? "0" : ""}${date.getMonth() + 1}`;
+  const day = `${date.getDate() < 10 ? "0" : ""}${date.getDate()}`;
+
+  return `${year}-${month}-${day}`;
 }
 
 export const authFormSchema = () =>
@@ -81,5 +90,78 @@ export const paymentColumns: ColumnDef<Payment>[] = [
   {
     accessorKey: "TransAmount",
     header: "Amnt",
+  },
+];
+
+export const inventoryColumns: ColumnDef<StockItem>[] = [
+  {
+    accessorKey: "stock_id",
+    header: "Item Code",
+  },
+  {
+    accessorKey: "item",
+    header: "Item Name",
+  },
+  {
+    accessorKey: "balance",
+    header: "Balance",
+  },
+  {
+    id: "actions",
+  },
+];
+
+export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
+  {
+    accessorKey: "stock_id",
+    header: "Item Code",
+    footer: "Total",
+  },
+  {
+    accessorKey: "category_name",
+    header: "Category",
+  },
+
+  {
+    accessorKey: "parent_item",
+    header: "Item Type",
+  },
+  {
+    accessorKey: "description",
+    header: "Item Name",
+  },
+  {
+    accessorKey: "unit_price",
+    header: "Unit Price",
+  },
+  {
+    accessorKey: "quantity",
+    header: "Quantity",
+  },
+  {
+    id: "total",
+    header: "Total",
+    cell: (props) => {
+      const row = props.row.original;
+      const rowTotal = parseInt(row.quantity) * parseFloat(row.unit_price);
+      return React.createElement(
+        "span",
+        { className: "text-right" },
+        rowTotal.toFixed(2),
+      );
+    },
+    footer: (props) => {
+      const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
+        const rowData = row.original;
+        return (
+          sum + parseInt(rowData.quantity) * parseFloat(rowData.unit_price)
+        );
+      }, 0);
+      return React.createElement(
+        "span",
+        { className: "text-right" },
+        total.toFixed(2),
+      );
+    },
   },
 ];

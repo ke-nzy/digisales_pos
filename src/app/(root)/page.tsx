@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { ContentLayout } from "~/components/common/content-layout";
+
 import { useAuthStore } from "~/store/auth-store";
 const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
   ssr: false,
@@ -12,21 +13,28 @@ const InvoiceSummary = dynamic(() => import("~/components/invoice-summary"), {
   ssr: false,
 });
 
+const TotalSummary = dynamic(() => import("~/components/total-summary"), {
+  ssr: false,
+});
+
 export default function HomePage() {
   const { site_company } = useAuthStore();
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>
-      <div className="flex min-h-[69vh] w-full flex-col items-start gap-4  md:flex-row ">
-        <div className="">
-          <ShoppingCart />
+      <div className=" sticky top-0 z-10 mb-4 bg-zinc-50 py-2  dark:bg-zinc-900">
+        <ItemSearchBox />
+      </div>
+      <div className="no-scrollbar relative flex w-full  flex-col items-start gap-4 overflow-y-hidden md:flex-row">
+        <div className="no-scrollbar relative flex w-full flex-col md:w-auto">
+          <div className="relative flex-grow">
+            <ShoppingCart />
+          </div>
+          <TotalSummary />
         </div>
-        <div className=" sticky top-0  flex-grow overflow-hidden ">
+        <div className="no-scrollbar sticky top-0 h-full flex-grow overflow-hidden">
           <InvoiceSummary />
         </div>
-      </div>
-      <div className=" sticky bottom-0 z-10 mt-4 bg-zinc-50 p-2  dark:bg-zinc-900">
-        <ItemSearchBox />
       </div>
     </ContentLayout>
   );
