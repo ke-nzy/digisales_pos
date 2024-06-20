@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardHeader } from "~/components/ui/card";
 import {
+  CaptionsOffIcon,
   EllipsisIcon,
   LogOutIcon,
   // CopyIcon,
@@ -26,6 +27,7 @@ import {
 import {
   calculateCartTotal,
   calculateDiscount,
+  cn,
   generateRandomString,
   tallyTotalAmountPaid,
 } from "~/lib/utils";
@@ -53,7 +55,14 @@ import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 
 const InvoiceSummary = () => {
-  const { currentCart, clearCart, holdCart } = useCartStore();
+  const {
+    currentCart,
+    clearCart,
+    holdCart,
+    selectedCartItem,
+    setSelectedCartItem,
+    deleteItemFromCart,
+  } = useCartStore();
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const [isLoading, setIsLoading] = useState<boolean | null>(null);
   const { paymentCarts, removeItemFromPayments } = usePayStore();
@@ -62,7 +71,25 @@ const InvoiceSummary = () => {
     null,
   );
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  console.log("paymentCart", selectedCustomer);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedCartItem(null);
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      // if (event.key === "F9") {
+      //   setDialogOpen(true);
+      //   event.preventDefault(); // Optional: Prevents the default browser action for F9
+      // }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const invNo = generateRandomString(8);
   const total = calculateCartTotal(currentCart!);
@@ -378,10 +405,36 @@ const InvoiceSummary = () => {
     // </Card>
     <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
       <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <Card className="p-6">
+        <Card
+          className={cn(
+            "py-6",
+            selectedCartItem
+              ? "cursor-pointer bg-red-500"
+              : "cursor-pointer hover:bg-accent focus:bg-accent",
+          )}
+          onClick={() => {
+            if (selectedCartItem) {
+              deleteItemFromCart(selectedCartItem);
+            } else {
+              toast.error("Please select an item to delete");
+            }
+          }}
+        >
           <CardHeader className="flex-col items-center justify-center p-0 text-sm">
-            <Trash2Icon className="h-8 w-8  text-red-500" />
-            <h4 className="text-center text-sm font-normal">Delete</h4>
+            <Trash2Icon
+              className={cn(
+                "h-8 w-8",
+                selectedCartItem ? "text-white" : "text-zinc-400",
+              )}
+            />
+            <h4
+              className={cn(
+                "text-center text-sm font-normal",
+                selectedCartItem ? "text-white" : "text-zinc-400",
+              )}
+            >
+              Delete
+            </h4>
           </CardHeader>
         </Card>
         <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
@@ -399,16 +452,40 @@ const InvoiceSummary = () => {
               F4
             </h6>
             <ShoppingBasketIcon className="h-8 w-8 " />
-            <h4 className="text-center text-sm font-normal">Quantity</h4>
+            <h4 className="text-center text-sm font-normal">Edit</h4>
           </CardHeader>
         </Card>
-        <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+        <Card
+          className={cn(
+            "",
+            selectedCartItem
+              ? "cursor-pointer bg-blue-500"
+              : "hover:bg-accent focus:bg-accent",
+          )}
+        >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
-            <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F8
+            <h6
+              className={cn(
+                "self-start text-left text-xs font-semibold",
+                selectedCartItem ? "text-white" : "text-muted-foreground",
+              )}
+            >
+              F2
             </h6>
-            <PlusIcon className="h-8 w-8 " />
-            <h4 className="text-center text-sm font-normal">New Sale</h4>
+            <PercentIcon
+              className={cn(
+                "h-8 w-8",
+                selectedCartItem ? "text-white" : "text-zinc-400",
+              )}
+            />
+            <h4
+              className={cn(
+                "text-center text-sm font-normal",
+                selectedCartItem ? "text-white" : "text-zinc-400",
+              )}
+            >
+              Discount
+            </h4>
           </CardHeader>
         </Card>
       </div>
@@ -417,14 +494,14 @@ const InvoiceSummary = () => {
         <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F2
+              F8
             </h6>
-            <PercentIcon className="h-8 w-8  " />
-            <h4 className="text-center text-sm font-normal">Discount</h4>
+            <CaptionsOffIcon className="h-8 w-8 " />
+            <h4 className="text-center text-sm font-normal">Close Register</h4>
           </CardHeader>
         </Card>
         <Card
-          className="cursor-pointer hover:bg-accent focus:bg-accent"
+          className="cursor-pointer py-4 hover:bg-accent focus:bg-accent"
           onClick={() => handleClearCart()}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
@@ -436,7 +513,7 @@ const InvoiceSummary = () => {
         </Card>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+            <Card className="cursor-pointer py-2 hover:bg-accent focus:bg-accent">
               <CardHeader className="flex-col items-center justify-center  p-2 ">
                 <User2Icon className="h-8 w-8 " />
                 <h4 className="text-center text-sm font-normal">

@@ -6,6 +6,8 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -35,6 +37,7 @@ export function DataTable<TData, TValue>({
   onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -43,8 +46,12 @@ export function DataTable<TData, TValue>({
     columns,
     state: {
       rowSelection: rowSelection,
+      sorting,
     },
+
     getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
     enableRowSelection: true,
     enableMultiRowSelection: true,
     getFilteredRowModel: getFilteredRowModel(),

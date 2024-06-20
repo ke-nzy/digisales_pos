@@ -1,7 +1,11 @@
 "use client";
 import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import { DateRangePicker } from "~/components/common/date-range-picker";
 import { DataTable } from "~/components/data-table";
+import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
+import { Shell } from "~/components/shell";
+import { Skeleton } from "~/components/ui/skeleton";
 import { useSalesReport } from "~/hooks/use-reports";
 import { salesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
@@ -73,14 +77,35 @@ const SalesReports = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            <DataTable
-              columns={salesReportColumns}
-              data={salesReport}
-              filCol="stock_id"
-              onRowClick={(rowData) => console.log(rowData)}
-            />
-          </div>
+          <Shell className="gap-2">
+            <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+              <DateRangePicker
+                triggerSize="sm"
+                triggerClassName="ml-auto w-56 sm:w-60"
+                align="end"
+              />
+            </React.Suspense>
+            <React.Suspense
+              fallback={
+                <DataTableSkeleton
+                  columnCount={5}
+                  searchableColumnCount={1}
+                  filterableColumnCount={2}
+                  cellWidths={["10rem", "40rem", "12rem", "12rem", "8rem"]}
+                  shrinkZero
+                />
+              }
+            >
+              <div className="flex flex-col gap-4">
+                <DataTable
+                  columns={salesReportColumns}
+                  data={salesReport}
+                  filCol="stock_id"
+                  onRowClick={(rowData) => console.log(rowData)}
+                />
+              </div>
+            </React.Suspense>
+          </Shell>
         )}
       </main>
     </DashboardLayout>

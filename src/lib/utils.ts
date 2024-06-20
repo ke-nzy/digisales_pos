@@ -93,23 +93,23 @@ export const paymentColumns: ColumnDef<Payment>[] = [
   },
 ];
 
-export const inventoryColumns: ColumnDef<StockItem>[] = [
-  {
-    accessorKey: "stock_id",
-    header: "Item Code",
-  },
-  {
-    accessorKey: "item",
-    header: "Item Name",
-  },
-  {
-    accessorKey: "balance",
-    header: "Balance",
-  },
-  {
-    id: "actions",
-  },
-];
+// export const inventoryColumns: ColumnDef<StockItem>[] = [
+//   {
+//     accessorKey: "stock_id",
+//     header: "Item Code",
+//   },
+//   {
+//     accessorKey: "item",
+//     header: "Item Name",
+//   },
+//   {
+//     accessorKey: "balance",
+//     header: "Balance",
+//   },
+//   {
+//     id: "actions",
+//   },
+// ];
 
 export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
   {

@@ -3,17 +3,21 @@ import { create } from "zustand";
 import { setCart, getCart, deleteCart } from "~/utils/indexeddb";
 
 interface CartState {
+  selectedCartItem: DirectSales | null;
   currentCart: Cart | null;
   addItemToCart: (item: DirectSales) => void;
+  deleteItemFromCart: (item: DirectSales) => void;
   saveCart: () => void;
   clearCart: () => void;
   loadCart: (cart_id: string) => void;
   holdCart: () => void;
+  setSelectedCartItem: (item: DirectSales | null) => void;
 }
 
 const LOCAL_STORAGE_KEY = "currentCart";
 
 export const useCartStore = create<CartState>((set, get) => ({
+  selectedCartItem: null,
   currentCart: null,
   addItemToCart: (item: DirectSales) => {
     const state = get();
@@ -70,6 +74,25 @@ export const useCartStore = create<CartState>((set, get) => ({
       }
     }
   },
+  deleteItemFromCart: (item: DirectSales) => {
+    const state = get();
+    if (state.currentCart) {
+      const updatedItems = state.currentCart.items.filter(
+        (cartItem) => cartItem.item.description !== item.item.description,
+      );
+
+      const updatedCart: Cart = {
+        ...state.currentCart,
+        items: updatedItems,
+      };
+
+      set({ currentCart: updatedCart });
+      setCart(updatedCart).catch((error) =>
+        console.error("Failed to update cart:", error),
+      );
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
+    }
+  },
   saveCart: () => {
     const state = get();
     if (state.currentCart) {
@@ -112,6 +135,9 @@ export const useCartStore = create<CartState>((set, get) => ({
   holdCart: () => {
     set({ currentCart: null });
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+  },
+  setSelectedCartItem: (item: DirectSales | null) => {
+    set({ selectedCartItem: item });
   },
 }));
 

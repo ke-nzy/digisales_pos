@@ -209,3 +209,10 @@ declare type SalesReportItem = {
   category_name: string;
   parent_item: string;
 };
+
+declare type DataTableFilterField<TData> = {
+  label: string;
+  value: keyof TData;
+  placeholder?: string;
+  options?: Option[];
+};

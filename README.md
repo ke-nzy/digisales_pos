@@ -18,12 +18,20 @@
 - [x] Add Inventory Reports
 - [x] Add Sales Reports
 - [x] Add Loaders to Reports
-- [ ] Add Discount and Delete Functionality on Cart
+- [ ] Add Discount, Edit and Delete Functionality on Cart
 - [ ] Add Cart Editing Restrictions
+- [ ] Add Shift Management Tool - Check-in on Dashboard Check-out on POS or Dashboard
+- [ ] Add General Sales Report using POS Transactions ENdpoint
+- [ ] Generate Z Report at Shift End
+- [ ] use Forward Ref to allow for search functionality
 - [ ] Add Payment Pages instead of Modal
 - [ ] Add Payment in installments
 - [ ] Fetch All Transactions
+- [ ] Finalize Dashboard
+- [ ] Export Reports to CSV and PDF
 - [ ] Add Inventory Requisitions
-- [ ] Send Held Cart to DB Functionality
+- [ ] Send Held Cart to DB Enpoint
+- [ ] Pull Held Cart Reports
+- [ ] Update Cart Held Status
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)

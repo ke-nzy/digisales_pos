@@ -9,7 +9,7 @@ import { cartColumns, cn } from "~/lib/utils";
 import { DataTable } from "./data-table";
 
 const ShoppingCart = () => {
-  const { currentCart } = useCartStore();
+  const { currentCart, setSelectedCartItem } = useCartStore();
   const sidebar = useStore(useSidebarToggle, (state) => state);
 
   return (
@@ -24,7 +24,7 @@ const ShoppingCart = () => {
           columns={cartColumns}
           data={currentCart?.items ?? []}
           filCol="description"
-          onRowClick={(rowData) => console.log(rowData)}
+          onRowClick={(rowData) => setSelectedCartItem(rowData)}
         />
       </CardContent>
     </Card>

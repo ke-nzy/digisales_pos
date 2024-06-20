@@ -1,9 +1,12 @@
 "use client";
 import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import { DateRangePicker } from "~/components/common/date-range-picker";
 import { DataTable } from "~/components/data-table";
+import { Shell } from "~/components/shell";
+import { Skeleton } from "~/components/ui/skeleton";
 import { useBranchInventory } from "~/hooks/useBranchInventory";
-import { inventoryColumns } from "~/lib/utils";
+import { inventoryColumns } from "~/lib/TableUtils";
 import { useAuthStore } from "~/store/auth-store";
 
 const InventoryPage = () => {
@@ -74,12 +77,21 @@ const InventoryPage = () => {
             </div>
           </div>
         ) : (
-          <DataTable
-            columns={inventoryColumns}
-            data={inventory}
-            filCol="stock_id"
-            onRowClick={(rowData) => console.log(rowData)}
-          />
+          <Shell className="gap-2">
+            <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+              <DateRangePicker
+                triggerSize="sm"
+                triggerClassName="ml-auto w-56 sm:w-60"
+                align="end"
+              />
+            </React.Suspense>
+            <DataTable
+              columns={inventoryColumns}
+              data={inventory}
+              filCol="stock_id"
+              onRowClick={(rowData) => console.log(rowData)}
+            />
+          </Shell>
         )}
       </main>
     </DashboardLayout>
