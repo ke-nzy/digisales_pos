@@ -7,6 +7,7 @@ interface CartState {
   currentCart: Cart | null;
   addItemToCart: (item: DirectSales) => void;
   deleteItemFromCart: (item: DirectSales) => void;
+  update_cart_item: (item: DirectSales) => void;
   saveCart: () => void;
   clearCart: () => void;
   loadCart: (cart_id: string) => void;
@@ -32,7 +33,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCart));
     } else {
       const existingItemIndex = state.currentCart.items.findIndex(
-        (cartItem) => cartItem.item.stock_id === item.item.stock_id,
+        (cartItem) =>
+          cartItem.item.stock_id === item.item.stock_id &&
+          cartItem.item.description === item.item.description,
       );
 
       if (existingItemIndex !== -1) {
@@ -92,6 +95,20 @@ export const useCartStore = create<CartState>((set, get) => ({
       );
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
     }
+  },
+  update_cart_item: (item: DirectSales) => {
+    const previous = [...get().currentCart!.items] as DirectSales[];
+    const new_state = previous.map((x) => {
+      if (
+        x.item.stock_id === item.item.stock_id &&
+        x.item.description === item.item.description
+      ) {
+        return item;
+      }
+      return x;
+    });
+
+    set({ currentCart: { ...get().currentCart!, items: new_state } });
   },
   saveCart: () => {
     const state = get();

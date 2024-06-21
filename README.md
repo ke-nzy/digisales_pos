@@ -18,7 +18,7 @@
 - [x] Add Inventory Reports
 - [x] Add Sales Reports
 - [x] Add Loaders to Reports
-- [ ] Add Discount, Edit and Delete Functionality on Cart
+- [x] Add Discount, Edit and Delete Functionality on Cart
 - [ ] Add Cart Editing Restrictions
 - [ ] Add Shift Management Tool - Check-in on Dashboard Check-out on POS or Dashboard
 - [ ] Add General Sales Report using POS Transactions ENdpoint

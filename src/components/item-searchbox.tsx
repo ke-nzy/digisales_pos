@@ -98,7 +98,7 @@ const ItemSearchBox = () => {
 
   useEffect(() => {
     if (item) {
-      if (details) {
+      if (details !== null && details !== undefined) {
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
           user: "current_user",

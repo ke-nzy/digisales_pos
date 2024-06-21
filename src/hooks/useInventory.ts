@@ -74,6 +74,6 @@ export const useItemDetails = (
         kit!,
         undefined,
       ),
-    enabled: !!stock_id && !!kit,
+    // enabled: !!stock_id && !!kit,
   });
 };

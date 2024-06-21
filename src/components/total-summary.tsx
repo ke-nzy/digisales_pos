@@ -25,7 +25,7 @@ const TotalSummary = () => {
         <li className="flex items-center justify-between pb-1 font-semibold">
           <span className="text-muted-foreground">Total</span>
 
-          <span className=" text-base ">KSH {total + discount}</span>
+          <span className=" text-base ">KSH {total - discount}</span>
         </li>
       </ul>
     </div>

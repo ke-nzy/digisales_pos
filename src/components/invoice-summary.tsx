@@ -53,6 +53,7 @@ import { useStore } from "~/hooks/use-store";
 import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 const InvoiceSummary = () => {
   const {
@@ -60,6 +61,7 @@ const InvoiceSummary = () => {
     clearCart,
     holdCart,
     selectedCartItem,
+    update_cart_item,
     setSelectedCartItem,
     deleteItemFromCart,
   } = useCartStore();
@@ -70,7 +72,11 @@ const InvoiceSummary = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
+  const [discountValue, setDiscountValue] = useState<string>("0");
+  const [quantityValue, setQuantityValue] = useState<string>("0");
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [discountDialogOpen, setDiscountDialogOpen] = useState<boolean>(false);
+  const [quantityDialogOpen, setQuantityDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -154,7 +160,70 @@ const InvoiceSummary = () => {
     // clearCart();
   };
 
-  if (!currentCart) return null;
+  const handleDiscountDialogOpen = () => {
+    if (selectedCartItem) {
+      setDiscountDialogOpen(!discountDialogOpen);
+    } else {
+      setDiscountDialogOpen(false);
+      toast.error("Please select an item to discount");
+    }
+  };
+  const handleQuantityDialogOpen = () => {
+    if (selectedCartItem) {
+      setQuantityDialogOpen(!discountDialogOpen);
+    } else {
+      setDiscountDialogOpen(false);
+      toast.error("Please select an item to update");
+    }
+  };
+
+  const handleIssueDiscount = () => {
+    if (selectedCartItem) {
+      if (discountValue === "") {
+        toast.error("Please enter a discount value");
+        return;
+      }
+      update_cart_item({
+        ...selectedCartItem,
+        discount: discountValue,
+        item: {
+          ...selectedCartItem.item,
+          description: `${selectedCartItem.item.description} *`,
+        },
+      });
+
+      setDiscountValue("");
+      setDiscountDialogOpen(false);
+      setSelectedCartItem(null);
+    }
+  };
+
+  const handleQuantityChange = () => {
+    if (selectedCartItem) {
+      if (Number(selectedCartItem.discount) > 0) {
+        toast.error("Discounted items cannot be updated");
+        return;
+      }
+      if (quantityValue === "" || Number(quantityValue) < 0) {
+        toast.error("Please enter a valid quantity");
+        return;
+      }
+      if (Number(quantityValue) > selectedCartItem.details.quantity_available) {
+        toast.error("Quantity exceeds available quantity");
+        return;
+      }
+      update_cart_item({
+        ...selectedCartItem,
+        quantity: Number(quantityValue),
+      });
+
+      setQuantityValue("");
+      setQuantityDialogOpen(false);
+      setSelectedCartItem(null);
+    }
+  };
+
+  // if (!currentCart) return null;
 
   return (
     // <Card className="min-h-[88vh] border-0 bg-zinc-50">
@@ -446,48 +515,130 @@ const InvoiceSummary = () => {
             <h4 className="text-center text-sm font-normal">Search</h4>
           </CardHeader>
         </Card>
-        <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
-          <CardHeader className="flex-col items-center justify-center  p-2 ">
-            <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F4
-            </h6>
-            <ShoppingBasketIcon className="h-8 w-8 " />
-            <h4 className="text-center text-sm font-normal">Edit</h4>
-          </CardHeader>
-        </Card>
-        <Card
-          className={cn(
-            "",
-            selectedCartItem
-              ? "cursor-pointer bg-blue-500"
-              : "hover:bg-accent focus:bg-accent",
-          )}
+        <Dialog
+          open={quantityDialogOpen}
+          onOpenChange={handleQuantityDialogOpen}
         >
-          <CardHeader className="flex-col items-center justify-center  p-2 ">
-            <h6
+          <DialogTrigger asChild>
+            <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+              <CardHeader className="flex-col items-center justify-center  p-2 ">
+                <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
+                  F4
+                </h6>
+                <ShoppingBasketIcon className="h-8 w-8 " />
+                <h4 className="text-center text-sm font-normal">Edit</h4>
+              </CardHeader>
+            </Card>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Modify Cart</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
+                <ul className="grid gap-3">
+                  <li className="flex items-center justify-between font-semibold">
+                    <span className="text-muted-foreground">Item Name</span>
+
+                    <span>{selectedCartItem?.item.description}</span>
+                  </li>
+
+                  <Separator className="my-2" />
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="quantity">New Quantity</Label>
+                    <Input
+                      type="text"
+                      id="quantity"
+                      placeholder={"Update Item Quantity"}
+                      value={quantityValue}
+                      onChange={(e) => setQuantityValue(e.target.value)}
+                    />
+                  </div>
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => handleQuantityChange()}>
+                Update Cart
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Dialog
+          open={discountDialogOpen}
+          onOpenChange={handleDiscountDialogOpen}
+        >
+          <DialogTrigger asChild>
+            <Card
               className={cn(
-                "self-start text-left text-xs font-semibold",
-                selectedCartItem ? "text-white" : "text-muted-foreground",
+                "",
+                selectedCartItem
+                  ? "cursor-pointer bg-blue-500"
+                  : "hover:bg-accent focus:bg-accent",
               )}
             >
-              F2
-            </h6>
-            <PercentIcon
-              className={cn(
-                "h-8 w-8",
-                selectedCartItem ? "text-white" : "text-zinc-400",
-              )}
-            />
-            <h4
-              className={cn(
-                "text-center text-sm font-normal",
-                selectedCartItem ? "text-white" : "text-zinc-400",
-              )}
-            >
-              Discount
-            </h4>
-          </CardHeader>
-        </Card>
+              <CardHeader className="flex-col items-center justify-center  p-2 ">
+                <h6
+                  className={cn(
+                    "self-start text-left text-xs font-semibold",
+                    selectedCartItem ? "text-white" : "text-muted-foreground",
+                  )}
+                >
+                  F2
+                </h6>
+                <PercentIcon
+                  className={cn(
+                    "h-8 w-8",
+                    selectedCartItem ? "text-white" : "text-zinc-400",
+                  )}
+                />
+                <h4
+                  className={cn(
+                    "text-center text-sm font-normal",
+                    selectedCartItem ? "text-white" : "text-zinc-400",
+                  )}
+                >
+                  Discount
+                </h4>
+              </CardHeader>
+            </Card>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Item Discount</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
+                <ul className="grid gap-3">
+                  <li className="flex items-center justify-between font-semibold">
+                    <span className="text-muted-foreground">Item Name</span>
+
+                    <span>{selectedCartItem?.item.description}</span>
+                  </li>
+
+                  <Separator className="my-2" />
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="discount">Discount</Label>
+                    <Input
+                      type="text"
+                      id="discount"
+                      placeholder={"0"}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                    />
+                  </div>
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => handleIssueDiscount()}>
+                Issue Discount
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

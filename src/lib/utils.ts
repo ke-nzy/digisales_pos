@@ -193,10 +193,11 @@ export const cartColumns: ColumnDef<DirectSales>[] = [
       const rowTotal =
         parseInt(row.quantity.toString()) *
         parseFloat(row.details.price.toString());
+      const subTotal = rowTotal - parseInt(row.discount ?? "0.00");
       return React.createElement(
         "span",
         { className: "text-right" },
-        rowTotal.toFixed(2),
+        subTotal.toFixed(2),
       );
     },
   },
