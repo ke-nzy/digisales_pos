@@ -9,7 +9,7 @@ const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
 const ShoppingCart = dynamic(() => import("~/components/cart"), {
   ssr: false,
 });
-const InvoiceSummary = dynamic(() => import("~/components/invoice-summary"), {
+const CartActions = dynamic(() => import("~/components/cart-actions"), {
   ssr: false,
 });
 
@@ -33,7 +33,7 @@ export default function HomePage() {
           <TotalSummary />
         </div>
         <div className="no-scrollbar sticky top-0 h-full flex-grow overflow-hidden">
-          <InvoiceSummary />
+          <CartActions />
         </div>
       </div>
     </ContentLayout>

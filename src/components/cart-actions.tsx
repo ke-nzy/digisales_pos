@@ -55,7 +55,7 @@ import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-const InvoiceSummary = () => {
+const CartActions = () => {
   const {
     currentCart,
     clearCart,
@@ -773,4 +773,4 @@ const InvoiceSummary = () => {
   );
 };
 
-export default InvoiceSummary;
+export default CartActions;
