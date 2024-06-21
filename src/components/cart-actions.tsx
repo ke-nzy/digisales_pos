@@ -56,6 +56,7 @@ import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { submit_authorization_request } from "~/lib/actions/user.actions";
+import { useRouter } from "next/navigation";
 
 const CartActions = () => {
   const {
@@ -69,7 +70,7 @@ const CartActions = () => {
   } = useCartStore();
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const [isLoading, setIsLoading] = useState<boolean | null>(null);
-  const { paymentCarts, removeItemFromPayments } = usePayStore();
+  const { paymentCarts } = usePayStore();
   const { site_url, site_company, account } = useAuthStore();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
@@ -108,6 +109,7 @@ const CartActions = () => {
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
+  const router = useRouter();
   const handleClearCart = () => {
     clearCart();
     toast.success("Cart cleared successfully");
@@ -119,53 +121,6 @@ const CartActions = () => {
   };
 
   const { customer } = useCustomers();
-
-  const handleProcessInvoice = async () => {
-    if (isLoading) {
-      return;
-    }
-    if (!currentCart) {
-      toast.error("Please add items to cart");
-      // setIsLoading(false);
-      return;
-    }
-    if (!selectedCustomer) {
-      toast.error("Please select a customer");
-      // setIsLoading(false);
-      return;
-    }
-
-    if (totalPaid < total - discount || !totalPaid) {
-      toast.error("Insufficient funds");
-      return;
-    }
-
-    setIsLoading(true);
-
-    const result = await submit_direct_sale_request(
-      site_url!,
-      site_company!.company_prefix,
-      account!.id,
-      account!.user_id,
-      currentCart.items,
-      selectedCustomer,
-      paymentCarts,
-      selectedCustomer.br_name,
-      Date.now(),
-    );
-    console.log("result", result);
-    if (!result) {
-      // sentry.captureException(result);
-      toast.error("Transaction failed");
-      setIsLoading(false);
-      return;
-    }
-
-    // process receipt
-
-    toast.success("Invoice processed successfully");
-    // clearCart();
-  };
 
   const handleDeleteItem = () => {
     if (authorized) {
@@ -853,7 +808,7 @@ const CartActions = () => {
         </Card>
         <Card
           className="flex-grow cursor-pointer bg-green-800 text-white hover:bg-green-800/90 "
-          onClick={() => handleProcessInvoice()}
+          onClick={() => router.push("/payment")}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-white">

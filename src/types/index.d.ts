@@ -176,6 +176,11 @@ declare type Payment = {
   TransTime: number | string;
 };
 
+declare type ManualBankPaymentAccount = {
+  bank_account_name: string;
+  ttp: string;
+};
+
 declare type PaymentCart = {
   paymentType?: string;
   payments: Payment[];

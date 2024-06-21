@@ -1,3 +1,4 @@
+"use client";
 import { toast } from "sonner";
 import { create } from "zustand";
 import { setCart, getCart, deleteCart } from "~/utils/indexeddb";

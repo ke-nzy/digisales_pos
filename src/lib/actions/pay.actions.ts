@@ -128,3 +128,57 @@ export async function fetch_customers(
     return null;
   }
 }
+
+export async function fetch_mpesa_transactions(
+  site_url: string,
+  company_prefix: string,
+  user_id: string,
+) {
+  const form = new FormData();
+  form.append("tp", "loadMpesaTransaction");
+  form.append("cp", company_prefix);
+  form.append("id", user_id);
+
+  try {
+    const response = await axios.postForm<Payment[]>(
+      `${site_url}process.php`,
+      form,
+    );
+
+    console.log("MPESA ", response.data);
+
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.log("Failed to load mpesa transactions");
+    }
+    console.log(e);
+  }
+
+  return null;
+}
+
+export async function fetch_manual_bank_payment_accounts(
+  site_url: string,
+  company_prefix: string,
+) {
+  const form = new FormData();
+  form.append("tp", "getManualBanks");
+  form.append("cp", company_prefix);
+
+  try {
+    const response = await axios.postForm<ManualBankPaymentAccount[]>(
+      `${site_url}process.php`,
+      form,
+    );
+
+    if (typeof response.data === "string") {
+      console.log("Payment accounts not loaded");
+      return null;
+    }
+    return response.data;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}

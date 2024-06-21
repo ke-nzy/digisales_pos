@@ -28,6 +28,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   filCol: string;
   onRowClick: (rowData: TData) => void;
+  searchKey?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -35,6 +36,7 @@ export function DataTable<TData, TValue>({
   data,
   filCol,
   onRowClick,
+  searchKey,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -88,11 +90,13 @@ export function DataTable<TData, TValue>({
     <>
       <div className="flex items-center py-4">
         <Input
-          placeholder={`Find Item...`}
+          placeholder={searchKey}
           onChange={(event) =>
             table.getColumn(filCol)?.setFilterValue(event.target.value)
           }
-          value={(table.getColumn(filCol)?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn(filCol)?.getFilterValue() as string) ?? searchKey
+          }
           className="max-w-sm"
         />
       </div>
