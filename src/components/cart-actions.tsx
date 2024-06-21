@@ -44,6 +44,7 @@ import {
   DialogDescription,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { CustomerComboBox } from "./common/customercombo";
@@ -54,6 +55,7 @@ import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { submit_authorization_request } from "~/lib/actions/user.actions";
 
 const CartActions = () => {
   const {
@@ -72,11 +74,16 @@ const CartActions = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
+  const [action, setAction] = useState<string>("");
   const [discountValue, setDiscountValue] = useState<string>("0");
   const [quantityValue, setQuantityValue] = useState<string>("0");
+  const [authPass, setAuthPass] = useState<string>("");
+  const [authorized, setAuthorized] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [discountDialogOpen, setDiscountDialogOpen] = useState<boolean>(false);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState<boolean>(false);
+  const [authorizationDialogOpen, setAuthorizationDialogOpen] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -160,20 +167,51 @@ const CartActions = () => {
     // clearCart();
   };
 
-  const handleDiscountDialogOpen = () => {
-    if (selectedCartItem) {
-      setDiscountDialogOpen(!discountDialogOpen);
+  const handleDeleteItem = () => {
+    if (authorized) {
+      if (selectedCartItem) {
+        deleteItemFromCart(selectedCartItem);
+      } else {
+        toast.error("Please select an item to delete");
+      }
     } else {
-      setDiscountDialogOpen(false);
-      toast.error("Please select an item to discount");
+      toast.error("Unauthorized to delete item");
+      setAuthorizationDialogOpen(true);
+    }
+  };
+
+  const handleDiscountDialogOpen = () => {
+    if (authorized) {
+      if (selectedCartItem) {
+        setDiscountDialogOpen(!discountDialogOpen);
+      } else {
+        setDiscountDialogOpen(false);
+        toast.error("Please select an item to discount");
+      }
+    } else {
+      if (selectedCartItem) {
+        setAction("discount");
+        setAuthorizationDialogOpen(true);
+      } else {
+        toast.error("Please select an item to discount");
+      }
     }
   };
   const handleQuantityDialogOpen = () => {
-    if (selectedCartItem) {
-      setQuantityDialogOpen(!discountDialogOpen);
+    if (authorized) {
+      if (selectedCartItem) {
+        setQuantityDialogOpen(true);
+      } else {
+        setQuantityDialogOpen(false);
+        toast.error("Please select an item to update");
+      }
     } else {
-      setDiscountDialogOpen(false);
-      toast.error("Please select an item to update");
+      if (selectedCartItem) {
+        setAction("edit_cart");
+        setAuthorizationDialogOpen(true);
+      } else {
+        toast.error("Please select an item to update");
+      }
     }
   };
 
@@ -220,6 +258,33 @@ const CartActions = () => {
       setQuantityValue("");
       setQuantityDialogOpen(false);
       setSelectedCartItem(null);
+      setAuthorized(false);
+    }
+  };
+
+  const handleAuthorization = async () => {
+    try {
+      const auth = await submit_authorization_request(
+        site_url!,
+        site_company!.company_prefix,
+        authPass,
+        action,
+      );
+      if (auth) {
+        setAuthorized(true);
+        toast.success("Authorized");
+      } else {
+        setAuthorized(false);
+        toast.error("Unauthorized to perform this action");
+      }
+    } catch (error) {
+      toast.error("Authorization Failed: Something Went Wrong");
+    } finally {
+      setTimeout(() => {
+        setAuthPass("");
+        setAction("");
+        setAuthorizationDialogOpen(false);
+      }, 2000);
     }
   };
 
@@ -473,7 +538,7 @@ const CartActions = () => {
     //     </CardFooter> */}
     // </Card>
     <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
-      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <Card
           className={cn(
             "py-6",
@@ -481,13 +546,7 @@ const CartActions = () => {
               ? "cursor-pointer bg-red-500"
               : "cursor-pointer hover:bg-accent focus:bg-accent",
           )}
-          onClick={() => {
-            if (selectedCartItem) {
-              deleteItemFromCart(selectedCartItem);
-            } else {
-              toast.error("Please select an item to delete");
-            }
-          }}
+          onClick={handleDeleteItem}
         >
           <CardHeader className="flex-col items-center justify-center p-0 text-sm">
             <Trash2Icon
@@ -515,6 +574,36 @@ const CartActions = () => {
             <h4 className="text-center text-sm font-normal">Search</h4>
           </CardHeader>
         </Card>
+        <Dialog
+          open={authorizationDialogOpen}
+          onOpenChange={setAuthorizationDialogOpen}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Authorize</DialogTitle>
+              <DialogDescription>Authorize cart actions</DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
+                <ul className="grid gap-3">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="auth-cart-pass">Password</Label>
+                    <Input
+                      type="password"
+                      id="auth-cart-pass"
+                      placeholder={"Authorization Password"}
+                      value={authPass}
+                      onChange={(e) => setAuthPass(e.target.value)}
+                    />
+                  </div>
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => handleAuthorization()}>Authorize</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <Dialog
           open={quantityDialogOpen}
           onOpenChange={handleQuantityDialogOpen}
@@ -632,7 +721,13 @@ const CartActions = () => {
                 </ul>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className=" ">
+              <Button
+                variant={"outline"}
+                onClick={() => setDiscountDialogOpen(false)}
+              >
+                Close
+              </Button>
               <Button onClick={() => handleIssueDiscount()}>
                 Issue Discount
               </Button>

@@ -57,6 +57,11 @@ interface LoginUser {
   selected_company: string;
 }
 
+export type AuthorizationResponse = {
+  status: "Failed" | "Success";
+  message: "Authorized" | "Not Authorized";
+};
+
 export const signIn = async (userData: LoginUser) => {
   try {
     // Mutation /Database
@@ -160,5 +165,40 @@ export async function fetch_sales_person_summary_report(
       console.log(error);
     }
     return null;
+  }
+}
+
+export async function submit_authorization_request(
+  site_url: string,
+  company_prefix: string,
+  password: string,
+  action: string,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "action_authorize");
+  form_data.append("cp", company_prefix);
+  form_data.append("password", password);
+  form_data.append("action", action);
+
+  try {
+    const response = await axios.postForm<AuthorizationResponse>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    console.log("Submission successful");
+    console.log("AUTHORIZED RESPONSE");
+    if (response.data.status === "Success") {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e) {
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      console.error(e);
+    }
+    // Sentry
+    console.error("Failed to authorize");
+    return false;
   }
 }

@@ -16,7 +16,9 @@ const ShoppingCart = () => {
     <Card
       className={cn(
         "no-scrollbar h-[26rem] flex-grow overflow-y-auto",
-        sidebar?.isOpen === false ? "md:min-w-[48rem]" : "md:min-w-[30rem]",
+        sidebar?.isOpen === false
+          ? "md:min-w-[48rem] lg:min-w-[40rem]"
+          : "md:min-w-[30rem]",
       )}
     >
       <CardContent className="overflow-y-auto">
