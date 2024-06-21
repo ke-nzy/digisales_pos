@@ -736,7 +736,7 @@ const CartActions = () => {
         </Dialog>
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">

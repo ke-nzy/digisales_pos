@@ -19,7 +19,8 @@
 - [x] Add Sales Reports
 - [x] Add Loaders to Reports
 - [x] Add Discount, Edit and Delete Functionality on Cart
-- [ ] Add Cart Editing Restrictions
+- [x] Add Cart Editing Restrictions
+- [ ] Add Menu Toggle
 - [ ] Add Shift Management Tool - Check-in on Dashboard Check-out on POS or Dashboard
 - [ ] Add General Sales Report using POS Transactions ENdpoint
 - [ ] Generate Z Report at Shift End
