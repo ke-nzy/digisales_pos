@@ -167,6 +167,40 @@ export async function fetch_sales_person_summary_report(
     return null;
   }
 }
+export async function fetch_pos_transactions_report(
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+  site_url: string,
+  postrans_date: Date,
+  end_date: Date,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "loadPOSTransaction");
+  form_data.append("cp", site_company.company_prefix);
+  form_data.append("id", account.id);
+  form_data.append("sdate", "2024-05-01");
+  form_data.append("edate", "2024-06-30");
+
+  try {
+    const response = await axios.postForm<TransactionReportItem[]>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    if ((response as unknown as string) === "") {
+      console.error("tp: loadPOSTransaction failed");
+      //    Add sentry here
+      return [];
+    }
+    console.log("response", response.data);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(error);
+    }
+    return null;
+  }
+}
 
 export async function submit_authorization_request(
   site_url: string,
@@ -200,5 +234,167 @@ export async function submit_authorization_request(
     // Sentry
     console.error("Failed to authorize");
     return false;
+  }
+}
+
+export async function submit_hold_direct_sale_request(
+  //receipt_info: CompanyReceiptInfo,
+  site_url: string,
+  company_prefix: string,
+  user_id: string,
+  username: string,
+  data_items: DirectSales[],
+  customer: Customer,
+  payments: null,
+  customer_name: string,
+  identifier: string,
+) {
+  console.log("Submitting payment details for direct sale");
+
+  const total = data_items.reduce(
+    (x, y) => x + y.details.price * y.quantity,
+    0,
+  );
+  console.log("total", total);
+
+  if (data_items) {
+    data_items.map((x) => {
+      if (x.quantity > x.max_quantity) {
+        return null;
+      }
+    });
+  }
+
+  const items = data_items.map((x: DirectSales) => {
+    const tax = (parseInt(x.item.rate) * x.details.price) / 100;
+
+    return {
+      quantity: x.quantity.toFixed(2),
+      quantityAval: x.details.quantity_available.toFixed(2),
+      booking_id: "",
+      customer_option: customer.br_name,
+      customer_option_id: customer.branch_code,
+      booking_type: "",
+      discount: x.discount ?? "0",
+      mode_prices: "1",
+      kit: x.item.kit,
+      batch_no: "",
+      tax: tax.toFixed(2),
+      item_option: x.item.description,
+      item_option_id: x.item.stock_id,
+      rate: x.item.rate,
+      deposit: "",
+      total: total,
+      price: x.details.price.toFixed(2),
+      posBatchSelect: "",
+      bottles_issued: x.bottles_issued ?? "",
+      bottles_returned: x.bottles_returned ?? "",
+      fsalesp: "",
+    };
+  });
+
+  const payment = payments;
+
+  console.log("payment", payment);
+
+  const form_data = new FormData();
+  form_data.append("tp", "hold-transaction");
+  form_data.append("cp", company_prefix);
+  form_data.append("id", user_id);
+  form_data.append("ttp", "");
+  form_data.append("total", total.toString());
+  form_data.append("pospayments", "");
+  form_data.append("posdesc", JSON.stringify(items));
+  form_data.append("uname", username);
+  form_data.append("cpbooking_id", "");
+  form_data.append("cust_name", customer_name);
+  form_data.append("unique_identifier", identifier);
+
+  try {
+    const response = await axios.postForm<SalesReceiptInformation>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    console.log("Submission successful");
+    console.log("HOLD SALES RESPONSE", response.data);
+
+    if (typeof response.data === "string") {
+      // SEND STRING TO SENTRY
+      return null;
+    }
+    return response.data;
+  } catch (e) {
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      console.error(e);
+    }
+    console.error("Failed to submit direct sale data");
+    return null;
+  }
+}
+
+export async function submit_start_shift(
+  site_url: string,
+  company_prefix: string,
+  user_id: string,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "start_shift");
+  form_data.append("cp", company_prefix);
+  form_data.append("id", user_id);
+  try {
+    const response = await axios.postForm<CheckInResponse>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    console.log("Submission successful");
+    console.log("START SHIFT RESPONSE", response.data);
+
+    if (typeof response.data === "string") {
+      // SEND STRING TO SENTRY
+      return null;
+    }
+    localStorage.setItem("start_shift", JSON.stringify(response.data));
+    return response.data;
+  } catch (e) {
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      console.error(e);
+    }
+    console.error("Failed to start shift data");
+    return null;
+  }
+}
+export async function submit_end_shift(
+  site_url: string,
+  company_prefix: string,
+  user_id: string,
+  shift_id: string,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "close_shift");
+  form_data.append("cp", company_prefix);
+  form_data.append("id", user_id);
+  form_data.append("shiftid", shift_id);
+  try {
+    const response = await axios.postForm<CheckInResponse>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    console.log("Submission successful");
+    console.log("END SHIFT RESPONSE", response.data);
+
+    if (typeof response.data === "string") {
+      // SEND STRING TO SENTRY
+      return null;
+    }
+    return response.data;
+  } catch (e) {
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      console.error(e);
+    }
+    console.error("Failed to start shift data");
+    return null;
   }
 }

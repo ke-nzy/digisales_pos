@@ -214,7 +214,34 @@ declare type SalesReportItem = {
   category_name: string;
   parent_item: string;
 };
-
+declare type TransactionReportItem = {
+  id: string;
+  ptype: string;
+  ptotal: string;
+  payments: Payment[] | string;
+  pitems: DirectSales[] | string;
+  cp: string;
+  uname: string;
+  uid: string;
+  pdate: string;
+  print: string;
+  customername: string;
+  customerid: string;
+  booking: string;
+  dispatch: string;
+  salepersonId: string;
+  salepersonName: string;
+  unique_identifier: string;
+  qrCode: string | null;
+  qrDate: string | null;
+  controlCode: string | null;
+  middlewareInvoiceNumber: string | null;
+  weight: number;
+};
+declare type CheckInResponse = {
+  id: string;
+  message: string;
+};
 declare type DataTableFilterField<TData> = {
   label: string;
   value: keyof TData;

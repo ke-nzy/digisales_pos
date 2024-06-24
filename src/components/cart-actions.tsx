@@ -9,7 +9,6 @@ import {
   // MoveVerticalIcon,
   PauseIcon,
   PercentIcon,
-  PlusIcon,
   SearchIcon,
   SendIcon,
   ShoppingBasketIcon,
@@ -34,7 +33,6 @@ import {
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
 import { usePayStore } from "~/store/pay-store";
-import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
 import { useAuthStore } from "~/store/auth-store";
 import {
   Dialog,
@@ -44,7 +42,6 @@ import {
   DialogDescription,
   DialogTrigger,
   DialogFooter,
-  DialogClose,
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { CustomerComboBox } from "./common/customercombo";
@@ -55,7 +52,11 @@ import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { submit_authorization_request } from "~/lib/actions/user.actions";
+import {
+  submit_authorization_request,
+  submit_end_shift,
+  submit_hold_direct_sale_request,
+} from "~/lib/actions/user.actions";
 import { useRouter } from "next/navigation";
 
 const CartActions = () => {
@@ -71,7 +72,8 @@ const CartActions = () => {
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const [isLoading, setIsLoading] = useState<boolean | null>(null);
   const { paymentCarts } = usePayStore();
-  const { site_url, site_company, account } = useAuthStore();
+  const { site_url, site_company, account, clear_auth_session } =
+    useAuthStore();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
@@ -92,10 +94,43 @@ const CartActions = () => {
         setSelectedCartItem(null);
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
-      // if (event.key === "F9") {
-      //   setDialogOpen(true);
-      //   event.preventDefault(); // Optional: Prevents the default browser action for F9
-      // }
+      if (event.key === "F2") {
+        handleDiscountDialogOpen();
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F3") {
+        handleQuantityDialogOpen();
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F4") {
+        void handleCheckOut();
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F5") {
+        handleClearCart();
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F6") {
+        setDialogOpen(true);
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F7") {
+        router.push("/transactions");
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F8") {
+        () => handleHoldCart();
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      }
+      if (event.key === "F9") {
+        handleLogout();
+        event.preventDefault(); // Optional: Prevents the default browser action for F9
+      }
+
+      if (event.key === "F10") {
+        router.push("/payments");
+        event.preventDefault(); // Optional: Prevents the default browser action for F9
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -105,19 +140,70 @@ const CartActions = () => {
     };
   }, []);
 
-  const invNo = generateRandomString(8);
+  const invNo = generateRandomString(3);
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const router = useRouter();
+
+  const handleLogout = () => {
+    clear_auth_session();
+    router.push("/sign-in");
+  };
   const handleClearCart = () => {
-    clearCart();
-    toast.success("Cart cleared successfully");
+    if (authorized) {
+      clearCart();
+      toast.success("Cart cleared successfully");
+    } else {
+      setAuthorizationDialogOpen(true);
+    }
   };
 
-  const handleHoldCart = () => {
-    holdCart();
-    toast.success("Cart held successfully");
+  const handleHoldCart = async () => {
+    if (isLoading) {
+      return;
+    }
+    if (!currentCart) {
+      toast.error("Please add items to cart");
+      // setIsLoading(false);
+      return;
+    }
+    if (!selectedCustomer) {
+      toast.error("Please select a customer");
+      // setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await submit_hold_direct_sale_request(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        account!.user_id,
+        currentCart.items,
+        selectedCustomer,
+        null,
+        selectedCustomer.br_name,
+        invNo + Date.now().toString(),
+      );
+      console.log("result", result);
+      if (!result) {
+        // sentry.captureException(result);
+        toast.error("Hold  Action failed");
+        setIsLoading(false);
+        return;
+      }
+
+      // process receipt
+
+      holdCart();
+      toast.success("Cart held successfully");
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const { customer } = useCustomers();
@@ -130,7 +216,6 @@ const CartActions = () => {
         toast.error("Please select an item to delete");
       }
     } else {
-      toast.error("Unauthorized to delete item");
       setAuthorizationDialogOpen(true);
     }
   };
@@ -240,6 +325,27 @@ const CartActions = () => {
         setAction("");
         setAuthorizationDialogOpen(false);
       }, 2000);
+    }
+  };
+
+  const handleCheckOut = async () => {
+    console.log("checkout");
+    const shift = localStorage.getItem("start_shift");
+    const s: CheckInResponse = JSON.parse(shift!);
+    const response = await submit_end_shift(
+      site_url!,
+      site_company!.company_prefix,
+      account!.id,
+      s.id,
+    );
+    console.log(" checkout response", response);
+
+    if (response) {
+      localStorage.removeItem("start_shift");
+      toast.success("Shift ended");
+      router.push("/dashboard");
+    } else {
+      toast.error("Failed to End shift");
     }
   };
 
@@ -567,10 +673,22 @@ const CartActions = () => {
             <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
               <CardHeader className="flex-col items-center justify-center  p-2 ">
                 <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-                  F4
+                  F2
                 </h6>
-                <ShoppingBasketIcon className="h-8 w-8 " />
-                <h4 className="text-center text-sm font-normal">Edit</h4>
+                <ShoppingBasketIcon
+                  className={cn(
+                    "h-8 w-8",
+                    selectedCartItem ? "text-zinc-700" : "text-zinc-400",
+                  )}
+                />
+                <h4
+                  className={cn(
+                    "text-center text-sm font-normal",
+                    selectedCartItem ? "text-zinc-700" : "text-zinc-400",
+                  )}
+                >
+                  Edit
+                </h4>
               </CardHeader>
             </Card>
           </DialogTrigger>
@@ -629,7 +747,7 @@ const CartActions = () => {
                     selectedCartItem ? "text-white" : "text-muted-foreground",
                   )}
                 >
-                  F2
+                  F3
                 </h6>
                 <PercentIcon
                   className={cn(
@@ -692,30 +810,37 @@ const CartActions = () => {
       </div>
 
       <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-        <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+        <Card
+          onClick={handleCheckOut}
+          className="cursor-pointer hover:bg-accent focus:bg-accent"
+        >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F8
+              F4
             </h6>
             <CaptionsOffIcon className="h-8 w-8 " />
             <h4 className="text-center text-sm font-normal">Close Register</h4>
           </CardHeader>
         </Card>
         <Card
-          className="cursor-pointer py-4 hover:bg-accent focus:bg-accent"
+          className="cursor-pointer  hover:bg-accent focus:bg-accent"
           onClick={() => handleClearCart()}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
+            <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
+              F5
+            </h6>
             <XIcon className="h-8 w-8 " />
-            <h4 className="text-center text-sm font-normal">
-              Clear Transaction
-            </h4>
+            <h4 className="text-center text-sm font-normal">Clear Cart</h4>
           </CardHeader>
         </Card>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Card className="cursor-pointer py-2 hover:bg-accent focus:bg-accent">
+            <Card className="cursor-pointer  hover:bg-accent focus:bg-accent">
               <CardHeader className="flex-col items-center justify-center  p-2 ">
+                <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
+                  F6
+                </h6>
                 <User2Icon className="h-8 w-8 " />
                 <h4 className="text-center text-sm font-normal">
                   {selectedCustomer
@@ -768,6 +893,9 @@ const CartActions = () => {
 
         <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
+            <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
+              F7
+            </h6>
             <TimerIcon className="h-8 w-8 " />
             <h4 className="text-center text-sm font-normal">Paused Carts</h4>
           </CardHeader>
@@ -779,16 +907,19 @@ const CartActions = () => {
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F7
+              F8
             </h6>
             <PauseIcon className="h-8 w-8 " />
             <h4 className="text-center text-sm font-normal">Pause Sale</h4>
           </CardHeader>
         </Card>
-        <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+        <Card
+          className="cursor-pointer hover:bg-accent focus:bg-accent"
+          onClick={handleLogout}
+        >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F8
+              F9
             </h6>
             <LogOutIcon className="h-8 w-8 " />
             <h4 className="text-center text-sm font-normal">Logout</h4>
@@ -799,9 +930,7 @@ const CartActions = () => {
           onClick={() => sidebar?.setIsOpen()}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
-            <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
-              F9
-            </h6>
+            <h6 className="self-start py-1 text-left text-xs font-semibold text-muted-foreground"></h6>
             <EllipsisIcon className="h-8 w-8 " />
             <h4 className="text-center text-sm font-normal">Menu</h4>
           </CardHeader>
@@ -812,7 +941,7 @@ const CartActions = () => {
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-white">
-              F8
+              F10
             </h6>
             <SendIcon className="h-8 w-8 text-white " />
             <h4 className="text-center text-sm font-normal">Process Payment</h4>

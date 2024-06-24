@@ -15,7 +15,6 @@ import { DataTable } from "../data-table";
 import { paymentColumns } from "~/lib/utils";
 import { usePayStore } from "~/store/pay-store";
 import { Label } from "../ui/label";
-import { Input } from "../ui/input";
 
 const PaymentOptions = ({ amount }: { amount: string }) => {
   const { manualPayments } = useManualPayments();

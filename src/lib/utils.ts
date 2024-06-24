@@ -93,6 +93,33 @@ export const paymentColumns: ColumnDef<Payment>[] = [
   },
 ];
 
+export const posFilterFields: DataTableFilterField<TransactionReportItem>[] = [
+  {
+    label: "Payment Type",
+    value: "ptype",
+    placeholder: "Filter by Payment Type",
+    options: [
+      { label: "Cash", value: "Cash" },
+      { label: "Cheque", value: "Cheque" },
+      { label: "Credit Card", value: "Credit Card" },
+      { label: "Debit Card", value: "Debit Card" },
+      { label: "Other", value: "Other" },
+    ],
+  },
+  {
+    label: "Item Category",
+    value: "pitems",
+    placeholder: "Filter by Item Category",
+    // modify options based on Item Category
+    options: [
+      { label: "Food", value: "Food" },
+      { label: "Clothing", value: "Clothing" },
+      { label: "Electronics", value: "Electronics" },
+      { label: "Home", value: "Home" },
+      { label: "Other", value: "Other" },
+    ],
+  },
+];
 // export const inventoryColumns: ColumnDef<StockItem>[] = [
 //   {
 //     accessorKey: "stock_id",

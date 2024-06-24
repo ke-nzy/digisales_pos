@@ -20,9 +20,9 @@
 - [x] Add Loaders to Reports
 - [x] Add Discount, Edit and Delete Functionality on Cart
 - [x] Add Cart Editing Restrictions
-- [ ] Add Menu Toggle
-- [ ] Add Payment Pages instead of Modal
-- [ ] Add Payment in installments
+- [x] Add Menu Toggle
+- [x] Add Payment Pages instead of Modal
+- [x] Add Payment in installments
 - [ ] Add Shift Management Tool - Check-in on Dashboard Check-out on POS or Dashboard
 - [ ] Add General Sales Report using POS Transactions Endpoint
 - [ ] Generate Z Report at Shift End

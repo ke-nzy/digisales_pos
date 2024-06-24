@@ -10,7 +10,7 @@ import { useItemizedSalesReport } from "~/hooks/use-reports";
 import { salesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 
-const SalesReports = () => {
+const TransactionalReport = () => {
   const { site_company } = useAuthStore();
   const { salesReport, loading, error } = useItemizedSalesReport();
   if (loading)
@@ -63,7 +63,10 @@ const SalesReports = () => {
     <DashboardLayout title={site_company?.branch ?? ""}>
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center">
-          <h1 className="text-lg font-semibold md:text-2xl">Sales Reports</h1>
+          <h1 className="text-lg font-semibold md:text-2xl">
+            {" "}
+            Itemized Sales Reports
+          </h1>
         </div>
         {salesReport.length === 0 && !loading && !error ? (
           <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
@@ -112,4 +115,4 @@ const SalesReports = () => {
   );
 };
 
-export default SalesReports;
+export default TransactionalReport;
