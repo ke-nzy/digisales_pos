@@ -7,12 +7,18 @@ import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { useDailySalesTargetReport } from "~/hooks/use-reports";
+import {
+  useDailySalesTargetReport,
+  useHeldTransactionsReport,
+  usePosTransactionsReport,
+} from "~/hooks/use-reports";
 import { submit_start_shift } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
 
 const DashBoard = () => {
   const { site_company, account, site_url } = useAuthStore();
+  const { posTransactionsReport } = usePosTransactionsReport();
+  const { heldTransactionsReport } = useHeldTransactionsReport();
   const router = useRouter();
   const { dailyTargets, loading, error } = useDailySalesTargetReport();
   const shift = localStorage.getItem("start_shift");
@@ -34,11 +40,13 @@ const DashBoard = () => {
       }
     }
   };
+  const completedTrnasactions = posTransactionsReport.length;
+  const heldTrnasactions = heldTransactionsReport.length;
   return (
     <DashboardLayout title={site_company?.branch ?? " Digisales"}>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Card x-chunk="dashboard-01-chunk-0">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -52,27 +60,29 @@ const DashBoard = () => {
               </p>
             </CardContent>
           </Card>
-          <Card x-chunk="dashboard-01-chunk-1">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Subscriptions
+                Completed Transactions
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+2350</div>
+              <div className="text-2xl font-bold">{completedTrnasactions}</div>
               <p className="text-xs text-muted-foreground">
                 +180.1% from last month
               </p>
             </CardContent>
           </Card>
-          <Card x-chunk="dashboard-01-chunk-2">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sales</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Pending Transactions
+              </CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
+              <div className="text-2xl font-bold">{heldTrnasactions}</div>
               <p className="text-xs text-muted-foreground">
                 +19% from last month
               </p>
@@ -97,9 +107,6 @@ const DashBoard = () => {
             </CardHeader>
             <CardContent className="grid gap-8">
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Olivia Martin
@@ -111,9 +118,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$1,999.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Jackson Lee
@@ -125,9 +129,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$39.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Isabella Nguyen
@@ -139,9 +140,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$299.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     William Kim
@@ -153,9 +151,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$99.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Sofia Davis
@@ -174,9 +169,6 @@ const DashBoard = () => {
             </CardHeader>
             <CardContent className="grid gap-8">
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Olivia Martin
@@ -188,9 +180,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$1,999.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Jackson Lee
@@ -202,9 +191,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$39.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Isabella Nguyen
@@ -216,9 +202,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$299.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     William Kim
@@ -230,9 +213,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$99.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Sofia Davis
@@ -251,9 +231,6 @@ const DashBoard = () => {
             </CardHeader>
             <CardContent className="grid gap-8">
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Olivia Martin
@@ -265,9 +242,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$1,999.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Jackson Lee
@@ -279,9 +253,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$39.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Isabella Nguyen
@@ -293,9 +264,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$299.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     William Kim
@@ -307,9 +275,6 @@ const DashBoard = () => {
                 <div className="ml-auto font-medium">+$99.00</div>
               </div>
               <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <User className="h-9 w-9 text-zinc-700" />
-                </Avatar>
                 <div className="grid gap-1">
                   <p className="text-sm font-medium leading-none">
                     Sofia Davis
