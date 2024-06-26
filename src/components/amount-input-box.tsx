@@ -72,7 +72,7 @@ const AmountInput = ({
         selectedCustomer,
         paymentCarts,
         selectedCustomer.br_name,
-        Date.now(),
+        currentCart.cart_id,
       );
       console.log("result", result);
       if (!result) {

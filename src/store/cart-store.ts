@@ -1,6 +1,7 @@
 "use client";
 import { toast } from "sonner";
 import { create } from "zustand";
+import { generateRandomString } from "~/lib/utils";
 import { setCart, getCart, deleteCart } from "~/utils/indexeddb";
 
 interface CartState {
@@ -17,6 +18,7 @@ interface CartState {
 }
 
 const LOCAL_STORAGE_KEY = "currentCart";
+const invNo = generateRandomString(3);
 
 export const useCartStore = create<CartState>((set, get) => ({
   selectedCartItem: null,
@@ -24,7 +26,10 @@ export const useCartStore = create<CartState>((set, get) => ({
   addItemToCart: (item: DirectSales) => {
     const state = get();
     if (!state.currentCart) {
-      const newCart: Cart = { cart_id: `cart_${Date.now()}`, items: [item] };
+      const newCart: Cart = {
+        cart_id: `cart_${invNo}${Date.now()}`,
+        items: [item],
+      };
       console.log("new cart", newCart);
 
       set({ currentCart: newCart });

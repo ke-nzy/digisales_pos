@@ -178,8 +178,42 @@ export async function fetch_pos_transactions_report(
   form_data.append("tp", "loadPOSTransaction");
   form_data.append("cp", site_company.company_prefix);
   form_data.append("id", account.id);
-  form_data.append("sdate", "2024-05-01");
-  form_data.append("edate", "2024-06-30");
+  form_data.append("postrans_date", "2024-05-01");
+  form_data.append("end_date", "2024-06-30");
+
+  try {
+    const response = await axios.postForm<TransactionReportItem[]>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    if ((response as unknown as string) === "") {
+      console.error("tp: loadPOSTransaction failed");
+      //    Add sentry here
+      return [];
+    }
+    console.log("response", response.data);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(error);
+    }
+    return null;
+  }
+}
+export async function fetch_held_transactions_report(
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+  site_url: string,
+  postrans_date: Date,
+  end_date: Date,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "loadHeldTransaction");
+  form_data.append("cp", site_company.company_prefix);
+  form_data.append("id", account.id);
+  form_data.append("postrans_date", "2024-05-01");
+  form_data.append("end_date", "2024-06-30");
 
   try {
     const response = await axios.postForm<TransactionReportItem[]>(
@@ -395,6 +429,37 @@ export async function submit_end_shift(
       console.error(e);
     }
     console.error("Failed to start shift data");
+    return null;
+  }
+}
+
+export async function fetch_daily_sales_target_summary(
+  site_url: string,
+  company_prefix: string,
+  date: Date,
+  branch_code: string,
+) {
+  const form = new FormData();
+  form.append("tp", "get_branch_daily_report");
+  form.append("cp", company_prefix);
+  form.append("date", toDate(date));
+  form.append("branch_code", branch_code);
+
+  try {
+    const response = await axios.postForm<DailyTargetReportSummary>(
+      `${site_url}process.php`,
+      form,
+    );
+    if (response.data.status === "Failed") {
+      return null;
+    }
+
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.log("Failed to fetch items sales");
+    }
+    console.log(e);
     return null;
   }
 }

@@ -23,16 +23,15 @@
 - [x] Add Menu Toggle
 - [x] Add Payment Pages instead of Modal
 - [x] Add Payment in installments
-- [ ] Add Shift Management Tool - Check-in on Dashboard Check-out on POS or Dashboard
-- [ ] Add General Sales Report using POS Transactions Endpoint
-- [ ] Generate Z Report at Shift End
-- [ ] Fetch All Transactions
+- [x] Send Held Cart to DB Enpoint
+- [x] Add Shift Management Tool - Check-in on Dashboard Check-out on POS or Dashboard
+- [x] Add General Sales Report using POS Transactions Endpoint
+- [x] Generate Z Report at Shift End
+- [x] Fetch All Transactions
+- [x] Pull Held Cart Reports
+- [x] Update Cart Held Status
+- [ ] Filter and Export Reports to CSV and PDF
 - [ ] Finalize Dashboard
-- [ ] use Forward Ref to allow for search functionality
-- [ ] Export Reports to CSV and PDF
 - [ ] Add Inventory Requisitions
-- [ ] Send Held Cart to DB Enpoint
-- [ ] Pull Held Cart Reports
-- [ ] Update Cart Held Status
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)

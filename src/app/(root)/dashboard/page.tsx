@@ -7,12 +7,14 @@ import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { useDailySalesTargetReport } from "~/hooks/use-reports";
 import { submit_start_shift } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
 
 const DashBoard = () => {
   const { site_company, account, site_url } = useAuthStore();
   const router = useRouter();
+  const { dailyTargets, loading, error } = useDailySalesTargetReport();
   const shift = localStorage.getItem("start_shift");
   const handleCheckin = async () => {
     if (shift) {
@@ -38,13 +40,13 @@ const DashBoard = () => {
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           <Card x-chunk="dashboard-01-chunk-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
+              <div className="text-2xl font-bold">
+                KES{dailyTargets?.data.sales_to_date}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last month
               </p>

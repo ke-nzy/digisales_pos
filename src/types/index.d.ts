@@ -176,6 +176,30 @@ declare type Payment = {
   TransTime: number | string;
 };
 
+declare type TransactionInvItem = {
+  batch_no: string;
+  booking_id: string;
+  booking_type: string;
+  bottles_issued: string;
+  bottles_returned: string;
+  customer_option: string;
+  customer_option_id: string;
+  deposit: string;
+  discount: string;
+  fsalesp: string;
+  item_option: string;
+  item_option_id: string;
+  kit: string;
+  mode_prices: string;
+  posBatchSelect: string;
+  price: string;
+  quantity: string;
+  quantityAval: string;
+  rate: string;
+  tax: string;
+  total: number;
+};
+
 declare type ManualBankPaymentAccount = {
   bank_account_name: string;
   ttp: string;
@@ -218,8 +242,8 @@ declare type TransactionReportItem = {
   id: string;
   ptype: string;
   ptotal: string;
-  payments: Payment[] | string;
-  pitems: DirectSales[] | string;
+  payments: string;
+  pitems: string;
   cp: string;
   uname: string;
   uid: string;
@@ -237,10 +261,22 @@ declare type TransactionReportItem = {
   controlCode: string | null;
   middlewareInvoiceNumber: string | null;
   weight: number;
+  status?: string;
 };
 declare type CheckInResponse = {
   id: string;
   message: string;
+};
+
+declare type DailyTargetReportSummary = {
+  status: "SUCCESS" | "Failed";
+  data: {
+    target: string;
+    opening_stock: string;
+    sales_to_date: string;
+    sales_pieces: number;
+    revenue: null | number | string;
+  };
 };
 declare type DataTableFilterField<TData> = {
   label: string;

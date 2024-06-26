@@ -185,7 +185,7 @@ const CartActions = () => {
         selectedCustomer,
         null,
         selectedCustomer.br_name,
-        invNo + Date.now().toString(),
+        currentCart.cart_id,
       );
       console.log("result", result);
       if (!result) {
@@ -599,10 +599,10 @@ const CartActions = () => {
     //     </CardFooter> */}
     // </Card>
     <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
-      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+      <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <Card
           className={cn(
-            "py-6",
+            "rounded-none py-6",
             selectedCartItem
               ? "cursor-pointer bg-red-500"
               : "cursor-pointer hover:bg-accent focus:bg-accent",
@@ -626,7 +626,7 @@ const CartActions = () => {
             </h4>
           </CardHeader>
         </Card>
-        <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+        <Card className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
               F1
@@ -670,7 +670,7 @@ const CartActions = () => {
           onOpenChange={handleQuantityDialogOpen}
         >
           <DialogTrigger asChild>
-            <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+            <Card className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent">
               <CardHeader className="flex-col items-center justify-center  p-2 ">
                 <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
                   F2
@@ -734,7 +734,7 @@ const CartActions = () => {
           <DialogTrigger asChild>
             <Card
               className={cn(
-                "",
+                "rounded-none",
                 selectedCartItem
                   ? "cursor-pointer bg-blue-500"
                   : "hover:bg-accent focus:bg-accent",
@@ -809,10 +809,10 @@ const CartActions = () => {
         </Dialog>
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+      <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <Card
           onClick={handleCheckOut}
-          className="cursor-pointer hover:bg-accent focus:bg-accent"
+          className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
@@ -823,7 +823,7 @@ const CartActions = () => {
           </CardHeader>
         </Card>
         <Card
-          className="cursor-pointer  hover:bg-accent focus:bg-accent"
+          className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
           onClick={() => handleClearCart()}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
@@ -836,7 +836,7 @@ const CartActions = () => {
         </Card>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Card className="cursor-pointer  hover:bg-accent focus:bg-accent">
+            <Card className="cursor-pointer rounded-none  hover:bg-accent focus:bg-accent">
               <CardHeader className="flex-col items-center justify-center  p-2 ">
                 <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
                   F6
@@ -891,7 +891,7 @@ const CartActions = () => {
           </DialogContent>
         </Dialog>
 
-        <Card className="cursor-pointer hover:bg-accent focus:bg-accent">
+        <Card className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
               F7
@@ -902,7 +902,7 @@ const CartActions = () => {
         </Card>
 
         <Card
-          className="cursor-pointer hover:bg-accent focus:bg-accent"
+          className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
           onClick={() => handleHoldCart()}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
@@ -914,7 +914,7 @@ const CartActions = () => {
           </CardHeader>
         </Card>
         <Card
-          className="cursor-pointer hover:bg-accent focus:bg-accent"
+          className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
           onClick={handleLogout}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
@@ -926,7 +926,7 @@ const CartActions = () => {
           </CardHeader>
         </Card>
         <Card
-          className="flex-grow cursor-pointer   hover:bg-accent focus:bg-accent"
+          className="flex-grow cursor-pointer  rounded-none hover:bg-accent focus:bg-accent"
           onClick={() => sidebar?.setIsOpen()}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
@@ -936,7 +936,7 @@ const CartActions = () => {
           </CardHeader>
         </Card>
         <Card
-          className="flex-grow cursor-pointer bg-green-800 text-white hover:bg-green-800/90 "
+          className="flex-grow cursor-pointer rounded-none bg-green-800 text-white hover:bg-green-800/90 "
           onClick={() => router.push("/payment")}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">

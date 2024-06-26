@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { getPaymentList } from "~/lib/payment-list";
 import { Card, CardContent, CardDescription, CardHeader } from "../ui/card";
 import { useManualPayments, useMpesaPayments } from "~/hooks/use-payments";
@@ -15,11 +15,21 @@ import { DataTable } from "../data-table";
 import { paymentColumns } from "~/lib/utils";
 import { usePayStore } from "~/store/pay-store";
 import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+
+interface PaymentProps {
+  item: Payment;
+  paymentType: string;
+}
 
 const PaymentOptions = ({ amount }: { amount: string }) => {
   const { manualPayments } = useManualPayments();
   const { mpesaPayments } = useMpesaPayments();
   const { addItemToPayments } = usePayStore();
+  const [pName, setPName] = useState<string>("");
+  const [transactionNumber, setTransactionNumber] = useState<string>("");
+  const [amnt, setAmnt] = useState<string>("");
   const [mpesaDialogOpen, setMpesaDialogOpen] = React.useState<boolean>(false);
   const [manualDialogOpen, setManualDialogOpen] =
     React.useState<boolean>(false);
@@ -28,6 +38,20 @@ const PaymentOptions = ({ amount }: { amount: string }) => {
     const paymentType = "MPESA"; // Extract the payment type from the data table
     addItemToPayments(rowData, paymentType);
     setMpesaDialogOpen(false);
+  };
+  const handleManualSubmit = (ttp: string) => {
+    const paid: PaymentProps = {
+      item: {
+        Auto: transactionNumber,
+        name: pName,
+        TransAmount: amnt,
+        TransID: transactionNumber,
+        TransTime: Date.now(),
+      },
+      paymentType: ttp,
+    };
+    addItemToPayments(paid.item, paid.paymentType);
+    setManualDialogOpen(false);
   };
   return (
     <div className="mx-auto grid w-full max-w-md grid-cols-1 gap-4">
@@ -117,7 +141,32 @@ const PaymentOptions = ({ amount }: { amount: string }) => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
-                  <Label>Transaction Number</Label>
+                  <div className="flex flex-col justify-evenly space-y-4">
+                    <Label> Paid By</Label>
+                    <Input
+                      value={pName}
+                      onChange={(e) => setPName(e.target.value)}
+                    />
+                    <Label>Transaction Number</Label>
+                    <Input
+                      value={transactionNumber}
+                      onChange={(e) => setTransactionNumber(e.target.value)}
+                    />
+                    <Label>Amount</Label>
+                    <Input
+                      value={amnt}
+                      onChange={(e) => setAmnt(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-row items-center justify-end gap-2 p-4">
+                    <Button
+                      variant={"default"}
+                      size={"default"}
+                      onClick={() => handleManualSubmit(payment.ttp)}
+                    >
+                      Submit
+                    </Button>
+                  </div>
                   {/* <Input>
                  </Input> */}
                 </CardContent>
