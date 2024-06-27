@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -28,6 +28,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "~/components/ui/dropdown-menu";
+import { exportToPDF } from "~/lib/utils";
+import CsvDownloader from "react-csv-downloader";
+import { Button } from "../ui/button";
+import { DownloadIcon } from "lucide-react";
+import { Checkbox } from "~/components/ui/checkbox";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/ui/popover";
 
 // Define the structure of the sales report item
 interface SalesReportItem {
@@ -57,14 +74,21 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
   const [selectedParentItem, setSelectedParentItem] = useState<string>("");
   const tableRef = useRef<HTMLDivElement>(null);
 
+  const filteredData = useMemo(() => {
+    return data.filter(
+      (item) =>
+        (selectedCategory ? item.category_name === selectedCategory : true) &&
+        (selectedParentItem ? item.parent_item === selectedParentItem : true),
+    );
+  }, [data, selectedCategory, selectedParentItem]);
+
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       rowSelection: rowSelection,
       sorting,
     },
-
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
@@ -100,15 +124,27 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
     }
   }, [focusedRowIndex]);
 
-  const filteredData = data.filter(
-    (item) =>
-      (selectedCategory ? item.category_name === selectedCategory : true) &&
-      (selectedParentItem ? item.parent_item === selectedParentItem : true),
-  );
-
   const totalSum = filteredData.reduce((sum, item) => {
     return sum + parseFloat(item.unit_price) * parseInt(item.quantity);
   }, 0);
+
+  const csvColumns = columns.map((column) => ({
+    id: column.id!,
+    displayName: column.header as string,
+  }));
+
+  const transformDataForCSV = (data: SalesReportItem[]) => {
+    return data.map((item) => ({
+      stock_id: item.stock_id,
+      description: item.description,
+      unit_price: item.unit_price,
+      quantity: item.quantity,
+      category_name: item.category_name,
+      parent_item: item.parent_item,
+    }));
+  };
+
+  const transformedData = transformDataForCSV(filteredData);
 
   return (
     <>
@@ -130,7 +166,7 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
 
         <Select onValueChange={setSelectedParentItem}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Parent Item" />
+            <SelectValue placeholder="Select Item Type" />
           </SelectTrigger>
           <SelectContent>
             {Array.from(new Set(data.map((item) => item.parent_item))).map(
@@ -142,6 +178,36 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
             )}
           </SelectContent>
         </Select>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant={"outline"} size={"sm"}>
+              <DownloadIcon className="mr-2 size-4" aria-hidden="true" />
+              Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              onSelect={() =>
+                exportToPDF(
+                  filteredData,
+                  columns as ColumnDef<SalesReportItem>[],
+                )
+              }
+            >
+              Export to PDF
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <CsvDownloader
+                filename="table"
+                columns={csvColumns}
+                datas={transformedData}
+              >
+                Export to CSV
+              </CsvDownloader>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="rounded-md border" ref={tableRef}>

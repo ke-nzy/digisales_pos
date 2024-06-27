@@ -3,6 +3,8 @@ import { twMerge } from "tailwind-merge";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
 import React from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -287,3 +289,40 @@ export const cartColumns: ColumnDef<DirectSales>[] = [
     },
   },
 ];
+// export const exportToCSV = (
+//   data: SalesReportItem[],
+//   columns: ColumnDef<SalesReportItem>[],
+// ) => {
+//   const csvData = data.map((row) => {
+//     const rowData: any = {};
+//     columns.forEach((column) => {
+//       rowData[column.id as keyof SalesReportItem] =
+//         row[column.id as keyof SalesReportItem];
+//     });
+//     return rowData;
+//   });
+//   return csvData;
+// };
+
+export const exportToPDF = (
+  data: SalesReportItem[],
+  columns: ColumnDef<SalesReportItem>[],
+) => {
+  const doc = new jsPDF();
+  const tableColumn = columns.map((column) => column.id!);
+  const tableRows: any[] = [];
+
+  data.forEach((row) => {
+    const rowData = columns.map(
+      (column) => row[column.id as keyof SalesReportItem],
+    );
+    tableRows.push(rowData);
+  });
+
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+  });
+
+  doc.save("item-report.pdf");
+};
