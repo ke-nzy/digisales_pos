@@ -261,6 +261,7 @@ const CartActions = () => {
         toast.error("Please enter a discount value");
         return;
       }
+      console.log("discountValue", discountValue);
       update_cart_item({
         ...selectedCartItem,
         discount: discountValue,
@@ -269,6 +270,7 @@ const CartActions = () => {
           description: `${selectedCartItem.item.description} *`,
         },
       });
+      console.log("selectedCartItem", currentCart);
 
       setDiscountValue("");
       setDiscountDialogOpen(false);

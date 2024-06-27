@@ -103,16 +103,20 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
   update_cart_item: (item: DirectSales) => {
+    console.log("item", item);
+
     const previous = [...get().currentCart!.items] as DirectSales[];
     const new_state = previous.map((x) => {
-      if (
-        x.item.stock_id === item.item.stock_id &&
-        x.item.description === item.item.description
-      ) {
+      if (x.item.stock_id === item.item.stock_id) {
+        if (x.item.description === item.item.description) {
+          return item;
+        }
         return item;
       }
       return x;
     });
+
+    console.log("new_state", new_state);
 
     set({ currentCart: { ...get().currentCart!, items: new_state } });
   },

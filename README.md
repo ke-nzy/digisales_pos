@@ -31,7 +31,7 @@
 - [x] Pull Held Cart Reports
 - [x] Update Cart Held Status
 - [x] Filter and Export Reports to CSV and PDF
-- [ ] Finalize Dashboard
+- [x] Finalize Dashboard
 - [ ] Add Inventory Requisitions- show notification on backend
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)
