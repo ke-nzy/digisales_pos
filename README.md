@@ -32,6 +32,8 @@
 - [x] Update Cart Held Status
 - [ ] Filter and Export Reports to CSV and PDF
 - [ ] Finalize Dashboard
-- [ ] Add Inventory Requisitions
+- [ ] Add Inventory Requisitions- show notification on backend
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)
+- [ ] Issue Discount on Cart based on Price or Percentage
+- [ ] UI Fix on transactions page

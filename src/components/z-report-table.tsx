@@ -13,16 +13,20 @@ import {
 interface ZReportTableProps {
   data: TransactionReportItem[];
 }
+type PaymentTypes = Record<string, number>;
 const ZReportTable = ({ data }: ZReportTableProps) => {
   const processZReportData = (data: TransactionReportItem[]) => {
-    const paymentTypes: any = {};
+    const paymentTypes: PaymentTypes = {};
 
     data.forEach((entry) => {
-      if (!paymentTypes[entry.ptype]) {
-        paymentTypes[entry.ptype] = 0;
+      const ptype = entry.ptype;
+      if (paymentTypes[ptype] === undefined) {
+        paymentTypes[ptype] = 0;
       }
-      paymentTypes[entry.ptype] += parseFloat(entry.ptotal);
+      paymentTypes[ptype] += parseFloat(entry.ptotal);
     });
+
+    console.log("paymentTypes", paymentTypes);
 
     return paymentTypes;
   };
@@ -42,7 +46,7 @@ const ZReportTable = ({ data }: ZReportTableProps) => {
           <TableRow key={ptype}>
             <TableCell className="font-medium">{ptype}</TableCell>
             <TableCell className="text-right">
-              {paymentTypes[ptype].toFixed(2)}
+              {paymentTypes[ptype]!.toFixed(2)}
             </TableCell>
           </TableRow>
         ))}
