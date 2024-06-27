@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   useDailySalesTargetReport,
   useHeldTransactionsReport,
+  useItemizedSalesReport,
   usePosTransactionsReport,
 } from "~/hooks/use-reports";
 import { submit_start_shift } from "~/lib/actions/user.actions";
@@ -19,6 +20,8 @@ const DashBoard = () => {
   const { site_company, account, site_url } = useAuthStore();
   const { posTransactionsReport } = usePosTransactionsReport();
   const { heldTransactionsReport } = useHeldTransactionsReport();
+  const { salesReport, loading: loadingItemizedSalesReport } =
+    useItemizedSalesReport();
   const router = useRouter();
   const { dailyTargets, loading, error } = useDailySalesTargetReport();
   const shift = localStorage.getItem("start_shift");
@@ -42,6 +45,43 @@ const DashBoard = () => {
   };
   const completedTrnasactions = posTransactionsReport.length;
   const heldTrnasactions = heldTransactionsReport.length;
+
+  function findTop5PopularItems(
+    items: SalesReportItem[],
+  ): { parentItem: string; totalQuantity: number }[] {
+    // Step 1: Initialize quantityMap
+    const quantityMap: Record<string, number> = {};
+
+    // Step 2: Aggregate quantities sold based on parent_item
+    items.forEach((item) => {
+      const parentItem = item.parent_item;
+      const quantity = parseInt(item.quantity, 10); // Parse quantity as integer
+
+      // Initialize quantityMap[parentItem] if it doesn't exist
+      if (!quantityMap[parentItem]) {
+        quantityMap[parentItem] = 0;
+      }
+
+      // Add quantity to quantityMap[parentItem]
+      quantityMap[parentItem] += quantity;
+    });
+
+    // Step 3: Convert quantityMap to an array of objects for sorting
+    const sortedItems = Object.keys(quantityMap).map((parentItem) => ({
+      parentItem: parentItem,
+      totalQuantity: quantityMap[parentItem], // This is guaranteed to be defined and a number
+    }));
+
+    // Step 4: Sort items based on totalQuantity in descending order
+
+    sortedItems.sort((a, b) => b.totalQuantity! - a.totalQuantity!);
+
+    // Step 5: Get the top 5 popular items
+    const top5Items = sortedItems.slice(0, 5);
+
+    return top5Items as { parentItem: string; totalQuantity: number }[];
+  }
+  const popularItems = findTop5PopularItems(salesReport);
   return (
     <DashboardLayout title={site_company?.branch ?? " Digisales"}>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -105,186 +145,68 @@ const DashBoard = () => {
             <CardHeader>
               <CardTitle>Recent Sales</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-8">
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Olivia Martin
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    olivia.martin@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$1,999.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Jackson Lee
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    jackson.lee@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$39.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Isabella Nguyen
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    isabella.nguyen@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$299.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    William Kim
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    will@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$99.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Sofia Davis
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    sofia.davis@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$39.00</div>
-              </div>
+            <CardContent className="grid grid-cols-1 gap-8">
+              {posTransactionsReport.length > 0 &&
+                posTransactionsReport.slice(0, 5).map((item, index) => (
+                  <div key={index} className="grid w-full grid-cols-2 ">
+                    <div className="flex flex-col space-y-4">
+                      <p className="text-sm font-medium leading-none">
+                        {item.customername}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {JSON.parse(item.pitems).length} Item(s)
+                      </p>
+                    </div>
+                    <div className="ml-auto flex flex-col justify-start text-xs  font-medium">
+                      KES {item.ptotal}
+                    </div>
+                  </div>
+                ))}
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
+              <CardTitle>Held Carts</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-8">
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Olivia Martin
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    olivia.martin@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$1,999.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Jackson Lee
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    jackson.lee@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$39.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Isabella Nguyen
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    isabella.nguyen@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$299.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    William Kim
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    will@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$99.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Sofia Davis
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    sofia.davis@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$39.00</div>
-              </div>
+              {heldTransactionsReport.length > 0 &&
+                heldTransactionsReport.slice(0, 5).map((item, index) => (
+                  <div key={index} className="grid w-full grid-cols-2 ">
+                    <div className="flex flex-col space-y-4">
+                      <p className="text-sm font-medium leading-none">
+                        {item.customername}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.pitems.length > 0
+                          ? JSON.parse(item.pitems).length
+                          : 0}{" "}
+                        Item(s)
+                      </p>
+                    </div>
+                    <div className="ml-auto flex flex-col justify-start text-xs  font-medium">
+                      KES {item.ptotal}
+                    </div>
+                  </div>
+                ))}
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
+              <CardTitle>Popular Items</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-8">
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Olivia Martin
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    olivia.martin@email.com
-                  </p>
+              {popularItems.map((item, index) => (
+                <div key={index} className="grid w-full grid-cols-2 ">
+                  <div className="grid gap-1">
+                    <p className="text-sm font-medium leading-none">
+                      {item.parentItem}
+                    </p>
+                  </div>
+                  <div className="ml-auto flex flex-col justify-start text-xs  font-medium">
+                    {item.totalQuantity}
+                  </div>
                 </div>
-                <div className="ml-auto font-medium">+$1,999.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Jackson Lee
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    jackson.lee@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$39.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Isabella Nguyen
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    isabella.nguyen@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$299.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    William Kim
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    will@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$99.00</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Sofia Davis
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    sofia.davis@email.com
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">+$39.00</div>
-              </div>
+              ))}
             </CardContent>
           </Card>
         </div>

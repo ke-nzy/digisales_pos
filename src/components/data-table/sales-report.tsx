@@ -45,6 +45,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "~/components/ui/popover";
+import { PopoverPortal } from "@radix-ui/react-popover";
 
 // Define the structure of the sales report item
 interface SalesReportItem {
@@ -72,6 +73,8 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedParentItem, setSelectedParentItem] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedParentItems, setSelectedParentItems] = useState<string[]>([]);
   const tableRef = useRef<HTMLDivElement>(null);
 
   const filteredData = useMemo(() => {
@@ -81,6 +84,18 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
         (selectedParentItem ? item.parent_item === selectedParentItem : true),
     );
   }, [data, selectedCategory, selectedParentItem]);
+
+  const filtdData = useMemo(() => {
+    return data.filter(
+      (item) =>
+        (selectedCategories.length
+          ? selectedCategories.includes(item.category_name)
+          : true) &&
+        (selectedParentItems.length
+          ? selectedParentItems.includes(item.parent_item)
+          : true),
+    );
+  }, [data, selectedCategories, selectedParentItems]);
 
   const table = useReactTable({
     data: filteredData,
@@ -149,6 +164,29 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
   return (
     <>
       <div className="flex items-center space-x-4 py-4">
+        {/* <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline">Open popover</Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            {Array.from(new Set(data.map((item) => item.category_name))).map(
+              (category) => (
+                <div key={category} className="flex items-center space-x-2">
+                  <Checkbox id={category} />
+                  <label
+                    htmlFor={category}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {category}
+                  </label>
+                </div>
+                // <SelectItem key={category} value={category}>
+                //   {category}
+                // </SelectItem>
+              ),
+            )}
+          </PopoverContent>
+        </Popover> */}
         <Select onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Category" />
