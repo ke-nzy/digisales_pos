@@ -2,7 +2,7 @@
 import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
-import { DataTable } from "~/components/data-table";
+import { TransactionsDataTable } from "~/components/data-table/sales-report";
 import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { Shell } from "~/components/shell";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -100,10 +100,9 @@ const Itemized = () => {
               }
             >
               <div className="flex flex-col gap-4">
-                <DataTable
+                <TransactionsDataTable
                   columns={salesReportColumns}
                   data={salesReport}
-                  filCol="stock_id"
                   onRowClick={(rowData) => console.log(rowData)}
                 />
               </div>

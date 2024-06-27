@@ -138,32 +138,98 @@ export const posFilterFields: DataTableFilterField<TransactionReportItem>[] = [
 //   },
 // ];
 
+// export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
+//   {
+//     accessorKey: "stock_id",
+//     header: "Item Code",
+//     footer: "Total",
+//   },
+//   {
+//     accessorKey: "category_name",
+//     header: "Category",
+//   },
+
+//   {
+//     accessorKey: "parent_item",
+//     header: "Item Type",
+//   },
+//   {
+//     accessorKey: "description",
+//     header: "Item Name",
+//   },
+//   {
+//     accessorKey: "unit_price",
+//     header: "Unit Price",
+//   },
+//   {
+//     accessorKey: "quantity",
+//     header: "Quantity",
+//   },
+//   {
+//     id: "total",
+//     header: "Total",
+//     cell: (props) => {
+//       const row = props.row.original;
+//       const rowTotal = parseInt(row.quantity) * parseFloat(row.unit_price);
+//       return React.createElement(
+//         "span",
+//         { className: "text-right" },
+//         rowTotal.toFixed(2),
+//       );
+//     },
+//     footer: (props) => {
+//       const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
+//         const rowData = row.original;
+//         return (
+//           sum + parseInt(rowData.quantity) * parseFloat(rowData.unit_price)
+//         );
+//       }, 0);
+//       return React.createElement(
+//         "span",
+//         { className: "text-right" },
+//         total.toFixed(2),
+//       );
+//     },
+//   },
+// ];
+// Sample usage
 export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
   {
+    id: "stock_id",
     accessorKey: "stock_id",
     header: "Item Code",
     footer: "Total",
+    cell: (props) => props.getValue(),
   },
   {
+    id: "category_name",
     accessorKey: "category_name",
     header: "Category",
+    cell: (props) => props.getValue(),
   },
-
   {
+    id: "parent_item",
     accessorKey: "parent_item",
     header: "Item Type",
+    cell: (props) => props.getValue(),
   },
   {
+    id: "description",
     accessorKey: "description",
     header: "Item Name",
+    cell: (props) => props.getValue(),
   },
   {
+    id: "unit_price",
     accessorKey: "unit_price",
     header: "Unit Price",
+    cell: (props) => props.getValue(),
   },
   {
+    id: "quantity",
     accessorKey: "quantity",
     header: "Quantity",
+    cell: (props) => props.getValue(),
   },
   {
     id: "total",
@@ -171,11 +237,7 @@ export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
     cell: (props) => {
       const row = props.row.original;
       const rowTotal = parseInt(row.quantity) * parseFloat(row.unit_price);
-      return React.createElement(
-        "span",
-        { className: "text-right" },
-        rowTotal.toFixed(2),
-      );
+      return rowTotal.toFixed(2);
     },
     footer: (props) => {
       const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
@@ -184,11 +246,7 @@ export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
           sum + parseInt(rowData.quantity) * parseFloat(rowData.unit_price)
         );
       }, 0);
-      return React.createElement(
-        "span",
-        { className: "text-right" },
-        total.toFixed(2),
-      );
+      return total.toFixed(2);
     },
   },
 ];
