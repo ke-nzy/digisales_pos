@@ -1,16 +1,17 @@
 "use client";
-import { usePDF } from "@react-pdf/renderer";
 import { Search } from "lucide-react";
 import dynamic from "next/dynamic";
 import React from "react";
-import { toast } from "sonner";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Input } from "~/components/ui/input";
+import { Skeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
   useHeldTransactionsReport,
   usePosTransactionsReport,
 } from "~/hooks/use-reports";
+import { searchParamsSchema } from "~/lib/utils";
 const TransactionCard = dynamic(
   () => import("~/components/common/transaction-card"),
   {
@@ -18,43 +19,76 @@ const TransactionCard = dynamic(
   },
 );
 
-const TransactionsPage = () => {
-  const { posTransactionsReport, loading } = usePosTransactionsReport();
+export interface IndexPageProps {
+  searchParams: SearchParams;
+}
+
+const TransactionsPage = ({ searchParams }: IndexPageProps) => {
+  const params = searchParamsSchema.parse(searchParams);
+
+  const { posTransactionsReport, loading } = usePosTransactionsReport(params);
   const { heldTransactionsReport, loading: loadingHeld } =
-    useHeldTransactionsReport();
+    useHeldTransactionsReport(params);
   console.log("posTransactionsReport", heldTransactionsReport);
   const all = posTransactionsReport.concat(heldTransactionsReport);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const printReceipt = async (data: TransactionReportItem) => {
-    console.log("data", data);
-
-    // window.print();
-    // try {
-    //   const response = await fetch("/api/print", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(data),
-    //   });
-    //   if (!response.ok) {
-    //     throw new Error("Failed to print receipt");
-    //   }
-    //   toast.success("Print successful");
-    // } catch (error) {
-    //   console.error("Print failed:", error);
-    //   toast.error("Print failed");
-    // }
-  };
 
   if (loading || loadingHeld) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout title="Transactions">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
+            <div className="flex flex-col space-y-3">
+              <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
+            <div className="flex flex-col space-y-3">
+              <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
+            <div className="flex flex-col space-y-3">
+              <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
+
+            <div className="flex flex-col space-y-3">
+              <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
+          </div>
+        </main>
+      </DashboardLayout>
+    );
   }
 
   return (
     <DashboardLayout title="Transactions">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+          <DateRangePicker
+            triggerSize="sm"
+            triggerClassName="ml-auto w-56 sm:w-60"
+            align="end"
+          />
+        </React.Suspense>
         <Tabs defaultValue="all">
           <div className="flex items-center">
             <TabsList>
@@ -75,31 +109,21 @@ const TransactionsPage = () => {
           <TabsContent value="all">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {all.map((x) => (
-                <TransactionCard key={x.id} data={x} onPrint={printReceipt} />
+                <TransactionCard key={x.id} data={x} />
               ))}
             </div>
           </TabsContent>
           <TabsContent value="completed">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {posTransactionsReport.map((x) => (
-                <TransactionCard
-                  key={x.id}
-                  data={x}
-                  status="Completed"
-                  onPrint={printReceipt}
-                />
+                <TransactionCard key={x.id} data={x} status="Completed" />
               ))}
             </div>
           </TabsContent>
           <TabsContent value="held">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {heldTransactionsReport.map((x) => (
-                <TransactionCard
-                  key={x.id}
-                  data={x}
-                  status="Held"
-                  onPrint={printReceipt}
-                />
+                <TransactionCard key={x.id} data={x} status="Held" />
               ))}
             </div>
           </TabsContent>

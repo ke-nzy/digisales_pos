@@ -9,7 +9,12 @@ import {
   CardFooter,
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { CheckCheckIcon, PrinterIcon, Timer } from "lucide-react";
+import {
+  CheckCheckIcon,
+  PrinterIcon,
+  ShoppingBasketIcon,
+  Timer,
+} from "lucide-react";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
   Table,
@@ -27,6 +32,7 @@ import { useRouter } from "next/navigation";
 import { pdf } from "@react-pdf/renderer";
 import TransactionReceiptPDF from "../thermal-receipt";
 import { useAuthStore } from "~/store/auth-store";
+import { TrashIcon } from "@radix-ui/react-icons";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
@@ -120,20 +126,25 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                 <span
                   className={cn(
                     "flex flex-row items-center justify-evenly space-x-2 rounded-sm  p-1",
-                    status === "Completed" ? "bg-green-200" : "bg-orange-200",
+                    data.status === "1" || status === "Completed"
+                      ? "bg-green-200"
+                      : "bg-orange-200",
                   )}
                 >
-                  {status === "Completed" && (
+                  {(data.status === "1" || status === "Completed") && (
                     <CheckCheckIcon className="h-3 w-3 text-emerald-950" />
                   )}
                   {(data.status === "0" || status === "Held") && (
                     <Timer className="h-3 w-3 text-orange-950" />
                   )}
-                  {status === "Completed" && (
+                  {(data.status === "1" || status === "Completed") && (
                     <p className="text-sm text-emerald-950">Completed</p>
                   )}
                   {(data.status === "0" || status === "Held") && (
-                    <p className="text-sm text-orange-950">In Progress</p>
+                    <p className="text-sm text-orange-950">On Hold</p>
+                  )}
+                  {data.status === "3" && status === "Held" && (
+                    <p className="text-sm text-red-950">Cancelled</p>
                   )}
                 </span>
               </div>
@@ -185,7 +196,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
           </p>
         </div>
       </CardContent>
-      {status === "Completed" && (
+      {(data.status === "1" || status === "Completed") && (
         <CardFooter className="justify-center border-t p-4">
           <Button
             size="sm"
@@ -194,14 +205,14 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
             onClick={() => handlePrint(data)}
           >
             <PrinterIcon className="h-3.5 w-3.5" />
-            Print
+            Re-Print
           </Button>
         </CardFooter>
       )}
       {(data.status === "0" || status === "Held") && (
         <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
-          <Button size="sm" variant="default" className="flex-grow gap-2">
-            <PrinterIcon className="h-3.5 w-3.5" />
+          <Button size="sm" variant="destructive" className="flex-grow gap-2">
+            <TrashIcon className="h-3.5 w-3.5" />
             Clear
           </Button>
           <Button
@@ -210,7 +221,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
             variant="default"
             className="flex-grow gap-2"
           >
-            <PrinterIcon className="h-3.5 w-3.5" />
+            <ShoppingBasketIcon className="h-3.5 w-3.5" />
             Open
           </Button>
         </CardFooter>

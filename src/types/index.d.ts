@@ -284,3 +284,5 @@ declare type DataTableFilterField<TData> = {
   placeholder?: string;
   options?: Option[];
 };
+
+declare type SearchParams = Record<string, string | string[] | undefined>;

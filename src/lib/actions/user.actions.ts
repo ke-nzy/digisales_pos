@@ -171,15 +171,17 @@ export async function fetch_pos_transactions_report(
   site_company: SiteCompany,
   account: UserAccountInfo,
   site_url: string,
-  postrans_date: Date,
-  end_date: Date,
+  postrans_date: string | undefined,
+  end_date: string | undefined,
 ) {
+  const sdate = toDate(new Date());
+  const edate = toDate(new Date());
   const form_data = new FormData();
   form_data.append("tp", "loadPOSTransaction");
   form_data.append("cp", site_company.company_prefix);
   form_data.append("id", account.id);
-  form_data.append("postrans_date", "2024-05-01");
-  form_data.append("end_date", "2024-06-30");
+  form_data.append("postrans_date", postrans_date ?? sdate);
+  form_data.append("end_date", end_date ?? edate);
 
   try {
     const response = await axios.postForm<TransactionReportItem[]>(
@@ -205,15 +207,17 @@ export async function fetch_held_transactions_report(
   site_company: SiteCompany,
   account: UserAccountInfo,
   site_url: string,
-  postrans_date: Date,
-  end_date: Date,
+  postrans_date: string | undefined,
+  end_date: string | undefined,
 ) {
+  const sdate = toDate(new Date());
+  const edate = toDate(new Date());
   const form_data = new FormData();
   form_data.append("tp", "loadHeldTransaction");
   form_data.append("cp", site_company.company_prefix);
   form_data.append("id", account.id);
-  form_data.append("postrans_date", "2024-05-01");
-  form_data.append("end_date", "2024-06-30");
+  form_data.append("postrans_date", postrans_date ?? sdate);
+  form_data.append("end_date", end_date ?? edate);
 
   try {
     const response = await axios.postForm<TransactionReportItem[]>(

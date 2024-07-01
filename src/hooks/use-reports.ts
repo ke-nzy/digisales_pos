@@ -9,6 +9,10 @@ import {
 
 import { useAuthStore } from "~/store/auth-store";
 
+interface DateParams {
+  from?: string;
+  to?: string;
+}
 const fetchItemizedSalesReport = async (): Promise<SalesReportItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
 
@@ -41,9 +45,9 @@ const fetchDailyTargetsReport =
 
     return list;
   };
-const fetchPosTransactionsReport = async (): Promise<
-  TransactionReportItem[]
-> => {
+const fetchPosTransactionsReport = async (
+  params: DateParams,
+): Promise<TransactionReportItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
 
   // Fetch from API
@@ -51,17 +55,17 @@ const fetchPosTransactionsReport = async (): Promise<
     site_company!,
     account!,
     site_url!,
-    new Date(),
-    new Date(),
+    params.from,
+    params.to,
   );
 
   const list = sreport || [];
 
   return list;
 };
-const fetchHeldTransactionsReport = async (): Promise<
-  TransactionReportItem[]
-> => {
+const fetchHeldTransactionsReport = async (
+  params: DateParams,
+): Promise<TransactionReportItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
 
   // Fetch from API
@@ -69,8 +73,8 @@ const fetchHeldTransactionsReport = async (): Promise<
     site_company!,
     account!,
     site_url!,
-    new Date(),
-    new Date(),
+    params.from,
+    params.to,
   );
 
   const list = sreport || [];
@@ -95,12 +99,12 @@ export const useItemizedSalesReport = () => {
   };
 };
 
-export const usePosTransactionsReport = () => {
+export const usePosTransactionsReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<TransactionReportItem[], Error>({
-    queryKey: ["posTransactionsReport"],
-    queryFn: fetchPosTransactionsReport,
+    queryKey: ["posTransactionsReport", params.to],
+    queryFn: () => fetchPosTransactionsReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
@@ -109,15 +113,17 @@ export const usePosTransactionsReport = () => {
     loading: isLoading,
     error: error ? error.message : null,
     refetch: () =>
-      queryClient.invalidateQueries({ queryKey: ["posTransactionsReport"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["posTransactionsReport", params.to],
+      }),
   };
 };
-export const useHeldTransactionsReport = () => {
+export const useHeldTransactionsReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<TransactionReportItem[], Error>({
-    queryKey: ["heldTransactionsReport"],
-    queryFn: fetchHeldTransactionsReport,
+    queryKey: ["heldTransactionsReport", params.to],
+    queryFn: () => fetchHeldTransactionsReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
@@ -126,7 +132,9 @@ export const useHeldTransactionsReport = () => {
     loading: isLoading,
     error: error ? error.message : null,
     refetch: () =>
-      queryClient.invalidateQueries({ queryKey: ["heldTransactionsReport"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["heldTransactionsReport", params.to],
+      }),
   };
 };
 

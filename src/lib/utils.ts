@@ -326,3 +326,8 @@ export const exportToPDF = (
 
   doc.save("item-report.pdf");
 };
+
+export const searchParamsSchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
