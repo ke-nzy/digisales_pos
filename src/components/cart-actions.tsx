@@ -57,6 +57,7 @@ import {
   submit_hold_direct_sale_request,
 } from "~/lib/actions/user.actions";
 import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 const CartActions = () => {
   const {
@@ -535,16 +536,38 @@ const CartActions = () => {
                   </li>
 
                   <Separator className="my-2" />
-                  <div className="grid w-full max-w-sm items-center gap-1.5">
-                    <Label htmlFor="discount">Discount</Label>
-                    <Input
-                      type="text"
-                      id="discount"
-                      placeholder={"0"}
-                      value={discountValue}
-                      onChange={(e) => setDiscountValue(e.target.value)}
-                    />
-                  </div>
+                  <Tabs defaultValue="value" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="value">On Value</TabsTrigger>
+                      <TabsTrigger value="percentage">
+                        On Percentage
+                      </TabsTrigger>
+                      <TabsContent value="value">
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                          <Label htmlFor="discount">Discount</Label>
+                          <Input
+                            type="text"
+                            id="discount"
+                            placeholder={"0"}
+                            value={discountValue}
+                            onChange={(e) => setDiscountValue(e.target.value)}
+                          />
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="percentage">
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                          <Label htmlFor="discount">Discount</Label>
+                          <Input
+                            type="text"
+                            id="discount"
+                            placeholder={"0"}
+                            value={discountValue}
+                            onChange={(e) => setDiscountValue(e.target.value)}
+                          />
+                        </div>
+                      </TabsContent>
+                    </TabsList>
+                  </Tabs>
                 </ul>
               </div>
             </div>

@@ -3,9 +3,13 @@ import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import ZReportTable from "~/components/z-report-table";
 import { usePosTransactionsReport } from "~/hooks/use-reports";
+import { toDate } from "~/lib/utils";
 
 const zReport = () => {
-  const { posTransactionsReport, loading } = usePosTransactionsReport();
+  const { posTransactionsReport, loading } = usePosTransactionsReport({
+    from: toDate(new Date()),
+    to: toDate(new Date()),
+  });
   // const processZReportData = (data: TransactionReportItem[]) => {
   //   let totalSales = 0;
   //   let totalTax = 0;

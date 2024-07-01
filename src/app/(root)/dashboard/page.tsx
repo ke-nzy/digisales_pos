@@ -17,7 +17,7 @@ import {
 } from "~/hooks/use-reports";
 import { submit_start_shift } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
-import { IndexPageProps } from "../transactions/page";
+import { type IndexPageProps } from "../transactions/page";
 import { searchParamsSchema } from "~/lib/utils";
 
 const DashBoard = ({ searchParams }: IndexPageProps) => {
@@ -28,7 +28,19 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
   const { salesReport, loading: loadingItemizedSalesReport } =
     useItemizedSalesReport();
   const router = useRouter();
-  const { dailyTargets, loading, error } = useDailySalesTargetReport();
+  const { dailyTargets, loading } = useDailySalesTargetReport();
+  const achievement = () => {
+    if (dailyTargets?.status === "SUCCESS") {
+      const acv =
+        parseFloat(dailyTargets.data.sales_to_date) /
+        parseFloat(dailyTargets.data.target);
+      const res = Math.round(acv * 100);
+      return res;
+    } else {
+      return 0.0 as number;
+    }
+  };
+
   console.log("dailyTargets", dailyTargets);
 
   const shift = localStorage.getItem("start_shift");
@@ -89,6 +101,9 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
     return top5Items as { parentItem: string; totalQuantity: number }[];
   }
   const popularItems = findTop5PopularItems(salesReport);
+  if (loading || loadingItemizedSalesReport) {
+    return <Skeleton className="h-7 w-52" />;
+  }
   return (
     <DashboardLayout title={site_company?.branch ?? " Digisales"}>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -117,12 +132,8 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
                   : 0} */}
               </div>
               <p className="text-xs text-muted-foreground">
-                {dailyTargets?.status === "SUCCESS"
-                  ? (parseFloat(dailyTargets.data.sales_to_date) /
-                      parseFloat(dailyTargets.data.target)) *
-                    100
-                  : 0}
-                % achieved against KES
+                {dailyTargets?.status === "SUCCESS" ? achievement() : 0}%
+                achieved against KES
                 {dailyTargets?.status === "SUCCESS"
                   ? dailyTargets.data.target
                   : 0}{" "}
