@@ -145,15 +145,15 @@ const AmountInput = ({
 
       router.refresh();
 
-      console.log("posTransactionsReport", posTransactionsReport[0]);
+      console.log("posTransactionsReport", posTransactionsReport);
 
-      // await handlePrint(posTransactionsReport[0]!);
+      await handlePrint(posTransactionsReport[0]!);
 
       clearCart();
       if (isPrinted) {
         router.push("/");
       }
-      // router.push("/");
+      router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
