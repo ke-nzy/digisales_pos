@@ -18,6 +18,9 @@ import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
 import { useRouter } from "next/navigation";
 import { Trash2Icon } from "lucide-react";
 import { Button } from "./ui/button";
+import { usePosTransactionsReport } from "~/hooks/use-reports";
+import TransactionReceiptPDF from "./thermal-receipt";
+import { pdf } from "@react-pdf/renderer";
 
 interface AmountInputProps {
   value: string;
@@ -31,16 +34,61 @@ const AmountInput = ({
   paid,
   selectedCustomer,
 }: AmountInputProps) => {
-  const { site_company, site_url, account } = useAuthStore();
+  const { site_company, site_url, account, receipt_info } = useAuthStore();
   const { paymentCarts, removeItemFromPayments } = usePayStore();
+  const { posTransactionsReport } = usePosTransactionsReport();
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const { currentCart, clearCart } = useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
   const router = useRouter();
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const balance = total - discount - paid;
+  const handlePrint = async (data: TransactionReportItem) => {
+    try {
+      console.log("handlePrint", data);
+
+      const pdfBlob = await pdf(
+        <>
+          <TransactionReceiptPDF
+            data={data}
+            receipt_info={receipt_info!}
+            account={account!}
+          />
+          <TransactionReceiptPDF
+            data={data}
+            receipt_info={receipt_info!}
+            account={account!}
+          />
+        </>,
+      ).toBlob();
+
+      const url = URL.createObjectURL(pdfBlob);
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.zIndex = "1000";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.focus();
+        iframe.contentWindow!.print();
+        iframe.contentWindow!.onafterprint = () => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+          setIsPrinted(true);
+        };
+      };
+    } catch (error) {
+      console.error("Failed to print document:", error);
+      toast.error("Failed to print document");
+      setIsPrinted(false);
+    }
+  };
   const handleProcessInvoice = async () => {
     if (isLoading) {
       return;
@@ -85,8 +133,16 @@ const AmountInput = ({
       // process receipt
 
       toast.success("Invoice processed successfully");
+
+      router.refresh();
+
+      await handlePrint(posTransactionsReport[0]!);
+
       clearCart();
-      router.push("/");
+      if (isPrinted) {
+        router.push("/");
+      }
+      // router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
@@ -140,12 +196,12 @@ const AmountInput = ({
                 </span>
               </li>
               {cart.payments.map((detail, index) => (
-                <ul key={index} className="grid gap-3 font-normal">
-                  <li className="flex items-center justify-between">
+                <ul key={index} className="grid w-full gap-3 font-normal">
+                  <li className="flex w-full items-center justify-between space-x-4 px-2">
                     <span className="text-muted-foreground">
                       {detail.TransID}
                     </span>
-                    <span className="overflow-hidden text-clip text-center">
+                    <span className="flex-grow overflow-hidden text-clip text-center">
                       {detail.name}
                     </span>
                     <span className="text-right">{detail.TransAmount}</span>

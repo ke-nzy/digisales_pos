@@ -85,7 +85,6 @@ const Itemized = () => {
               <DateRangePicker
                 triggerSize="sm"
                 triggerClassName="ml-auto w-56 sm:w-60"
-                align="end"
               />
             </React.Suspense>
             <React.Suspense

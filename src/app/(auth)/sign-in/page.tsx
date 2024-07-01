@@ -139,7 +139,7 @@ const SignIn = () => {
       // navigate("/manual-milk-collection");
     }
 
-    router.replace("/");
+    router.replace("/dashboard");
   };
 
   useEffect(() => {

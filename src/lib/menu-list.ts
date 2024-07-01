@@ -4,7 +4,7 @@ import {
   LayoutGrid,
   ScrollText,
   ArrowLeftRight,
-  ShoppingBag,
+  // ShoppingBag,
 } from "lucide-react";
 
 type Submenu = {
@@ -54,11 +54,11 @@ export function getMenuList(pathname: string): Group[] {
               label: "Branch Inventory",
               active: pathname === "/inventory",
             },
-            {
-              href: "/inventory/stocktake",
-              label: "Stock Take",
-              active: pathname === "/inventory/stocktake",
-            },
+            // {
+            //   href: "/inventory/stocktake",
+            //   label: "Stock Take",
+            //   active: pathname === "/inventory/stocktake",
+            // },
           ],
         },
         // {
@@ -103,13 +103,13 @@ export function getMenuList(pathname: string): Group[] {
           icon: ArrowLeftRight,
           submenus: [],
         },
-        {
-          href: "/reservations",
-          label: "Reservations",
-          active: pathname.includes("/reservations"),
-          icon: ShoppingBag,
-          submenus: [],
-        },
+        // {
+        //   href: "/reservations",
+        //   label: "Reservations",
+        //   active: pathname.includes("/reservations"),
+        //   icon: ShoppingBag,
+        //   submenus: [],
+        // },
       ],
     },
     {

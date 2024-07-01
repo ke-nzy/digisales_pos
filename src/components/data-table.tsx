@@ -85,6 +85,11 @@ export function DataTable<TData, TValue>({
       }
     }
   }, [focusedRowIndex]);
+  useEffect(() => {
+    if (searchKey && searchKey.length > 0) {
+      table.getColumn(filCol)?.setFilterValue(searchKey);
+    }
+  }, [searchKey]);
 
   return (
     <>

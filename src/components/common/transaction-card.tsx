@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -24,12 +24,17 @@ import { useCartStore } from "~/store/cart-store";
 import { getCart } from "~/utils/indexeddb";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { pdf } from "@react-pdf/renderer";
+import TransactionReceiptPDF from "../thermal-receipt";
+import { useAuthStore } from "~/store/auth-store";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
+  // onPrint: (data: TransactionReportItem) => void;
 }
 const TransactionCard = ({ data, status }: TransactionCardProps) => {
   const { currentCart } = useCartStore();
+  const { receipt_info, account } = useAuthStore();
   const router = useRouter();
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
@@ -63,6 +68,42 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
 
     // redirect to POS
   };
+
+  const handlePrint = async (data: TransactionReportItem) => {
+    try {
+      console.log("handlePrint", data);
+
+      const pdfBlob = await pdf(
+        <TransactionReceiptPDF
+          data={data}
+          receipt_info={receipt_info!}
+          account={account!}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(pdfBlob);
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.zIndex = "1000";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.focus();
+        iframe.contentWindow!.print();
+        iframe.contentWindow!.onafterprint = () => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+        };
+      };
+    } catch (error) {
+      console.error("Failed to print document:", error);
+      toast.error("Failed to print document");
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -146,7 +187,12 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
       </CardContent>
       {status === "Completed" && (
         <CardFooter className="justify-center border-t p-4">
-          <Button size="sm" variant="default" className="gap-1">
+          <Button
+            size="sm"
+            variant="default"
+            className="gap-1"
+            onClick={() => handlePrint(data)}
+          >
             <PrinterIcon className="h-3.5 w-3.5" />
             Print
           </Button>

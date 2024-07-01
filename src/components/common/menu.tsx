@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Ellipsis, LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
@@ -25,6 +25,7 @@ export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
   const { clear_auth_session } = useAuthStore();
+  const router = useRouter();
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -112,6 +113,7 @@ export function Menu({ isOpen }: MenuProps) {
                   <Button
                     onClick={() => {
                       clear_auth_session();
+                      router.push("/sign-in");
                     }}
                     variant="outline"
                     className="mt-5 h-10 w-full justify-center"

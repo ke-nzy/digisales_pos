@@ -8,7 +8,6 @@ import {
 } from "~/components/ui/resizable";
 // import AmountInput from "~/components/amount-input-box";
 
-import { ContentLayout } from "~/components/common/content-layout";
 import PaymentOptions from "~/components/common/payment-options";
 import { useAuthStore } from "~/store/auth-store";
 import { Button } from "~/components/ui/button";
@@ -28,13 +27,14 @@ import { Label } from "~/components/ui/label";
 import { CustomerComboBox } from "~/components/common/customercombo";
 import { useCustomers } from "~/hooks/use-customer-payments";
 import { Users2Icon } from "lucide-react";
+import { DashboardLayout } from "~/components/common/dashboard-layout";
 const AmountInput = dynamic(() => import("~/components/amount-input-box"), {
   ssr: false,
 });
 const Payment = () => {
   const { site_company } = useAuthStore();
 
-  const [amount, setAmount] = useState("0.00");
+  const [amount, setAmount] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
@@ -46,7 +46,7 @@ const Payment = () => {
   const { customer } = useCustomers();
 
   return (
-    <ContentLayout title={site_company?.branch ?? ""}>
+    <DashboardLayout title={site_company?.branch ?? ""}>
       <ResizablePanelGroup
         direction="horizontal"
         className="min-h-[100vh] max-w-[100vw] rounded-lg border"
@@ -60,7 +60,7 @@ const Payment = () => {
             >
               X Cancel
             </Button>
-            <PaymentOptions amount={amount} />
+            <PaymentOptions amount={amount} setAmount={setAmount} />
           </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
@@ -125,7 +125,7 @@ const Payment = () => {
           </div>
         </div>
       </div> */}
-    </ContentLayout>
+    </DashboardLayout>
   );
 };
 

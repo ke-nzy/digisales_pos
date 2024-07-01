@@ -1,5 +1,5 @@
 import "~/styles/globals.css";
-
+import "@fontsource/courier-prime";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "~/components/ui/sonner";
 // import { Inter as FontSans } from "next/font/google";
