@@ -137,15 +137,17 @@ export async function fetch_sales_person_summary_report(
   site_company: SiteCompany,
   account: UserAccountInfo,
   site_url: string,
-  sdate: Date,
-  edate: Date,
+  sdate: string | undefined,
+  edate: string | undefined,
 ) {
+  const sdate_ = sdate ?? toDate(new Date());
+  const edate_ = edate ?? toDate(new Date());
   const form_data = new FormData();
   form_data.append("tp", "salespersonitemsales");
   form_data.append("cp", site_company.company_prefix);
   form_data.append("id", account.id);
-  form_data.append("sdate", "2024-05-01");
-  form_data.append("edate", "2024-06-30");
+  form_data.append("sdate", sdate_);
+  form_data.append("edate", edate_);
 
   try {
     const response = await axios.postForm<SalesReportItem[]>(

@@ -159,10 +159,12 @@ const CartActions = () => {
         toast.error("Please enter a valid percentage");
         return;
       }
-      const val =
-        (Number(discountPercentage) / 100) *
-        selectedCartItem!.details.price *
-        selectedCartItem!.quantity;
+      const val = selectedCartItem
+        ? (Number(discountPercentage) / 100) *
+          selectedCartItem.details.price *
+          selectedCartItem.quantity
+        : 0;
+
       setDiscountValue(val.toString());
     }
   }, [discountPercentage, selectedCartItem]);
@@ -607,9 +609,10 @@ const CartActions = () => {
                             />
                             <span className="text-sm text-muted-foreground">
                               Amounts to KES{" "}
-                              {(Number(discountPercentage) / 100) *
-                                selectedCartItem!.details.price *
-                                selectedCartItem!.quantity}
+                              {selectedCartItem &&
+                                (Number(discountPercentage) / 100) *
+                                  selectedCartItem.details.price *
+                                  selectedCartItem.quantity}
                             </span>
                           </div>
                         </CardContent>

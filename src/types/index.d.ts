@@ -245,6 +245,8 @@ declare type TransactionReportItem = {
   ptotal: string;
   payments: string;
   pitems: string;
+  branch_code: string;
+  branch_name: string;
   cp: string;
   uname: string;
   uid: string;

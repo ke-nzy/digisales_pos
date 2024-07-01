@@ -34,10 +34,13 @@
 - [x] Finalize Dashboard
 - [x] Issue Discount on Cart based on Price
 - [x] Persist Customer Data default CashSales
-- [ ] Print Latest transaction from POSTrans eP
+- [x] Print Latest transaction from POSTrans eP
+- [x] Issue Discount on Cart based on Percentage
 - [ ] Check on date filter in reports
-- [ ] Issue Discount on Cart based on Percentage
+- [ ] ENsure discount value doesnt surpus item price
+- [ ] Bug at Transactions Page
 - [ ] Add general report to match excel file provided
+- [ ] Send Cleared Cart to DB Enpoint
 - [ ] UI Fix on transactions page when sidebar is open
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)

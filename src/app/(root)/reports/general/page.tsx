@@ -2,19 +2,20 @@
 import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
-import { TransactionsDataTable } from "~/components/data-table/sales-report";
 import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { Shell } from "~/components/shell";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useItemizedSalesReport } from "~/hooks/use-reports";
 import { salesReportColumns, searchParamsSchema } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
+import GeneralSalesDataTable from "~/components/data-table/general-report";
 import { type IndexPageProps } from "../../transactions/page";
 
 const Itemized = ({ searchParams }: IndexPageProps) => {
   const params = searchParamsSchema.parse(searchParams);
   const { site_company } = useAuthStore();
   const { salesReport, loading, error } = useItemizedSalesReport(params);
+
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -66,15 +67,14 @@ const Itemized = ({ searchParams }: IndexPageProps) => {
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center">
           <h1 className="text-lg font-semibold md:text-2xl">
-            {" "}
-            Itemized Sales Reports
+            General Sales Reports
           </h1>
         </div>
         {salesReport.length === 0 && !loading && !error ? (
           <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
             <div className="flex flex-col items-center gap-1 text-center">
               <h3 className="text-2xl font-bold tracking-tight">
-                You have no sales reports
+                You have no sales for this period
               </h3>
               <p className="text-sm text-muted-foreground">
                 You can start generating a report as soon as you make a sale.
@@ -101,7 +101,7 @@ const Itemized = ({ searchParams }: IndexPageProps) => {
               }
             >
               <div className="flex flex-col gap-4">
-                <TransactionsDataTable
+                <GeneralSalesDataTable
                   columns={salesReportColumns}
                   data={salesReport}
                   onRowClick={(rowData) => console.log(rowData)}

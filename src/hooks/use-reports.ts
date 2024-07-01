@@ -13,7 +13,9 @@ interface DateParams {
   from?: string;
   to?: string;
 }
-const fetchItemizedSalesReport = async (): Promise<SalesReportItem[]> => {
+const fetchItemizedSalesReport = async (
+  params: DateParams,
+): Promise<SalesReportItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
 
   // Fetch from API
@@ -21,8 +23,8 @@ const fetchItemizedSalesReport = async (): Promise<SalesReportItem[]> => {
     site_company!,
     account!,
     site_url!,
-    new Date(),
-    new Date(),
+    params.from,
+    params.to,
   );
 
   const list = sreport || [];
@@ -82,12 +84,12 @@ const fetchHeldTransactionsReport = async (
   return list;
 };
 
-export const useItemizedSalesReport = () => {
+export const useItemizedSalesReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<SalesReportItem[], Error>({
     queryKey: ["salesReport"],
-    queryFn: fetchItemizedSalesReport,
+    queryFn: () => fetchItemizedSalesReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
