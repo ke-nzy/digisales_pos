@@ -1,6 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Card, CardHeader } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import {
   CaptionsOffIcon,
   EllipsisIcon,
@@ -58,6 +64,7 @@ import {
 } from "~/lib/actions/user.actions";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { set } from "date-fns";
 
 const CartActions = () => {
   const {
@@ -79,6 +86,7 @@ const CartActions = () => {
 
   const [action, setAction] = useState<string>("");
   const [discountValue, setDiscountValue] = useState<string>("0");
+  const [discountPercentage, setDiscountPercentage] = useState<string>("0");
   const [quantityValue, setQuantityValue] = useState<string>("0");
   const [authPass, setAuthPass] = useState<string>("");
   const [authorized, setAuthorized] = useState<boolean>(false);
@@ -144,6 +152,20 @@ const CartActions = () => {
   const discount = calculateDiscount(currentCart!);
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const router = useRouter();
+
+  useEffect(() => {
+    if (discountPercentage !== "") {
+      if (Number(discountPercentage) < 0 || Number(discountPercentage) > 100) {
+        toast.error("Please enter a valid percentage");
+        return;
+      }
+      const val =
+        (Number(discountPercentage) / 100) *
+        selectedCartItem!.details.price *
+        selectedCartItem!.quantity;
+      setDiscountValue(val.toString());
+    }
+  }, [discountPercentage, selectedCartItem]);
 
   const handleLogout = () => {
     clear_auth_session();
@@ -536,37 +558,63 @@ const CartActions = () => {
                   </li>
 
                   <Separator className="my-2" />
-                  <Tabs defaultValue="value" className="w-full">
+                  <Tabs defaultValue="value" className="w-[400px]">
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="value">On Value</TabsTrigger>
                       <TabsTrigger value="percentage">
                         On Percentage
                       </TabsTrigger>
-                      <TabsContent value="value">
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                          <Label htmlFor="discount">Discount</Label>
-                          <Input
-                            type="text"
-                            id="discount"
-                            placeholder={"0"}
-                            value={discountValue}
-                            onChange={(e) => setDiscountValue(e.target.value)}
-                          />
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="percentage">
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                          <Label htmlFor="discount">Discount</Label>
-                          <Input
-                            type="text"
-                            id="discount"
-                            placeholder={"0"}
-                            value={discountValue}
-                            onChange={(e) => setDiscountValue(e.target.value)}
-                          />
-                        </div>
-                      </TabsContent>
                     </TabsList>
+                    <TabsContent value="value">
+                      <Card>
+                        <CardHeader>
+                          <CardDescription>
+                            Enter amount to discount
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Label htmlFor="discount">Discount</Label>
+                            <Input
+                              type="text"
+                              id="discount"
+                              placeholder={"0"}
+                              value={discountValue}
+                              onChange={(e) => setDiscountValue(e.target.value)}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                    <TabsContent value="percentage">
+                      <Card>
+                        <CardHeader>
+                          <CardDescription>
+                            Enter percentage to discount
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Label htmlFor="discount">Discount</Label>
+                            <Input
+                              type="text"
+                              id="discount"
+                              placeholder={"0%"}
+                              value={discountPercentage}
+                              onChange={(e) =>
+                                setDiscountPercentage(e.target.value)
+                              }
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              Amounts to KES{" "}
+                              {(Number(discountPercentage) / 100) *
+                                selectedCartItem!.details.price *
+                                selectedCartItem!.quantity}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
                   </Tabs>
                 </ul>
               </div>
