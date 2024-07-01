@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 
@@ -48,7 +48,10 @@ const AmountInput = ({
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
   const router = useRouter();
-  setCurrentCustomer(selectedCustomer);
+  useEffect(() => {
+    setCurrentCustomer(selectedCustomer);
+  }, [selectedCustomer]);
+
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const balance = total - discount - paid;
@@ -142,7 +145,9 @@ const AmountInput = ({
 
       router.refresh();
 
-      await handlePrint(posTransactionsReport[0]!);
+      console.log("posTransactionsReport", posTransactionsReport[0]);
+
+      // await handlePrint(posTransactionsReport[0]!);
 
       clearCart();
       if (isPrinted) {

@@ -34,6 +34,7 @@
 - [x] Finalize Dashboard
 - [x] Issue Discount on Cart based on Price
 - [x] Persist Customer Data default CashSales
+- [ ] Print Latest transaction from POSTrans eP
 - [ ] Check on date filter in reports
 - [ ] Issue Discount on Cart based on Percentage
 - [ ] Add general report to match excel file provided
