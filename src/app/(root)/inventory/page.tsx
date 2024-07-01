@@ -1,10 +1,8 @@
 "use client";
 import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
-import { DateRangePicker } from "~/components/common/date-range-picker";
 import { DataTable } from "~/components/data-table";
 import { Shell } from "~/components/shell";
-import { Skeleton } from "~/components/ui/skeleton";
 import { useBranchInventory } from "~/hooks/useBranchInventory";
 import { inventoryColumns } from "~/lib/TableUtils";
 import { useAuthStore } from "~/store/auth-store";

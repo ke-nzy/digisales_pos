@@ -3,11 +3,14 @@ import {
   Document,
   Page,
   Text,
+  Image,
   View,
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
+import QrCode from "qrcode";
 
+import { calculateSubtotalAndDiscount } from "~/lib/utils";
 Font.register({
   family: "Courier Prime",
   src: "http://fonts.gstatic.com/s/raleway/v11/bIcY3_3JNqUVRAQQRNVteQ.ttf",
@@ -80,10 +83,15 @@ const TransactionReceiptPDF = ({
 }) => {
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
+  const payments: Payment[] =
+    data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
   function get_printout_size(length: number): [number, number] {
     return [80, 140 + length * 14];
   }
+  const totalDiscount = calculateSubtotalAndDiscount(data);
+  const kra_code = async () =>
+    await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
   return (
     <Document>
       <Page size={get_printout_size(items.length)} style={{ padding: 2 }}>
@@ -292,18 +300,95 @@ const TransactionReceiptPDF = ({
             // </View>
           })}
         </View>
+        <View style={{ alignItems: "flex-end" }}>
+          <TotalRowItem
+            label={"Gross Weight"}
+            value={`${data.weight} (Approx.(Kgs))`}
+            is_last
+          />
+          <TotalRowItem label={"Paid By"} value={data.ptype} />
+          <TotalRowItem
+            label={"Sub total"}
+            value={`KES ${totalDiscount.subtotal}`}
+          />
+          <TotalRowItem
+            label={"Discount"}
+            value={`KES ${totalDiscount.totalDiscount}`}
+            is_last
+          />
+          <TotalRowItem
+            label={"Total"}
+            value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount}`}
+            is_last
+          />
+        </View>
+        <View
+          style={{
+            width: "100%",
+            paddingVertical: 4,
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <View
+            style={{
+              width: "40%",
+              padding: 2,
+              justifyContent: "center",
+              backgroundColor: "#fff",
+            }}
+          >
+            <Image src={kra_code} style={{ height: 24, width: 24 }} />
+          </View>
+          <View
+            style={{
+              width: "60%",
+              padding: 2,
+              justifyContent: "center",
+              flexDirection: "column",
+            }}
+          >
+            {data.middlewareInvoiceNumber ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>{`Middleware Invoice Number`}</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {`${data.middlewareInvoiceNumber}`}
+                </Text>
+              </View>
+            ) : null}
 
-        {/* <View style={styles.customer_section}>
-          <Text style={styles.text}>Cashier: {account.id}</Text>
-          <Text style={styles.text}>Customer Name: {data.customername}</Text>
-          <Text style={styles.text}>
-            Transaction Date: {new Date(data.pdate).toLocaleDateString()}
+            {data.qrDate !== "" ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>{`QR Date`}</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {`${data.qrDate}`}
+                </Text>
+              </View>
+            ) : (
+              <></>
+            )}
+
+            {data.controlCode !== "" ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>{`Control Code`}</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {`${data.controlCode}`}
+                </Text>
+              </View>
+            ) : (
+              <></>
+            )}
+          </View>
+        </View>
+
+        <View style={{ flex: 1 }} />
+        {/*NOTE: (teddy) THank you message*/}
+        <View style={{ paddingVertical: 1, alignItems: "center" }}>
+          <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
+            Thank you for doing business with us
           </Text>
-          <Text style={styles.text}>
-            Transaction Time: {new Date(data.pdate).toLocaleTimeString()}
-          </Text>
-          <Text style={styles.text}>Total: KES {data.ptotal}</Text>
-        </View> */}
+          <Text style={[styles.text]}></Text>
+        </View>
         {/* <View style={styles.table}>
           <View style={styles.tableRow}>
             <View style={[styles.tableColHeader, { width: "60rem" }]}>
@@ -347,3 +432,53 @@ const TransactionReceiptPDF = ({
 };
 
 export default TransactionReceiptPDF;
+
+type TotalRowItemProps = {
+  is_last?: boolean;
+  label: string;
+  value: string;
+};
+
+function TotalRowItem({ is_last, label, value }: TotalRowItemProps) {
+  return (
+    <View
+      style={[
+        {
+          flexDirection: "row",
+          width: "70%",
+          borderTopColor: "#000",
+          borderTopWidth: 0.2,
+          borderRightColor: "#000",
+          borderRightWidth: 0.2,
+          borderLeftColor: "#000",
+          borderLeftWidth: 0.2,
+        },
+        is_last
+          ? {
+              borderBottomWidth: 0.2,
+              borderBottomColor: "#000",
+            }
+          : {},
+      ]}
+    >
+      <View
+        style={{
+          width: "50%",
+          borderRightWidth: 0.2,
+          borderRightColor: "#000",
+          padding: 1,
+        }}
+      >
+        <Text style={[styles.text, { fontWeight: "bold" }]}>{label}</Text>
+      </View>
+      <View
+        style={{
+          width: "50%",
+          padding: 1,
+        }}
+      >
+        <Text style={[styles.text]}>{value}</Text>
+      </View>
+    </View>
+  );
+}
