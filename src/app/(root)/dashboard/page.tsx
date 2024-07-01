@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
 import {
   useDailySalesTargetReport,
   useHeldTransactionsReport,
@@ -15,11 +17,14 @@ import {
 } from "~/hooks/use-reports";
 import { submit_start_shift } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
+import { IndexPageProps } from "../transactions/page";
+import { searchParamsSchema } from "~/lib/utils";
 
-const DashBoard = () => {
+const DashBoard = ({ searchParams }: IndexPageProps) => {
+  const params = searchParamsSchema.parse(searchParams);
   const { site_company, account, site_url } = useAuthStore();
-  const { posTransactionsReport } = usePosTransactionsReport();
-  const { heldTransactionsReport } = useHeldTransactionsReport();
+  const { posTransactionsReport } = usePosTransactionsReport(params);
+  const { heldTransactionsReport } = useHeldTransactionsReport(params);
   const { salesReport, loading: loadingItemizedSalesReport } =
     useItemizedSalesReport();
   const router = useRouter();
@@ -85,6 +90,13 @@ const DashBoard = () => {
   return (
     <DashboardLayout title={site_company?.branch ?? " Digisales"}>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+          <DateRangePicker
+            triggerSize="sm"
+            triggerClassName="ml-auto w-56 sm:w-60"
+            align="end"
+          />
+        </React.Suspense>
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

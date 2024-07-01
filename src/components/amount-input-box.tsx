@@ -9,6 +9,7 @@ import {
   calculateDiscount,
   cn,
   tallyTotalAmountPaid,
+  toDate,
 } from "~/lib/utils";
 import { Separator } from "./ui/separator";
 import { toast } from "sonner";
@@ -36,7 +37,10 @@ const AmountInput = ({
 }: AmountInputProps) => {
   const { site_company, site_url, account, receipt_info } = useAuthStore();
   const { paymentCarts, removeItemFromPayments } = usePayStore();
-  const { posTransactionsReport } = usePosTransactionsReport();
+  const { posTransactionsReport } = usePosTransactionsReport({
+    from: toDate(new Date()),
+    to: toDate(new Date()),
+  });
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const { currentCart, clearCart } = useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
