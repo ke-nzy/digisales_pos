@@ -27,7 +27,6 @@ import {
   calculateCartTotal,
   calculateDiscount,
   cn,
-  generateRandomString,
   tallyTotalAmountPaid,
 } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
@@ -62,11 +61,13 @@ import { useRouter } from "next/navigation";
 const CartActions = () => {
   const {
     currentCart,
+    currentCustomer,
     clearCart,
     holdCart,
     selectedCartItem,
     update_cart_item,
     setSelectedCartItem,
+    setCurrentCustomer,
     deleteItemFromCart,
   } = useCartStore();
   const sidebar = useStore(useSidebarToggle, (state) => state);
@@ -74,9 +75,7 @@ const CartActions = () => {
   const { paymentCarts } = usePayStore();
   const { site_url, site_company, account, clear_auth_session } =
     useAuthStore();
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
-  );
+
   const [action, setAction] = useState<string>("");
   const [discountValue, setDiscountValue] = useState<string>("0");
   const [quantityValue, setQuantityValue] = useState<string>("0");
@@ -140,7 +139,6 @@ const CartActions = () => {
     };
   }, []);
 
-  const invNo = generateRandomString(3);
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
@@ -168,7 +166,7 @@ const CartActions = () => {
       // setIsLoading(false);
       return;
     }
-    if (!selectedCustomer) {
+    if (!currentCustomer) {
       toast.error("Please select a customer");
       // setIsLoading(false);
       return;
@@ -182,9 +180,9 @@ const CartActions = () => {
         account!.id,
         account!.user_id,
         currentCart.items,
-        selectedCustomer,
+        currentCustomer,
         null,
-        selectedCustomer.br_name,
+        currentCustomer.br_name,
         currentCart.cart_id,
       );
       console.log("result", result);
@@ -599,8 +597,8 @@ const CartActions = () => {
                 </h6>
                 <User2Icon className="h-8 w-8 " />
                 <h4 className="text-center text-sm font-normal">
-                  {selectedCustomer
-                    ? selectedCustomer.br_name
+                  {currentCustomer
+                    ? currentCustomer.br_name
                     : "Select Customer"}
                 </h4>
               </CardHeader>
@@ -636,7 +634,7 @@ const CartActions = () => {
                   <CustomerComboBox
                     type="Customer"
                     data={customer}
-                    setSelected={setSelectedCustomer}
+                    setSelected={setCurrentCustomer}
                   />
                 </ul>
               </div>

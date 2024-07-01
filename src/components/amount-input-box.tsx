@@ -42,11 +42,13 @@ const AmountInput = ({
     to: toDate(new Date()),
   });
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
-  const { currentCart, clearCart } = useCartStore();
+  const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
+    useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
   const router = useRouter();
+  setCurrentCustomer(selectedCustomer);
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const balance = total - discount - paid;
@@ -102,7 +104,7 @@ const AmountInput = ({
       // setIsLoading(false);
       return;
     }
-    if (!selectedCustomer) {
+    if (!currentCustomer) {
       toast.error("Please select a customer");
       // setIsLoading(false);
       return;
@@ -121,9 +123,9 @@ const AmountInput = ({
         account!.id,
         account!.user_id,
         currentCart.items,
-        selectedCustomer,
+        currentCustomer,
         paymentCarts,
-        selectedCustomer.br_name,
+        currentCustomer.br_name,
         currentCart.cart_id,
       );
       console.log("result", result);

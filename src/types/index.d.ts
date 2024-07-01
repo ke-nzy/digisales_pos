@@ -130,7 +130,7 @@ declare type Customer = {
   branch_ref: string;
   debtor_no: string;
   lat: string;
-  lng: string;
+  lon: string;
   is_farmer: string;
 };
 declare type CustomerBranch = {

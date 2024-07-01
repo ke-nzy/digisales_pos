@@ -33,7 +33,11 @@
 - [x] Filter and Export Reports to CSV and PDF
 - [x] Finalize Dashboard
 - [x] Issue Discount on Cart based on Price
+- [x] Persist Customer Data default CashSales
+- [ ] Check on date filter in reports
 - [ ] Issue Discount on Cart based on Percentage
+- [ ] Add general report to match excel file provided
+- [ ] UI Fix on transactions page when sidebar is open
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)
-- [ ] UI Fix on transactions page
+- [ ] Generated reprt should have Logo

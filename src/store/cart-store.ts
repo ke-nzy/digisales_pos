@@ -7,6 +7,7 @@ import { setCart, getCart, deleteCart } from "~/utils/indexeddb";
 interface CartState {
   selectedCartItem: DirectSales | null;
   currentCart: Cart | null;
+  currentCustomer: Customer | null;
   addItemToCart: (item: DirectSales) => void;
   deleteItemFromCart: (item: DirectSales) => void;
   update_cart_item: (item: DirectSales) => void;
@@ -14,6 +15,7 @@ interface CartState {
   clearCart: () => void;
   loadCart: (cart_id: string) => void;
   holdCart: () => void;
+  setCurrentCustomer: (customer: Customer | null) => void;
   setSelectedCartItem: (item: DirectSales | null) => void;
 }
 
@@ -23,6 +25,16 @@ const invNo = generateRandomString(3);
 export const useCartStore = create<CartState>((set, get) => ({
   selectedCartItem: null,
   currentCart: null,
+  currentCustomer: {
+    branch_code: "8",
+    br_name: "CASH SALE-POS",
+    branch_ref: "CASH",
+    debtor_no: "8",
+    lat: "",
+    lon: "",
+    is_farmer: "0",
+    sales_type: "1",
+  },
   addItemToCart: (item: DirectSales) => {
     const state = get();
     if (!state.currentCart) {
@@ -158,13 +170,15 @@ export const useCartStore = create<CartState>((set, get) => ({
       console.error("Failed to load cart:", error),
     );
   },
-
   holdCart: () => {
     set({ currentCart: null });
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   },
   setSelectedCartItem: (item: DirectSales | null) => {
     set({ selectedCartItem: item });
+  },
+  setCurrentCustomer: (customer: Customer | null) => {
+    set({ currentCustomer: customer });
   },
 }));
 
