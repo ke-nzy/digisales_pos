@@ -35,9 +35,16 @@ const Payment = () => {
   const { site_company } = useAuthStore();
 
   const [amount, setAmount] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
-  );
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>({
+    branch_code: "8",
+    br_name: "CASH SALE-POS",
+    branch_ref: "CASH",
+    debtor_no: "8",
+    lat: "",
+    lon: "",
+    is_farmer: "0",
+    sales_type: "1",
+  });
 
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const { paymentCarts } = usePayStore();

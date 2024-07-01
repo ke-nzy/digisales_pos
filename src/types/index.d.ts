@@ -132,6 +132,7 @@ declare type Customer = {
   lat: string;
   lon: string;
   is_farmer: string;
+  sales_type: string;
 };
 declare type CustomerBranch = {
   branch_code: string;
