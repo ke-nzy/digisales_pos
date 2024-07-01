@@ -29,6 +29,8 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
     useItemizedSalesReport();
   const router = useRouter();
   const { dailyTargets, loading, error } = useDailySalesTargetReport();
+  console.log("dailyTargets", dailyTargets);
+
   const shift = localStorage.getItem("start_shift");
   const handleCheckin = async () => {
     if (shift) {
@@ -105,10 +107,26 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                KES{dailyTargets?.data.sales_to_date}
+                KES
+                {dailyTargets?.status === "SUCCESS"
+                  ? dailyTargets.data.sales_to_date
+                  : 0}
+                {/* {dailyTargets?.data.sales_to_date &&
+                dailyTargets?.data.sales_to_date
+                  ? dailyTargets?.data.sales_to_date
+                  : 0} */}
               </div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                {dailyTargets?.status === "SUCCESS"
+                  ? (parseFloat(dailyTargets.data.sales_to_date) /
+                      parseFloat(dailyTargets.data.target)) *
+                    100
+                  : 0}
+                % achieved against KES
+                {dailyTargets?.status === "SUCCESS"
+                  ? dailyTargets.data.target
+                  : 0}{" "}
+                target
               </p>
             </CardContent>
           </Card>
@@ -121,9 +139,6 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{completedTrnasactions}</div>
-              <p className="text-xs text-muted-foreground">
-                +180.1% from last month
-              </p>
             </CardContent>
           </Card>
           <Card>
@@ -135,9 +150,6 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{heldTrnasactions}</div>
-              <p className="text-xs text-muted-foreground">
-                +19% from last month
-              </p>
             </CardContent>
           </Card>
 
