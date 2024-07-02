@@ -18,12 +18,17 @@ const TotalSummary = dynamic(() => import("~/components/total-summary"), {
 });
 
 export default function HomePage() {
-  const { site_company } = useAuthStore();
+  const { site_company, account } = useAuthStore();
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>
-      <div className=" sticky top-0 z-10 mb-4 bg-zinc-50 py-2  dark:bg-zinc-900">
+      <div className=" sticky top-0 z-10 mb-2 bg-zinc-50 py-2  dark:bg-zinc-900">
         <ItemSearchBox />
+        <div className="flex w-full flex-row justify-end py-1 ">
+          <p className="font-semi-bold text-xs text-zinc-900">
+            Selling as {account?.real_name}
+          </p>
+        </div>
       </div>
       <div className="no-scrollbar relative flex w-full  flex-col items-start gap-4 overflow-y-hidden md:flex-row">
         <div className="no-scrollbar relative flex w-full flex-col md:w-auto">

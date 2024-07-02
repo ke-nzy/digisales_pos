@@ -1,7 +1,7 @@
 "use client";
 import { Activity, CreditCard, DollarSign, User, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
@@ -20,14 +20,23 @@ import { useAuthStore } from "~/store/auth-store";
 import { type IndexPageProps } from "../transactions/page";
 import { searchParamsSchema } from "~/lib/utils";
 
-const DashBoard = ({ searchParams }: IndexPageProps) => {
-  const params = searchParamsSchema.parse(searchParams);
+interface DateParams {
+  from?: string;
+  to?: string;
+}
+const DashBoard = () => {
   const { site_company, account, site_url } = useAuthStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<DateParams>({
+    from: searchParams.get("from") ?? undefined,
+    to: searchParams.get("to") ?? undefined,
+  });
   const { posTransactionsReport } = usePosTransactionsReport(params);
   const { heldTransactionsReport } = useHeldTransactionsReport(params);
   const { salesReport, loading: loadingItemizedSalesReport } =
     useItemizedSalesReport(params);
-  const router = useRouter();
+
   const { dailyTargets, loading } = useDailySalesTargetReport();
   const achievement = () => {
     if (dailyTargets?.status === "SUCCESS") {
@@ -40,7 +49,13 @@ const DashBoard = ({ searchParams }: IndexPageProps) => {
       return 0.0 as number;
     }
   };
-
+  useEffect(() => {
+    const newParams = {
+      from: searchParams.get("from") ?? undefined,
+      to: searchParams.get("to") ?? undefined,
+    };
+    setParams(newParams);
+  }, [searchParams]);
   console.log("dailyTargets", dailyTargets);
 
   const shift = localStorage.getItem("start_shift");

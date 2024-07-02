@@ -88,7 +88,7 @@ export const useItemizedSalesReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<SalesReportItem[], Error>({
-    queryKey: ["salesReport"],
+    queryKey: ["salesReport", params.to],
     queryFn: () => fetchItemizedSalesReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
@@ -105,7 +105,7 @@ export const usePosTransactionsReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<TransactionReportItem[], Error>({
-    queryKey: ["posTransactionsReport", params.to],
+    queryKey: ["posTransactionsReport", params],
     queryFn: () => fetchPosTransactionsReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
@@ -116,7 +116,7 @@ export const usePosTransactionsReport = (params: DateParams) => {
     error: error ? error.message : null,
     refetch: () =>
       queryClient.invalidateQueries({
-        queryKey: ["posTransactionsReport", params.to],
+        queryKey: ["posTransactionsReport", params],
       }),
   };
 };
@@ -124,7 +124,7 @@ export const useHeldTransactionsReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<TransactionReportItem[], Error>({
-    queryKey: ["heldTransactionsReport", params.to],
+    queryKey: ["heldTransactionsReport", params],
     queryFn: () => fetchHeldTransactionsReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
@@ -135,7 +135,7 @@ export const useHeldTransactionsReport = (params: DateParams) => {
     error: error ? error.message : null,
     refetch: () =>
       queryClient.invalidateQueries({
-        queryKey: ["heldTransactionsReport", params.to],
+        queryKey: ["heldTransactionsReport", params],
       }),
   };
 };
