@@ -30,7 +30,7 @@ const TransactionsPage = ({ searchParams }: IndexPageProps) => {
   const { heldTransactionsReport, loading: loadingHeld } =
     useHeldTransactionsReport(params);
   console.log("posTransactionsReport", heldTransactionsReport);
-  const all = posTransactionsReport.concat(heldTransactionsReport);
+  // const all = posTransactionsReport.concat(heldTransactionsReport);
 
   if (loading || loadingHeld) {
     return (
@@ -89,12 +89,12 @@ const TransactionsPage = ({ searchParams }: IndexPageProps) => {
             align="end"
           />
         </React.Suspense>
-        <Tabs defaultValue="all">
+        <Tabs defaultValue="held">
           <div className="flex items-center">
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="held">Held</TabsTrigger>
+              {/* <TabsTrigger value="all">All</TabsTrigger> */}
               <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="held">Held</TabsTrigger>
             </TabsList>
             <div className="relative ml-auto flex-1 md:grow-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -106,13 +106,13 @@ const TransactionsPage = ({ searchParams }: IndexPageProps) => {
             </div>
           </div>
 
-          <TabsContent value="all">
+          {/* <TabsContent value="all">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {all.map((x) => (
                 <TransactionCard key={x.id} data={x} />
               ))}
             </div>
-          </TabsContent>
+          </TabsContent> */}
           <TabsContent value="completed">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {posTransactionsReport.map((x) => (

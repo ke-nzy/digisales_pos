@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React from "react";
 import {
   Card,
   CardHeader,
@@ -11,6 +11,7 @@ import {
 import { Button } from "~/components/ui/button";
 import {
   CheckCheckIcon,
+  InfoIcon,
   PrinterIcon,
   ShoppingBasketIcon,
   Timer,
@@ -33,6 +34,7 @@ import { pdf } from "@react-pdf/renderer";
 import TransactionReceiptPDF from "../thermal-receipt";
 import { useAuthStore } from "~/store/auth-store";
 import { TrashIcon } from "@radix-ui/react-icons";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
@@ -44,7 +46,8 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
   const router = useRouter();
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
-
+  const payments: Payment[] =
+    data.payments && data.payments.length > 0 ? JSON.parse(data.payments) : [];
   const handleReOpen = async () => {
     console.log(`cart_${data.unique_identifier}`);
 
@@ -113,7 +116,62 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="  flex-col space-y-2">
+          {" "}
+          {(data.status === "1" || status === "Completed") && (
+            <div className="flex flex-row justify-end">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <InfoIcon className="h-4 w-4 text-zinc-400" />
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Invoice Payments</CardTitle>
+                      <CardDescription>
+                        <div className="flex flex-row items-center justify-between gap-4">
+                          <p>
+                            The following are the corresponding payments made
+                            for the invoice.
+                          </p>
+                        </div>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-56">
+                        <Table className="h-full">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Type</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {payments &&
+                              payments.length > 0 &&
+                              payments.map((x) => (
+                                <TableRow key={x.name}>
+                                  <TableCell className="w-[200px] text-xs">
+                                    {x.name}
+                                  </TableCell>
+                                  <TableCell className="w-[70px] text-xs">
+                                    {x.TransAmount}
+                                  </TableCell>
+                                  <TableCell className="text-xs">
+                                    {x.TransID}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
           <div className="flex items-center gap-4">
             {/* <Avatar className="hidden h-9 w-9 p-2 sm:flex">
               <User2Icon className="h-9 w-9 text-zinc-700" />
@@ -128,7 +186,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                     "flex flex-row items-center justify-evenly space-x-2 rounded-sm  p-1",
                     data.status === "1" && status === "Completed"
                       ? "bg-green-200"
-                      : data.status === "1"
+                      : data.status === "1" && status !== "Completed"
                         ? "bg-lime-300"
                         : data.status === "0"
                           ? "bg-orange-200"
@@ -138,13 +196,13 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                   {(data.status === "1" || status === "Completed") && (
                     <CheckCheckIcon className="h-3 w-3 text-emerald-950" />
                   )}
-                  {(data.status === "0" || status === "Held") && (
+                  {data.status === "0" && (
                     <Timer className="h-3 w-3 text-orange-950" />
                   )}
                   {status === "Completed" && (
                     <p className="text-sm text-emerald-950">Completed</p>
                   )}
-                  {data.status === "1" && (
+                  {data.status === "1" && status !== "Completed" && (
                     <p className="text-sm text-emerald-950">Processed</p>
                   )}
                   {data.status === "0" && (
@@ -216,7 +274,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
           </Button>
         </CardFooter>
       )}
-      {(status === "Held" || data.status === "0") && (
+      {status === "Held" && data.status === "0" && (
         <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
           <Button size="sm" variant="destructive" className="flex-grow gap-2">
             <TrashIcon className="h-3.5 w-3.5" />
