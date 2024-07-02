@@ -59,6 +59,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
   submit_authorization_request,
+  submit_clear_cart_request,
   submit_end_shift,
   submit_hold_direct_sale_request,
 } from "~/lib/actions/user.actions";
@@ -114,7 +115,7 @@ const CartActions = () => {
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F5") {
-        handleClearCart();
+        async () => await handleClearCart();
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F6") {
@@ -171,14 +172,6 @@ const CartActions = () => {
   const handleLogout = () => {
     clear_auth_session();
     router.push("/sign-in");
-  };
-  const handleClearCart = () => {
-    if (authorized) {
-      clearCart();
-      toast.success("Cart cleared successfully");
-    } else {
-      setAuthorizationDialogOpen(true);
-    }
   };
 
   const handleHoldCart = async () => {
@@ -362,6 +355,36 @@ const CartActions = () => {
         setAction("");
         setAuthorizationDialogOpen(false);
       }, 2000);
+    }
+  };
+
+  const issueClearCart = async (id: string) => {
+    console.log("issueClearCart");
+    const response = await submit_clear_cart_request(
+      site_url!,
+      site_company!.company_prefix,
+      id,
+    );
+    console.log("response", response);
+    if (response?.message === "Success") {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const handleClearCart = async () => {
+    if (authorized) {
+      const result = await issueClearCart(currentCart!.cart_id);
+      if (result) {
+        toast.success("Transaction cleared successfully");
+        clearCart();
+      } else {
+        toast.error("Failed to clear transaction");
+      }
+    } else {
+      setAction("edit_cart");
+      setAuthorizationDialogOpen(true);
     }
   };
 

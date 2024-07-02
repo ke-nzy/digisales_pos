@@ -39,10 +39,10 @@
 - [x] ENsure discount value doesnt surpus item price
 - [x] Bug at Transactions Page
 - [x] Nullify Authorization after discount issued
+- [x] Send Cleared Cart to DB Enpoint
+- [x] UI Fix on transactions page when sidebar is open
 - [ ] Check on date filter in reports
 - [ ] Add general report to match excel file provided
-- [ ] Send Cleared Cart to DB Enpoint
-- [ ] UI Fix on transactions page when sidebar is open
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)
 - [ ] Generated reprt should have Logo

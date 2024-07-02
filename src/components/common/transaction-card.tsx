@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -34,16 +34,36 @@ import { pdf } from "@react-pdf/renderer";
 import TransactionReceiptPDF from "../thermal-receipt";
 import { useAuthStore } from "~/store/auth-store";
 import { TrashIcon } from "@radix-ui/react-icons";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import {
+  submit_authorization_request,
+  submit_clear_cart_request,
+} from "~/lib/actions/user.actions";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "../ui/input";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
   // onPrint: (data: TransactionReportItem) => void;
 }
 const TransactionCard = ({ data, status }: TransactionCardProps) => {
-  const { currentCart } = useCartStore();
-  const { receipt_info, account } = useAuthStore();
+  const { currentCart, clearCart } = useCartStore();
+  const { site_url, site_company, receipt_info, account } = useAuthStore();
   const router = useRouter();
+  const [action, setAction] = useState<string>("");
+  const [authPass, setAuthPass] = useState<string>("");
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [authorizationDialogOpen, setAuthorizationDialogOpen] =
+    useState<boolean>(false);
+  const [authorized, setAuthorized] = useState<boolean>(false);
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
   const payments: Payment[] =
@@ -110,6 +130,62 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
     } catch (error) {
       console.error("Failed to print document:", error);
       toast.error("Failed to print document");
+    }
+  };
+
+  const handleAuthorization = async () => {
+    try {
+      const auth = await submit_authorization_request(
+        site_url!,
+        site_company!.company_prefix,
+        authPass,
+        action,
+      );
+      if (auth) {
+        setAuthorized(true);
+        toast.success("Authorized");
+      } else {
+        setAuthorized(false);
+        toast.error("Unauthorized to perform this action");
+      }
+    } catch (error) {
+      toast.error("Authorization Failed: Something Went Wrong");
+    } finally {
+      setTimeout(() => {
+        setAuthPass("");
+        setAction("");
+        setAuthorizationDialogOpen(false);
+      }, 2000);
+    }
+  };
+
+  const issueClearCart = async (id: string) => {
+    console.log("issueClearCart");
+    const response = await submit_clear_cart_request(
+      site_url!,
+      site_company!.company_prefix,
+      id,
+    );
+    console.log("response", response);
+    if (response?.message === "Success") {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const handleClearCart = async () => {
+    if (authorized) {
+      const result = await issueClearCart(data.id);
+      if (result) {
+        toast.success("Transaction cleared successfully");
+        clearCart();
+      } else {
+        toast.error("Failed to clear transaction");
+      }
+    } else {
+      setAction("edit_cart");
+      setAuthorizationDialogOpen(true);
     }
   };
 
@@ -205,6 +281,36 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
             KES {data.ptotal}
           </p>
         </div>
+        <Dialog
+          open={authorizationDialogOpen}
+          onOpenChange={setAuthorizationDialogOpen}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Authorize</DialogTitle>
+              <DialogDescription>Authorize cart actions</DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
+                <ul className="grid gap-3">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="auth-cart-pass">Password</Label>
+                    <Input
+                      type="password"
+                      id="auth-cart-pass"
+                      placeholder={"Authorization Password"}
+                      value={authPass}
+                      onChange={(e) => setAuthPass(e.target.value)}
+                    />
+                  </div>
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => handleAuthorization()}>Authorize</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
       {(data.status === "1" || status === "Completed") && (
         <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
@@ -274,7 +380,12 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
       )}
       {status === "Held" && data.status === "0" && (
         <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
-          <Button size="sm" variant="destructive" className="flex-grow gap-2">
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={handleClearCart}
+            className="flex-grow gap-2"
+          >
             <TrashIcon className="h-3.5 w-3.5" />
             Clear
           </Button>

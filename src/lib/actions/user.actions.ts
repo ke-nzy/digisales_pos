@@ -277,6 +277,39 @@ export async function submit_authorization_request(
   }
 }
 
+export async function submit_clear_cart_request(
+  site_url: string,
+  company_prefix: string,
+  posid: string,
+) {
+  const form = new FormData();
+  form.append("tp", "update_held_transactions");
+  form.append("cp", company_prefix);
+  form.append("posid", posid);
+
+  try {
+    const response = await axios.postForm<CheckInResponse>(
+      `${site_url}process.php`,
+      form,
+    );
+    console.log("Submission successful");
+    console.log("CLEAR CART RESPONSE", response.data);
+
+    if (typeof response.data === "string") {
+      // SEND STRING TO SENTRY
+      return null;
+    }
+    return response.data;
+  } catch (e) {
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      console.error(e);
+    }
+    console.error("Failed to start shift data");
+    return null;
+  }
+}
+
 export async function submit_hold_direct_sale_request(
   //receipt_info: CompanyReceiptInfo,
   site_url: string,
