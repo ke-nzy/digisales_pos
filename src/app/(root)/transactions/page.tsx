@@ -1,7 +1,7 @@
 "use client";
 import { Search } from "lucide-react";
 import dynamic from "next/dynamic";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Input } from "~/components/ui/input";
@@ -25,25 +25,12 @@ export interface IndexPageProps {
 
 const TransactionsPage = ({ searchParams }: IndexPageProps) => {
   const params = searchParamsSchema.parse(searchParams);
-  const [dateRange, setDateRange] = useState<SearchParams>({
-    from: params.from,
-    to: params.to,
-  });
 
-  const { posTransactionsReport, loading } = usePosTransactionsReport({
-    ...dateRange,
-  });
-
+  const { posTransactionsReport, loading } = usePosTransactionsReport(params);
   const { heldTransactionsReport, loading: loadingHeld } =
     useHeldTransactionsReport(params);
-  // const all = posTransactionsReport.concat(heldTransactionsReport);
-
-  useEffect(() => {
-    setDateRange({
-      from: params.from,
-      to: params.to,
-    });
-  }, [params.to]);
+  console.log("posTransactionsReport", heldTransactionsReport);
+  const all = posTransactionsReport.concat(heldTransactionsReport);
 
   if (loading || loadingHeld) {
     return (
@@ -102,12 +89,12 @@ const TransactionsPage = ({ searchParams }: IndexPageProps) => {
             align="end"
           />
         </React.Suspense>
-        <Tabs defaultValue="held">
+        <Tabs defaultValue="all">
           <div className="flex items-center">
             <TabsList>
-              {/* <TabsTrigger value="all">All</TabsTrigger> */}
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="held">Held</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
             <div className="relative ml-auto flex-1 md:grow-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -119,13 +106,13 @@ const TransactionsPage = ({ searchParams }: IndexPageProps) => {
             </div>
           </div>
 
-          {/* <TabsContent value="all">
+          <TabsContent value="all">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {all.map((x) => (
                 <TransactionCard key={x.id} data={x} />
               ))}
             </div>
-          </TabsContent> */}
+          </TabsContent>
           <TabsContent value="completed">
             <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
               {posTransactionsReport.map((x) => (

@@ -60,18 +60,12 @@ const AmountInput = ({
       console.log("handlePrint", data);
 
       const pdfBlob = await pdf(
-        <>
-          <TransactionReceiptPDF
-            data={data}
-            receipt_info={receipt_info!}
-            account={account!}
-          />
-          <TransactionReceiptPDF
-            data={data}
-            receipt_info={receipt_info!}
-            account={account!}
-          />
-        </>,
+        <TransactionReceiptPDF
+          data={data}
+          receipt_info={receipt_info!}
+          account={account!}
+          duplicate={true}
+        />,
       ).toBlob();
 
       const url = URL.createObjectURL(pdfBlob);

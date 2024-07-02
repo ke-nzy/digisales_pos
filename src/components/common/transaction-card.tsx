@@ -106,6 +106,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
           data={data}
           receipt_info={receipt_info!}
           account={account!}
+          duplicate={false}
         />,
       ).toBlob();
 
