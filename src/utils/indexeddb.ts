@@ -72,6 +72,22 @@ export const getCart = async (cart_id: string): Promise<Cart | undefined> => {
   return await store.get(cart_id);
 };
 
+export const updateCart = async (
+  cart_id: string,
+  newCart: Cart,
+): Promise<void> => {
+  const db = await dbPromise;
+  const tx = db.transaction("carts", "readwrite");
+  const store = tx.objectStore("carts");
+  const existingCart = await store.get(cart_id);
+  if (existingCart) {
+    await store.put(newCart);
+  } else {
+    throw new Error(`Cart with ID ${cart_id} does not exist`);
+  }
+  await tx.done;
+};
+
 export const deleteCart = async (cart_id: string): Promise<void> => {
   const db = await dbPromise;
   const tx = db.transaction("carts", "readwrite");

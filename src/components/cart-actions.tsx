@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -65,12 +65,12 @@ import {
 } from "~/lib/actions/user.actions";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useUpdateCart } from "~/hooks/use-cart";
 
 const CartActions = () => {
   const {
     currentCart,
     currentCustomer,
-    clearCart,
     holdCart,
     selectedCartItem,
     update_cart_item,
@@ -78,6 +78,7 @@ const CartActions = () => {
     setCurrentCustomer,
     deleteItemFromCart,
   } = useCartStore();
+  const { mutate: updateCartMutate } = useUpdateCart();
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const [isLoading, setIsLoading] = useState<boolean | null>(null);
   const { paymentCarts } = usePayStore();
@@ -168,6 +169,12 @@ const CartActions = () => {
       setDiscountValue(val.toString());
     }
   }, [discountPercentage, selectedCartItem]);
+
+  useEffect(() => {
+    if (currentCart) {
+      handleUpdateCart(currentCart.cart_id, currentCart);
+    }
+  }, [currentCart]);
 
   const handleLogout = () => {
     clear_auth_session();
@@ -271,6 +278,10 @@ const CartActions = () => {
     }
   };
 
+  const handleUpdateCart = (cart_id: string, newCart: Cart) => {
+    updateCartMutate({ cart_id, newCart });
+  };
+
   const handleIssueDiscount = () => {
     if (selectedCartItem) {
       if (discountValue === "") {
@@ -304,6 +315,7 @@ const CartActions = () => {
       setAuthorized(false);
       setDiscountDialogOpen(false);
       setSelectedCartItem(null);
+      handleUpdateCart(currentCart!.cart_id, currentCart!);
     }
   };
 
@@ -326,6 +338,7 @@ const CartActions = () => {
         quantity: Number(quantityValue),
       });
 
+      handleUpdateCart(currentCart!.cart_id, currentCart!);
       setQuantityValue("");
       setQuantityDialogOpen(false);
       setSelectedCartItem(null);
@@ -359,20 +372,20 @@ const CartActions = () => {
     }
   };
 
-  const issueClearCart = async (id: string) => {
-    console.log("issueClearCart");
-    const response = await submit_clear_cart_request(
-      site_url!,
-      site_company!.company_prefix,
-      id,
-    );
-    console.log("response", response);
-    if (response?.message === "Success") {
-      return true;
-    } else {
-      return false;
-    }
-  };
+  // const issueClearCart = async (id: string) => {
+  //   console.log("issueClearCart");
+  //   const response = await submit_clear_cart_request(
+  //     site_url!,
+  //     site_company!.company_prefix,
+  //     id,
+  //   );
+  //   console.log("response", response);
+  //   if (response?.message === "Success") {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // };
 
   const handleCheckOut = async () => {
     console.log("checkout");

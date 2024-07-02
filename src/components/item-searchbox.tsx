@@ -28,13 +28,15 @@ import {
 import { DataTable } from "./data-table";
 import { paymentColumns } from "~/lib/utils";
 import { usePayStore } from "~/store/pay-store";
+import { useUpdateCart } from "../hooks/use-cart";
 
 const ItemSearchBox = () => {
   const { addItemToPayments } = usePayStore();
   const { inventory, loading, error } = useInventory();
   const { site_url, site_company, account } = useAuthStore.getState();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const { addItemToCart } = useCartStore();
+  const { addItemToCart, currentCart } = useCartStore();
+  const { mutate: updateCartMutate } = useUpdateCart();
   const itemSearchRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const item = inventory.find((invItem) => invItem.stock_id === searchTerm);
@@ -96,6 +98,14 @@ const ItemSearchBox = () => {
     ],
   };
 
+  const handleUpdateCart = (cart_id: string, newCart: Cart) => {
+    updateCartMutate({ cart_id, newCart });
+  };
+  useEffect(() => {
+    if (currentCart) {
+      handleUpdateCart(currentCart.cart_id, currentCart);
+    }
+  }, [currentCart]);
   useEffect(() => {
     if (item) {
       if (details !== null && details !== undefined) {
@@ -116,7 +126,7 @@ const ItemSearchBox = () => {
       toast.error("Item not found in inventory");
       setSearchTerm(""); // Clear the input field
     }
-  }, [searchTerm, item, details, addItemToCart]);
+  }, [searchTerm, item, details]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getInventory, setCart, getCart, deleteCart } from "~/utils/indexeddb";
+import {
+  getInventory,
+  setCart,
+  getCart,
+  deleteCart,
+  updateCart,
+} from "~/utils/indexeddb";
 
 export const useInventory = () => {
   return useQuery({
@@ -38,6 +44,24 @@ export const useDeleteCart = () => {
     mutationFn: deleteCart,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["carts"] });
+    },
+  });
+};
+
+export const useUpdateCart = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      cart_id,
+      newCart,
+    }: {
+      cart_id: string;
+      newCart: Cart;
+    }) => {
+      await updateCart(cart_id, newCart);
+    },
+    onSuccess: (_, { cart_id }) => {
+      void queryClient.invalidateQueries({ queryKey: ["cart", cart_id] });
     },
   });
 };
