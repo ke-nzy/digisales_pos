@@ -7,12 +7,13 @@ import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { Shell } from "~/components/shell";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useItemizedSalesReport } from "~/hooks/use-reports";
-import { salesReportColumns } from "~/lib/utils";
+import { salesReportColumns, searchParamsSchema } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 
-const TransactionalReport = () => {
+const TransactionalReport = ({ searchParams }: SearchParams) => {
+  const params = searchParamsSchema.parse(searchParams);
   const { site_company } = useAuthStore();
-  const { salesReport, loading, error } = useItemizedSalesReport();
+  const { salesReport, loading, error } = useItemizedSalesReport(params);
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">

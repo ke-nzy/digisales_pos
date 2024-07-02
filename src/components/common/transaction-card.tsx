@@ -126,9 +126,13 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                 <span
                   className={cn(
                     "flex flex-row items-center justify-evenly space-x-2 rounded-sm  p-1",
-                    data.status === "1" || status === "Completed"
+                    data.status === "1" && status === "Completed"
                       ? "bg-green-200"
-                      : "bg-orange-200",
+                      : data.status === "1"
+                        ? "bg-lime-300"
+                        : data.status === "0"
+                          ? "bg-orange-200"
+                          : "bg-red-200",
                   )}
                 >
                   {(data.status === "1" || status === "Completed") && (
@@ -137,10 +141,13 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                   {(data.status === "0" || status === "Held") && (
                     <Timer className="h-3 w-3 text-orange-950" />
                   )}
-                  {(data.status === "1" || status === "Completed") && (
+                  {status === "Completed" && (
                     <p className="text-sm text-emerald-950">Completed</p>
                   )}
-                  {(data.status === "0" || status === "Held") && (
+                  {data.status === "1" && (
+                    <p className="text-sm text-emerald-950">Processed</p>
+                  )}
+                  {data.status === "0" && status === "Held" && (
                     <p className="text-sm text-orange-950">On Hold</p>
                   )}
                   {data.status === "3" && status === "Held" && (
@@ -209,7 +216,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
           </Button>
         </CardFooter>
       )}
-      {(data.status === "0" || status === "Held") && (
+      {status === "Held" && (
         <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
           <Button size="sm" variant="destructive" className="flex-grow gap-2">
             <TrashIcon className="h-3.5 w-3.5" />
