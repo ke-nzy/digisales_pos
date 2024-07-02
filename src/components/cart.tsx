@@ -6,7 +6,7 @@ import { useCartStore } from "../store/cart-store";
 import { useStore } from "~/hooks/use-store";
 import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { cartColumns, cn } from "~/lib/utils";
-import { DataTable } from "./data-table";
+import { CartTable } from "./cart-table";
 
 const ShoppingCart = () => {
   const { currentCart, setSelectedCartItem } = useCartStore();
@@ -22,7 +22,7 @@ const ShoppingCart = () => {
       )}
     >
       <CardContent className="overflow-y-auto">
-        <DataTable
+        <CartTable
           columns={cartColumns}
           data={currentCart?.items ?? []}
           filCol="description"
