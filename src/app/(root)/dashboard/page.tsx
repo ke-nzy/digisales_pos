@@ -272,24 +272,27 @@ const DashBoard = () => {
             </CardHeader>
             <CardContent className="grid gap-8">
               {heldTransactionsReport.length > 0 &&
-                heldTransactionsReport.slice(0, 5).map((item, index) => (
-                  <div key={index} className="grid w-full grid-cols-2 ">
-                    <div className="flex flex-col space-y-4">
-                      <p className="text-sm font-medium leading-none">
-                        {item.customername}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.pitems.length > 0
-                          ? JSON.parse(item.pitems).length
-                          : 0}{" "}
-                        Item(s)
-                      </p>
+                heldTransactionsReport
+                  .filter((item) => item.status === "0")
+                  .slice(0, 5)
+                  .map((item, index) => (
+                    <div key={index} className="grid w-full grid-cols-2 ">
+                      <div className="flex flex-col space-y-4">
+                        <p className="text-sm font-medium leading-none">
+                          {item.customername}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.pitems.length > 0
+                            ? JSON.parse(item.pitems).length
+                            : 0}{" "}
+                          Item(s)
+                        </p>
+                      </div>
+                      <div className="ml-auto flex flex-col justify-start text-xs  font-medium">
+                        KES {item.ptotal}
+                      </div>
                     </div>
-                    <div className="ml-auto flex flex-col justify-start text-xs  font-medium">
-                      KES {item.ptotal}
-                    </div>
-                  </div>
-                ))}
+                  ))}
             </CardContent>
           </Card>
           <Card>
