@@ -114,10 +114,10 @@ const CartActions = () => {
         void handleCheckOut();
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
-      if (event.key === "F5") {
-        async () => await handleClearCart();
-        event.preventDefault(); // Optional: Prevents the default browser action for F1
-      }
+      // if (event.key === "F5") {
+      //   async () => await handleClearCart();
+      //   event.preventDefault(); // Optional: Prevents the default browser action for F1
+      // }
       if (event.key === "F6") {
         setDialogOpen(true);
         event.preventDefault(); // Optional: Prevents the default browser action for F1
@@ -370,21 +370,6 @@ const CartActions = () => {
       return true;
     } else {
       return false;
-    }
-  };
-
-  const handleClearCart = async () => {
-    if (authorized) {
-      const result = await issueClearCart(currentCart!.cart_id);
-      if (result) {
-        toast.success("Transaction cleared successfully");
-        clearCart();
-      } else {
-        toast.error("Failed to clear transaction");
-      }
-    } else {
-      setAction("edit_cart");
-      setAuthorizationDialogOpen(true);
     }
   };
 
@@ -685,7 +670,7 @@ const CartActions = () => {
             <h4 className="text-center text-sm font-normal">End Shift</h4>
           </CardHeader>
         </Card>
-        <Card
+        {/* <Card
           className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
           onClick={() => handleClearCart()}
         >
@@ -696,7 +681,7 @@ const CartActions = () => {
             <XIcon className="h-8 w-8 " />
             <h4 className="text-center text-sm font-normal">Clear Cart</h4>
           </CardHeader>
-        </Card>
+        </Card> */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Card className="cursor-pointer rounded-none  hover:bg-accent focus:bg-accent">

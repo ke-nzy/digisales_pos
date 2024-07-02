@@ -55,12 +55,11 @@ interface TransactionCardProps {
   // onPrint: (data: TransactionReportItem) => void;
 }
 const TransactionCard = ({ data, status }: TransactionCardProps) => {
-  const { currentCart, clearCart } = useCartStore();
+  const { currentCart } = useCartStore();
   const { site_url, site_company, receipt_info, account } = useAuthStore();
   const router = useRouter();
   const [action, setAction] = useState<string>("");
   const [authPass, setAuthPass] = useState<string>("");
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
   const [authorized, setAuthorized] = useState<boolean>(false);
@@ -179,7 +178,6 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
       const result = await issueClearCart(data.id);
       if (result) {
         toast.success("Transaction cleared successfully");
-        clearCart();
       } else {
         toast.error("Failed to clear transaction");
       }
