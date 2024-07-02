@@ -22,6 +22,7 @@ import {
   fetch_company_details,
   fetch_sites,
   signIn,
+  fetch_user_roles,
 } from "~/lib/actions/user.actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -36,7 +37,7 @@ const SignIn = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const { account } = useAuthStore();
+  const { account, site_url, site_company, site_info } = useAuthStore();
 
   const update_site_info = useAuthStore((state) => state.set_site_info);
   const set_site_url = useAuthStore((state) => state.set_site_url);

@@ -172,6 +172,7 @@ const ItemSearchBox = () => {
         <ScanBarcodeIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           ref={itemSearchRef}
+          name="item-search"
           autoFocus={true}
           type="search"
           placeholder="Search..."

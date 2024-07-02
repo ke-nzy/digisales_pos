@@ -300,6 +300,7 @@ const CartActions = () => {
       console.log("selectedCartItem", currentCart);
 
       setDiscountValue("");
+      setDiscountPercentage("");
       setAuthorized(false);
       setDiscountDialogOpen(false);
       setSelectedCartItem(null);

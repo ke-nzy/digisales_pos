@@ -19,9 +19,9 @@ import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
 import { useRouter } from "next/navigation";
 import { Trash2Icon } from "lucide-react";
 import { Button } from "./ui/button";
-import { usePosTransactionsReport } from "~/hooks/use-reports";
 import TransactionReceiptPDF from "./thermal-receipt";
 import { pdf } from "@react-pdf/renderer";
+import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 
 interface AmountInputProps {
   value: string;
@@ -36,11 +36,9 @@ const AmountInput = ({
   selectedCustomer,
 }: AmountInputProps) => {
   const { site_company, site_url, account, receipt_info } = useAuthStore();
-  const { paymentCarts, removeItemFromPayments } = usePayStore();
-  const { posTransactionsReport } = usePosTransactionsReport({
-    from: toDate(new Date()),
-    to: toDate(new Date()),
-  });
+  const { paymentCarts, removeItemFromPayments, clearPaymentCarts } =
+    usePayStore();
+
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
     useCartStore();
@@ -133,21 +131,32 @@ const AmountInput = ({
         return;
       }
 
+      const transaction_history = await fetch_pos_transactions_report(
+        site_company!,
+        account!,
+        site_url!,
+        toDate(new Date()),
+        toDate(new Date()),
+      );
       // process receipt
 
       toast.success("Invoice processed successfully");
 
       router.refresh();
 
-      console.log("posTransactionsReport", posTransactionsReport);
-
-      await handlePrint(posTransactionsReport[0]!);
+      if (transaction_history) {
+        await handlePrint(transaction_history[0]!);
+      } else {
+        toast.error("Failed to print Something went wrong");
+      }
 
       clearCart();
+      clearPaymentCarts();
       if (isPrinted) {
         router.push("/");
+      } else {
+        router.push("/transactions");
       }
-      router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     } finally {

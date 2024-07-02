@@ -12,6 +12,7 @@ interface PayState {
     paymentType: string,
     transID: string | number,
   ) => void;
+  clearPaymentCarts: () => void;
 }
 
 export const usePayStore = create<PayState>((set) => ({
@@ -54,5 +55,8 @@ export const usePayStore = create<PayState>((set) => ({
           : cart,
       ),
     }));
+  },
+  clearPaymentCarts: () => {
+    set({ paymentCarts: [] });
   },
 }));

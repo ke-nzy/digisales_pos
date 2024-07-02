@@ -177,9 +177,10 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
 
   const handleClearCart = async () => {
     if (authorized) {
-      const result = await issueClearCart(data.id);
+      const result = await issueClearCart(data.unique_identifier);
       if (result) {
         toast.success("Transaction cleared successfully");
+        router.refresh();
       } else {
         toast.error("Failed to clear transaction");
       }
