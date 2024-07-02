@@ -15,6 +15,7 @@ import {
   PrinterIcon,
   ShoppingBasketIcon,
   Timer,
+  XIcon,
 } from "lucide-react";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
@@ -219,6 +220,12 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                   {data.status === "0" && (
                     <Timer className="h-3 w-3 text-orange-950" />
                   )}
+                  {data.status === "2" && (
+                    <XIcon className="h-3 w-3 text-red-950" />
+                  )}
+                  {data.status === "2" && (
+                    <p className="text-xs text-red-950">Cleared</p>
+                  )}
                   {status === "Completed" && (
                     <p className="text-xs text-emerald-950">Completed</p>
                   )}
@@ -377,7 +384,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
           </Button>
         </CardFooter>
       )}
-      {status === "Held" && data.status === "0" && (
+      {data.status === "0" && (
         <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
           <Button
             size="sm"
