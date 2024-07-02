@@ -1,7 +1,7 @@
 "use client";
 import { Search } from "lucide-react";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Input } from "~/components/ui/input";
@@ -25,12 +25,25 @@ export interface IndexPageProps {
 
 const TransactionsPage = ({ searchParams }: IndexPageProps) => {
   const params = searchParamsSchema.parse(searchParams);
+  const [dateRange, setDateRange] = useState<SearchParams>({
+    from: params.from,
+    to: params.to,
+  });
 
-  const { posTransactionsReport, loading } = usePosTransactionsReport(params);
+  const { posTransactionsReport, loading } = usePosTransactionsReport({
+    ...dateRange,
+  });
+
   const { heldTransactionsReport, loading: loadingHeld } =
     useHeldTransactionsReport(params);
-  console.log("posTransactionsReport", heldTransactionsReport);
   // const all = posTransactionsReport.concat(heldTransactionsReport);
+
+  useEffect(() => {
+    setDateRange({
+      from: params.from,
+      to: params.to,
+    });
+  }, [params.to]);
 
   if (loading || loadingHeld) {
     return (
