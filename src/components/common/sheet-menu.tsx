@@ -2,7 +2,6 @@ import Link from "next/link";
 import { MenuIcon } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
-import { Menu } from "~/components/common/menu";
 import {
   Sheet,
   SheetHeader,
@@ -10,6 +9,8 @@ import {
   SheetTrigger,
 } from "~/components/ui/sheet";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+const Menu = dynamic(() => import("./menu"), { ssr: false });
 
 export function SheetMenu() {
   return (

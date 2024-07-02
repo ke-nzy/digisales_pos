@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { useStore } from "~/hooks/use-store";
 import { cn } from "~/lib/utils";
@@ -5,7 +6,8 @@ import { SidebarToggle } from "./sidebar-toggle";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu } from "./menu";
+
+const Menu = dynamic(() => import("./menu"), { ssr: false });
 
 export function Sidebar() {
   const sidebar = useStore(useSidebarToggle, (state) => state);

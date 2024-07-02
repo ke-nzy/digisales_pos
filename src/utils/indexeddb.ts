@@ -95,3 +95,11 @@ export const getMetadata = async (key: string): Promise<string | undefined> => {
   const db = await dbPromise;
   return await db.get("metadata", key);
 };
+
+export const deleteMetadata = async (): Promise<void> => {
+  const db = await dbPromise;
+  const tx = db.transaction("metadata", "readwrite");
+  const store = tx.objectStore("metadata");
+  await store.delete("metadata");
+  await tx.done;
+};

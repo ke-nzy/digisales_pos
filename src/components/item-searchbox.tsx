@@ -112,7 +112,7 @@ const ItemSearchBox = () => {
         addItemToCart(directSalesItem);
         setSearchTerm("");
       }
-    } else if (searchTerm.length >= 13) {
+    } else if (searchTerm.length >= 15) {
       toast.error("Item not found in inventory");
       setSearchTerm(""); // Clear the input field
     }
@@ -122,11 +122,11 @@ const ItemSearchBox = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "F1") {
         itemSearchRef.current?.focus();
-        event.preventDefault(); // Optional: Prevents the default browser action for F1
+        event.preventDefault();
       }
       if (event.key === "F9") {
         setDialogOpen(true);
-        event.preventDefault(); // Optional: Prevents the default browser action for F9
+        event.preventDefault();
       }
     };
 

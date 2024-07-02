@@ -40,6 +40,7 @@
 - [ ] ENsure discount value doesnt surpus item price
 - [ ] Bug at Transactions Page
 - [ ] Add general report to match excel file provided
+- [ ] Nullify Authorization after discount issued
 - [ ] Send Cleared Cart to DB Enpoint
 - [ ] UI Fix on transactions page when sidebar is open
 - [ ] Add Push Notification Hook

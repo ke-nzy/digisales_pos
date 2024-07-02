@@ -16,12 +16,13 @@ import {
 import { getMenuList } from "~/lib/menu-list";
 import { CollapseMenuButton } from "./collapse-menu-button";
 import { useAuthStore } from "~/store/auth-store";
+import { deleteMetadata } from "~/utils/indexeddb";
 
 interface MenuProps {
   isOpen: boolean | undefined;
 }
 
-export function Menu({ isOpen }: MenuProps) {
+export default function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
   const { clear_auth_session } = useAuthStore();
@@ -111,7 +112,8 @@ export function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
+                      await deleteMetadata();
                       clear_auth_session();
                       router.push("/sign-in");
                     }}
