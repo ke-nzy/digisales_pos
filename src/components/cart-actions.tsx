@@ -238,6 +238,7 @@ const CartActions = () => {
         toast.error("Please select an item to delete");
       }
     } else {
+      setAction("edit_cart");
       setAuthorizationDialogOpen(true);
     }
   };
@@ -283,6 +284,17 @@ const CartActions = () => {
         toast.error("Please enter a discount value");
         return;
       }
+      if (Number(discountValue) < 0) {
+        toast.error("Please enter a valid discount value");
+        return;
+      }
+      if (
+        Number(discountValue) >
+        selectedCartItem.details.price * selectedCartItem.quantity
+      ) {
+        toast.error("Discount value exceeds item price");
+        return;
+      }
       console.log("discountValue", discountValue);
       update_cart_item({
         ...selectedCartItem,
@@ -295,6 +307,7 @@ const CartActions = () => {
       console.log("selectedCartItem", currentCart);
 
       setDiscountValue("");
+      setAuthorized(false);
       setDiscountDialogOpen(false);
       setSelectedCartItem(null);
     }
