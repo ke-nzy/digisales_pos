@@ -363,7 +363,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                                 {x.TransAmount}
                               </TableCell>
                               <TableCell className="text-xs">
-                                {x.TransID}
+                                {x.Transtype}
                               </TableCell>
                             </TableRow>
                           ))}

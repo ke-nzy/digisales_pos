@@ -175,6 +175,7 @@ declare type Payment = {
   TransID: number | string;
   TransAmount: number | string;
   TransTime: number | string;
+  Transtype?: string;
 };
 
 declare type TransactionInvItem = {
