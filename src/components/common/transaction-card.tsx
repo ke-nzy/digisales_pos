@@ -117,61 +117,6 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="  flex-col space-y-2">
-          {" "}
-          {(data.status === "1" || status === "Completed") && (
-            <div className="flex flex-row justify-end">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <InfoIcon className="h-4 w-4 text-zinc-400" />
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Invoice Payments</CardTitle>
-                      <CardDescription>
-                        <div className="flex flex-row items-center justify-between gap-4">
-                          <p>
-                            The following are the corresponding payments made
-                            for the invoice.
-                          </p>
-                        </div>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="h-56">
-                        <Table className="h-full">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Name</TableHead>
-                              <TableHead>Amount</TableHead>
-                              <TableHead>Type</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {payments &&
-                              payments.length > 0 &&
-                              payments.map((x) => (
-                                <TableRow key={x.name}>
-                                  <TableCell className="w-[200px] text-xs">
-                                    {x.name}
-                                  </TableCell>
-                                  <TableCell className="w-[70px] text-xs">
-                                    {x.TransAmount}
-                                  </TableCell>
-                                  <TableCell className="text-xs">
-                                    {x.TransID}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                          </TableBody>
-                        </Table>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
           <div className="flex items-center gap-4">
             {/* <Avatar className="hidden h-9 w-9 p-2 sm:flex">
               <User2Icon className="h-9 w-9 text-zinc-700" />
@@ -200,16 +145,16 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                     <Timer className="h-3 w-3 text-orange-950" />
                   )}
                   {status === "Completed" && (
-                    <p className="text-sm text-emerald-950">Completed</p>
+                    <p className="text-xs text-emerald-950">Completed</p>
                   )}
                   {data.status === "1" && status !== "Completed" && (
-                    <p className="text-sm text-emerald-950">Processed</p>
+                    <p className="text-xs text-emerald-950">Processed</p>
                   )}
                   {data.status === "0" && (
-                    <p className="text-sm text-orange-950">On Hold</p>
+                    <p className="text-xs text-orange-950">On Hold</p>
                   )}
                   {data.status === "3" && status === "Held" && (
-                    <p className="text-sm text-red-950">Cancelled</p>
+                    <p className="text-xs text-red-950">Cancelled</p>
                   )}
                 </span>
               </div>
@@ -262,11 +207,64 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
         </div>
       </CardContent>
       {(data.status === "1" || status === "Completed") && (
-        <CardFooter className="justify-center border-t p-4">
+        <CardFooter className="flex flex-row justify-between space-x-3 border-t p-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline" className="flex-grow gap-2">
+                <InfoIcon className="h-3.5 w-3.5" />
+                Info
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Invoice Payments</CardTitle>
+                  <CardDescription>
+                    <div className="flex flex-row items-center justify-between gap-4">
+                      <p>
+                        The following are the corresponding payments made for
+                        the invoice.
+                      </p>
+                    </div>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-56">
+                    <Table className="h-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Type</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {payments &&
+                          payments.length > 0 &&
+                          payments.map((x) => (
+                            <TableRow key={x.name}>
+                              <TableCell className="w-[200px] text-xs">
+                                {x.name}
+                              </TableCell>
+                              <TableCell className="w-[70px] text-xs">
+                                {x.TransAmount}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {x.TransID}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </DialogContent>
+          </Dialog>
           <Button
             size="sm"
             variant="default"
-            className="gap-1"
+            className="flex-grow gap-2"
             onClick={() => handlePrint(data)}
           >
             <PrinterIcon className="h-3.5 w-3.5" />
