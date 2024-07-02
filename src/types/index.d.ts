@@ -178,6 +178,11 @@ declare type Payment = {
   Transtype?: string;
 };
 
+declare type DateParams = {
+  from?: string;
+  to?: string;
+};
+
 declare type TransactionInvItem = {
   batch_no: string;
   booking_id: string;

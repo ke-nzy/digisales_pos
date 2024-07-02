@@ -1,58 +1,88 @@
 "use client";
-import React from "react";
+import { PrinterIcon } from "lucide-react";
+import React, { useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import { Button } from "~/components/ui/button";
 import ZReportTable from "~/components/z-report-table";
-import { usePosTransactionsReport } from "~/hooks/use-reports";
-import { toDate } from "~/lib/utils";
+import {
+  useItemizedSalesReport,
+  usePosTransactionsReport,
+} from "~/hooks/use-reports";
 
 const zReport = () => {
-  const { posTransactionsReport, loading } = usePosTransactionsReport({
-    from: toDate(new Date()),
-    to: toDate(new Date()),
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
+  const [params, setParams] = useState<DateParams>({
+    from: getCurrentDate(),
+    to: getCurrentDate(),
   });
-  // const processZReportData = (data: TransactionReportItem[]) => {
-  //   let totalSales = 0;
-  //   let totalTax = 0;
-  //   const paymentSummary: any = {};
-  //   const paymentTypes: any = {};
+  const { posTransactionsReport, loading } = usePosTransactionsReport({
+    from: params.from,
+    to: params.to,
+  });
+  const {
+    salesReport,
+    loading: itemizedLoading,
+    error,
+  } = useItemizedSalesReport({
+    from: params.from,
+    to: params.to,
+  });
 
-  //   data.forEach((entry) => {
-  //     totalSales += parseFloat(entry.ptotal);
-  //     const items: TransactionInvItem[] = JSON.parse(entry.pitems);
-
-  //     items.forEach((item) => {
-  //       totalTax += parseFloat(item.tax);
-  //     });
-
-  //     if (!paymentTypes[entry.ptype]) {
-  //       paymentTypes[entry.ptype] = 0;
-  //     }
-  //     paymentTypes[entry.ptype] += parseFloat(entry.ptotal);
-
-  //     const payments: Payment[] = JSON.parse(entry.payments);
-  //     payments.forEach((payment) => {
-  //       const { TransAmount, TransID, name } = payment;
-  //       if (!paymentSummary[TransID]) {
-  //         paymentSummary[TransID] = {
-  //           amount:
-  //             typeof TransAmount === "string"
-  //               ? parseFloat(TransAmount)
-  //               : TransAmount,
-  //           name,
-  //         };
-  //       }
-  //     });
-  //   });
-
-  //   return { totalSales, totalTax, paymentSummary, paymentTypes };
-  // };
-  return (
-    <DashboardLayout title={"ZREPOrt"}>
-      <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-        <div className="h-full w-full flex-grow  flex-col items-center justify-center gap-1 ">
-          <ZReportTable data={posTransactionsReport} />
+  if (loading || itemizedLoading)
+    return (
+      <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <div
+          role="status"
+          className="max-w-md animate-pulse space-y-4 divide-y divide-gray-200 rounded border border-gray-200 p-4 shadow dark:divide-gray-700 dark:border-gray-700 md:p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="mb-2.5 h-2.5 w-24 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="h-2.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          </div>
+          <div className="flex items-center justify-between pt-4">
+            <div>
+              <div className="mb-2.5 h-2.5 w-24 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="h-2.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          </div>
+          <div className="flex items-center justify-between pt-4">
+            <div>
+              <div className="mb-2.5 h-2.5 w-24 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="h-2.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          </div>
+          <div className="flex items-center justify-between pt-4">
+            <div>
+              <div className="mb-2.5 h-2.5 w-24 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="h-2.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          </div>
+          <div className="flex items-center justify-between pt-4">
+            <div>
+              <div className="mb-2.5 h-2.5 w-24 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="h-2.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          </div>
+          <span className="sr-only">Loading...</span>
         </div>
-      </div>
+      </main>
+    );
+  return (
+    <DashboardLayout title={"ZReport"}>
+      <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+          <div className="h-full w-full flex-grow  flex-col items-center justify-center gap-1 ">
+            <ZReportTable data={posTransactionsReport} sales={salesReport} />
+          </div>
+        </div>
+      </main>
     </DashboardLayout>
   );
 };

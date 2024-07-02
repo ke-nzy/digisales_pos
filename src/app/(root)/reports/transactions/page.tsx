@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { DataTable } from "~/components/data-table";
@@ -7,13 +8,26 @@ import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { Shell } from "~/components/shell";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useItemizedSalesReport } from "~/hooks/use-reports";
-import { salesReportColumns, searchParamsSchema } from "~/lib/utils";
+import { salesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 
-const TransactionalReport = ({ searchParams }: SearchParams) => {
-  const params = searchParamsSchema.parse(searchParams);
+const TransactionalReport = () => {
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<DateParams>({
+    from: searchParams.get("from") ?? getCurrentDate(),
+    to: searchParams.get("to") ?? getCurrentDate(),
+  });
+
   const { site_company } = useAuthStore();
   const { salesReport, loading, error } = useItemizedSalesReport(params);
+  useEffect(() => {
+    const newParams = {
+      from: searchParams.get("from") ?? getCurrentDate(),
+      to: searchParams.get("to") ?? getCurrentDate(),
+    };
+    setParams(newParams);
+  }, [searchParams]);
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">

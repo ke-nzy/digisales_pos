@@ -97,24 +97,6 @@ const TransactionReceiptPDF = ({
   return (
     <Document>
       <Page size={get_printout_size(items.length)} style={{ padding: 2 }}>
-        {/* <View style={styles.company_section}>
-          <Text style={styles.header}>Transaction Receipt</Text>
-        </View> */}
-        {/* <View style={styles.company_section}>
-          <Text
-            style={[
-              styles.text,
-              { letterSpacing: 2, textAlign: "left", fontWeight: "bold" },
-            ]}
-          >
-            {receipt_info.name}
-          </Text>
-
-          <Text style={styles.text}>{receipt_info.location}</Text>
-          <Text style={styles.text}>TEL:{receipt_info.phone_number}</Text>
-          <Text style={styles.text}>EMAIL:{receipt_info.email}</Text>
-          <Text style={styles.text}>KRA:{receipt_info.receipt}</Text>
-        </View> */}
         <View>
           <View
             style={{
@@ -386,50 +368,12 @@ const TransactionReceiptPDF = ({
         </View>
 
         <View style={{ flex: 1 }} />
-        {/*NOTE: (teddy) THank you message*/}
         <View style={{ paddingVertical: 1, alignItems: "center" }}>
           <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
           <Text style={[styles.text]}></Text>
         </View>
-        {/* <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={[styles.tableColHeader, { width: "60rem" }]}>
-              <Text style={styles.tableCell}>Item</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCell}>Qty</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCell}>Price</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCell}>Subtotal</Text>
-            </View>
-          </View>
-
-          {items.map((item, index) => (
-            <View style={styles.tableRow} key={index}>
-              <View style={[styles.tableCol, { width: "60rem" }]}>
-                <Text style={styles.tableCell}>{item.item_option}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{item.quantity}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{item.price}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>
-                  {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
-                    2,
-                  )}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View> */}
       </Page>
       {duplicate && (
         <Page size={get_printout_size(items.length)} style={{ padding: 2 }}>

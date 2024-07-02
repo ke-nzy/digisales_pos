@@ -1,11 +1,10 @@
 "use client";
-import { Activity, CreditCard, DollarSign, User, Users } from "lucide-react";
+import { CreditCard, DollarSign, Users } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
-import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -17,8 +16,6 @@ import {
 } from "~/hooks/use-reports";
 import { submit_start_shift } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
-import { type IndexPageProps } from "../transactions/page";
-import { searchParamsSchema } from "~/lib/utils";
 
 interface DateParams {
   from?: string;
@@ -28,9 +25,10 @@ const DashBoard = () => {
   const { site_company, account, site_url } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
   const [params, setParams] = useState<DateParams>({
-    from: searchParams.get("from") ?? undefined,
-    to: searchParams.get("to") ?? undefined,
+    from: searchParams.get("from") ?? getCurrentDate(),
+    to: searchParams.get("to") ?? getCurrentDate(),
   });
   const { posTransactionsReport } = usePosTransactionsReport(params);
   const { heldTransactionsReport } = useHeldTransactionsReport(params);
@@ -51,8 +49,8 @@ const DashBoard = () => {
   };
   useEffect(() => {
     const newParams = {
-      from: searchParams.get("from") ?? undefined,
-      to: searchParams.get("to") ?? undefined,
+      from: searchParams.get("from") ?? getCurrentDate(),
+      to: searchParams.get("to") ?? getCurrentDate(),
     };
     setParams(newParams);
   }, [searchParams]);
@@ -179,23 +177,29 @@ const DashBoard = () => {
               <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                KES
-                {dailyTargets?.status === "SUCCESS"
-                  ? dailyTargets.data.sales_to_date
-                  : 0}
-                {/* {dailyTargets?.data.sales_to_date &&
+            <CardContent className="flex w-full flex-col">
+              <div>
+                <p className="text-lg font-bold ">
+                  KES{" "}
+                  {dailyTargets?.status === "SUCCESS"
+                    ? dailyTargets.data.sales_to_date
+                    : 0}
+                  {/* {dailyTargets?.data.sales_to_date &&
                 dailyTargets?.data.sales_to_date
                   ? dailyTargets?.data.sales_to_date
                   : 0} */}
+                </p>
               </div>
               <p className="text-xs text-muted-foreground">
                 {dailyTargets?.status === "SUCCESS" ? achievement() : 0}%
-                achieved against KES
-                {dailyTargets?.status === "SUCCESS"
-                  ? dailyTargets.data.target
-                  : 0}{" "}
+                achieved against
+                <span className="font-bold">
+                  {" "}
+                  KES{" "}
+                  {dailyTargets?.status === "SUCCESS"
+                    ? parseInt(dailyTargets.data.target).toLocaleString()
+                    : 0}{" "}
+                </span>
                 target
               </p>
             </CardContent>
@@ -207,8 +211,10 @@ const DashBoard = () => {
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedTrnasactions}</div>
+            <CardContent className="flex w-full flex-col">
+              <div>
+                <p className="text-lg font-bold ">{completedTrnasactions}</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -218,8 +224,10 @@ const DashBoard = () => {
               </CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{heldTrnasactions}</div>
+            <CardContent className="flex w-full flex-col">
+              <div>
+                <p className="text-lg font-bold ">{heldTrnasactions}</p>
+              </div>
             </CardContent>
           </Card>
 

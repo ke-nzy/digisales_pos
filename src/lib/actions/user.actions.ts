@@ -140,8 +140,8 @@ export async function fetch_sales_person_summary_report(
   sdate: string | undefined,
   edate: string | undefined,
 ) {
-  const sdate_ = sdate ?? toDate(new Date());
-  const edate_ = edate ?? toDate(new Date());
+  const sdate_ = sdate === undefined ? toDate(new Date()) : sdate;
+  const edate_ = edate === undefined ? toDate(new Date()) : edate;
   const form_data = new FormData();
   form_data.append("tp", "salespersonitemsales");
   form_data.append("cp", site_company.company_prefix);
@@ -176,14 +176,15 @@ export async function fetch_pos_transactions_report(
   postrans_date: string | undefined,
   end_date: string | undefined,
 ) {
-  const sdate = toDate(new Date());
-  const edate = toDate(new Date());
+  const sdate_ =
+    postrans_date === undefined ? toDate(new Date()) : postrans_date;
+  const edate_ = end_date === undefined ? toDate(new Date()) : end_date;
   const form_data = new FormData();
   form_data.append("tp", "loadPOSTransaction");
   form_data.append("cp", site_company.company_prefix);
   form_data.append("id", account.id);
-  form_data.append("postrans_date", postrans_date ?? sdate);
-  form_data.append("end_date", end_date ?? edate);
+  form_data.append("postrans_date", sdate_);
+  form_data.append("end_date", edate_);
 
   try {
     const response = await axios.postForm<TransactionReportItem[]>(
@@ -212,14 +213,15 @@ export async function fetch_held_transactions_report(
   postrans_date: string | undefined,
   end_date: string | undefined,
 ) {
-  const sdate = toDate(new Date());
-  const edate = toDate(new Date());
+  const sdate_ =
+    postrans_date === undefined ? toDate(new Date()) : postrans_date;
+  const edate_ = end_date === undefined ? toDate(new Date()) : end_date;
   const form_data = new FormData();
   form_data.append("tp", "loadHeldTransaction");
   form_data.append("cp", site_company.company_prefix);
   form_data.append("id", account.id);
-  form_data.append("postrans_date", postrans_date ?? sdate);
-  form_data.append("end_date", end_date ?? edate);
+  form_data.append("postrans_date", sdate_);
+  form_data.append("end_date", edate_);
 
   try {
     const response = await axios.postForm<TransactionReportItem[]>(
