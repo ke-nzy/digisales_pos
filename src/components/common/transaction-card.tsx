@@ -177,12 +177,17 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
 
   const handleClearCart = async () => {
     if (authorized) {
-      const result = await issueClearCart(data.unique_identifier);
-      if (result) {
-        toast.success("Transaction cleared successfully");
+      try {
+        const result = await issueClearCart(data.unique_identifier);
+        if (result) {
+          toast.success("Transaction cleared successfully");
+        } else {
+          toast.error("Failed to clear transaction");
+        }
+      } catch (error) {
+        console.log("error", error);
+      } finally {
         router.refresh();
-      } else {
-        toast.error("Failed to clear transaction");
       }
     } else {
       setAction("edit_cart");
