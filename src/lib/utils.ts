@@ -257,27 +257,19 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
     id: "receipt_no",
     accessorKey: "receipt_no",
     header: "Item Code",
-    footer: "Total",
     cell: (props) => props.getValue(),
   },
   {
     id: "trans_time",
-    accessorKey: "receipt_no",
-    header: "Item Code",
-    footer: "Total",
-    cell: (props) => props.getValue(),
-  },
-  {
     accessorKey: "trans_time",
-    header: "Item Code",
-    footer: "Total",
+    header: "Date",
     cell: (props) => props.getValue(),
   },
+
   {
-    id: "stock_id",
-    accessorKey: "stock_id",
-    header: "Item Code",
-    footer: "Total",
+    id: "description",
+    accessorKey: "description",
+    header: "Item Name",
     cell: (props) => props.getValue(),
   },
   {
@@ -287,9 +279,9 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
     cell: (props) => props.getValue(),
   },
   {
-    id: "description",
-    accessorKey: "description",
-    header: "Item Name",
+    id: "user_id",
+    accessorKey: "user_id",
+    header: "User",
     cell: (props) => props.getValue(),
   },
   {

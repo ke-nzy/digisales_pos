@@ -101,7 +101,10 @@ const TransactionReceiptPDF = ({
     await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
   return (
     <Document>
-      <Page size={get_printout_size(items.length)} style={{ padding: 2 }}>
+      <Page
+        size={get_printout_size(items.length + payments.length)}
+        style={{ padding: 2 }}
+      >
         <View>
           <View
             style={{
