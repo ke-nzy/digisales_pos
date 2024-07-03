@@ -1,7 +1,8 @@
 "use client";
 import { Search } from "lucide-react";
 import dynamic from "next/dynamic";
-import React from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Input } from "~/components/ui/input";
@@ -11,7 +12,6 @@ import {
   useHeldTransactionsReport,
   usePosTransactionsReport,
 } from "~/hooks/use-reports";
-import { searchParamsSchema } from "~/lib/utils";
 const TransactionCard = dynamic(
   () => import("~/components/common/transaction-card"),
   {
@@ -23,15 +23,26 @@ export interface IndexPageProps {
   searchParams: SearchParams;
 }
 
-const TransactionsPage = ({ searchParams }: IndexPageProps) => {
-  const params = searchParamsSchema.parse(searchParams);
+const TransactionsPage = () => {
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<DateParams>({
+    from: searchParams.get("from") ?? getCurrentDate(),
+    to: searchParams.get("to") ?? getCurrentDate(),
+  });
 
   const { posTransactionsReport, loading } = usePosTransactionsReport(params);
   const { heldTransactionsReport, loading: loadingHeld } =
     useHeldTransactionsReport(params);
   console.log("posTransactionsReport", heldTransactionsReport);
   const all = posTransactionsReport.concat(heldTransactionsReport);
-
+  useEffect(() => {
+    const newParams = {
+      from: searchParams.get("from") ?? getCurrentDate(),
+      to: searchParams.get("to") ?? getCurrentDate(),
+    };
+    setParams(newParams);
+  }, [searchParams]);
   if (loading || loadingHeld) {
     return (
       <DashboardLayout title="Transactions">
