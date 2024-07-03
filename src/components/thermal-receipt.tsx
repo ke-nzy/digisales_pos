@@ -454,11 +454,11 @@ const TransactionReceiptPDF = ({
         </View>
 
         <View style={{ flex: 1 }} />
-        <View style={{ paddingVertical: 1, alignItems: "center" }}>
-          <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
+        <View style={{ alignItems: "center" }}>
+          <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
+          <Text style={[styles.text, { fontWeight: "bold" }]}>
             NO refund , No exchange
           </Text>
           <Text style={[styles.text]}></Text>
@@ -679,27 +679,84 @@ const TransactionReceiptPDF = ({
               // </View>
             })}
           </View>
-          <View style={{ alignItems: "flex-end" }}>
-            <TotalRowItem
-              label={"Gross Weight"}
-              value={`${data.weight} (Approx.(Kgs))`}
-              is_last
-            />
-            <TotalRowItem label={"Paid By"} value={data.ptype} />
-            <TotalRowItem
-              label={"Sub total"}
-              value={`KES ${totalDiscount.subtotal}`}
-            />
-            <TotalRowItem
-              label={"Discount"}
-              value={`KES ${totalDiscount.totalDiscount}`}
-              is_last
-            />
-            <TotalRowItem
-              label={"Total"}
-              value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount}`}
-              is_last
-            />
+          <View style={{ paddingVertical: 1 }}>
+            <Text
+              style={[
+                styles.text,
+                {
+                  marginBottom: 1,
+                  fontWeight: "bold",
+                },
+              ]}
+            >
+              Payments
+            </Text>
+            <View style={{ flexDirection: "row" }}>
+              <View
+                style={[
+                  styles.table_col,
+                  { width: "50%" },
+                  {
+                    borderLeftWidth: 0.2,
+                    borderLeftColor: "#000",
+                  },
+                ]}
+              >
+                <Text style={[styles.text, { fontWeight: "bold" }]}>Type</Text>
+              </View>
+              <View style={[styles.table_col, { width: "50%" }]}>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  Amount
+                </Text>
+              </View>
+            </View>
+            {payments.map((item, index, array) => {
+              return (
+                <View style={{ flexDirection: "row" }} key={index}>
+                  <View
+                    style={[
+                      styles.table_col,
+                      { width: "50%" },
+                      index === array.length - 1
+                        ? styles.table_col_last_row
+                        : {},
+                      { borderLeftWidth: 0.3, borderLeftColor: "#000" },
+                    ]}
+                  >
+                    <Text style={[styles.text]}>{item.Transtype}</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.table_col,
+                      { width: "50%" },
+                      index === array.length - 1
+                        ? styles.table_col_last_row
+                        : {},
+                    ]}
+                  >
+                    <Text style={[styles.text]}>{item.TransAmount}</Text>
+                  </View>
+                </View>
+              );
+              // <View style={styles.tableRow} key={index}>
+              //   <View style={[styles.tableCol, { width: "60rem" }]}>
+              //     <Text style={styles.tableCell}>{item.item_option}</Text>
+              //   </View>
+              //   <View style={styles.tableCol}>
+              //     <Text style={styles.tableCell}>{item.quantity}</Text>
+              //   </View>
+              //   <View style={styles.tableCol}>
+              //     <Text style={styles.tableCell}>{item.price}</Text>
+              //   </View>
+              //   <View style={styles.tableCol}>
+              //     <Text style={styles.tableCell}>
+              //       {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
+              //         2,
+              //       )}
+              //     </Text>
+              //   </View>
+              // </View>
+            })}
           </View>
           <View
             style={{
