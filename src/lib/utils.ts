@@ -252,6 +252,77 @@ export const salesReportColumns: ColumnDef<SalesReportItem>[] = [
     },
   },
 ];
+export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
+  {
+    id: "receipt_no",
+    accessorKey: "receipt_no",
+    header: "Item Code",
+    footer: "Total",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "trans_time",
+    accessorKey: "receipt_no",
+    header: "Item Code",
+    footer: "Total",
+    cell: (props) => props.getValue(),
+  },
+  {
+    accessorKey: "trans_time",
+    header: "Item Code",
+    footer: "Total",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "stock_id",
+    accessorKey: "stock_id",
+    header: "Item Code",
+    footer: "Total",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "location_name",
+    accessorKey: "location_name",
+    header: "Branch",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "description",
+    accessorKey: "description",
+    header: "Item Name",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "unit_price",
+    accessorKey: "unit_price",
+    header: "Unit Price",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "quantity",
+    accessorKey: "quantity",
+    header: "Quantity",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "total",
+    header: "Total",
+    cell: (props) => {
+      const row = props.row.original;
+      const rowTotal = parseInt(row.quantity) * parseFloat(row.unit_price);
+      return rowTotal.toFixed(2);
+    },
+    footer: (props) => {
+      const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
+        const rowData = row.original;
+        return (
+          sum + parseInt(rowData.quantity) * parseFloat(rowData.unit_price)
+        );
+      }, 0);
+      return total.toFixed(2);
+    },
+  },
+];
 
 export const cartColumns: ColumnDef<DirectSales>[] = [
   {

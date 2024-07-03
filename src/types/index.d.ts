@@ -236,7 +236,17 @@ declare type StockItem = {
   item: string;
   balance: string;
 };
-
+declare type GeneralSalesReportItem = {
+  stock_id: string;
+  description: string;
+  unit_price: string;
+  quantity: string;
+  discount: string;
+  receipt_no: string;
+  user_id: string;
+  location_name: string;
+  trans_time: string;
+};
 declare type SalesReportItem = {
   stock_id: string;
   description: string;

@@ -85,13 +85,18 @@ const TransactionReceiptPDF = ({
 }) => {
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
-  // const payments: Payment[] =
-  //   data.payments.length > 0 ? JSON.parse(data.payments) : [];
+  const payments: Payment[] =
+    data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
   function get_printout_size(length: number): [number, number] {
     return [80, 140 + length * 14];
   }
+
+  const calculateTotalQuantity = (items: TransactionInvItem[]): number => {
+    return items.reduce((total, item) => total + parseFloat(item.quantity), 0);
+  };
   const totalDiscount = calculateSubtotalAndDiscount(data);
+  const totalQuantity = calculateTotalQuantity(items);
   const kra_code = async () =>
     await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
   return (
@@ -157,7 +162,17 @@ const TransactionReceiptPDF = ({
                   }}
                 >
                   <Text style={[styles.text, {}]}>User</Text>
-                  <Text style={[styles.text, {}]}>{account.user_id}</Text>
+                  <Text style={[styles.text, {}]}>{account.real_name}</Text>
+                </View>
+                <View
+                  style={{
+                    justifyContent: "space-between",
+                    paddingVertical: 1,
+                    flexDirection: "row",
+                  }}
+                >
+                  <Text style={[styles.text, {}]}>Branch ID</Text>
+                  <Text style={[styles.text, {}]}>{account.default_store}</Text>
                 </View>
               </View>
             </View>
@@ -286,13 +301,81 @@ const TransactionReceiptPDF = ({
             // </View>
           })}
         </View>
+        <View style={{ paddingVertical: 1 }}>
+          <Text
+            style={[
+              styles.text,
+              {
+                marginBottom: 1,
+                fontWeight: "bold",
+              },
+            ]}
+          >
+            Payments
+          </Text>
+          <View style={{ flexDirection: "row" }}>
+            <View
+              style={[
+                styles.table_col,
+                { width: "50%" },
+                {
+                  borderLeftWidth: 0.2,
+                  borderLeftColor: "#000",
+                },
+              ]}
+            >
+              <Text style={[styles.text, { fontWeight: "bold" }]}>Type</Text>
+            </View>
+            <View style={[styles.table_col, { width: "50%" }]}>
+              <Text style={[styles.text, { fontWeight: "bold" }]}>Amount</Text>
+            </View>
+          </View>
+          {payments.map((item, index, array) => {
+            return (
+              <View style={{ flexDirection: "row" }} key={index}>
+                <View
+                  style={[
+                    styles.table_col,
+                    { width: "50%" },
+                    index === array.length - 1 ? styles.table_col_last_row : {},
+                    { borderLeftWidth: 0.3, borderLeftColor: "#000" },
+                  ]}
+                >
+                  <Text style={[styles.text]}>{item.Transtype}</Text>
+                </View>
+                <View
+                  style={[
+                    styles.table_col,
+                    { width: "50%" },
+                    index === array.length - 1 ? styles.table_col_last_row : {},
+                  ]}
+                >
+                  <Text style={[styles.text]}>{item.TransAmount}</Text>
+                </View>
+              </View>
+            );
+            // <View style={styles.tableRow} key={index}>
+            //   <View style={[styles.tableCol, { width: "60rem" }]}>
+            //     <Text style={styles.tableCell}>{item.item_option}</Text>
+            //   </View>
+            //   <View style={styles.tableCol}>
+            //     <Text style={styles.tableCell}>{item.quantity}</Text>
+            //   </View>
+            //   <View style={styles.tableCol}>
+            //     <Text style={styles.tableCell}>{item.price}</Text>
+            //   </View>
+            //   <View style={styles.tableCol}>
+            //     <Text style={styles.tableCell}>
+            //       {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
+            //         2,
+            //       )}
+            //     </Text>
+            //   </View>
+            // </View>
+          })}
+        </View>
         <View style={{ alignItems: "flex-end" }}>
-          <TotalRowItem
-            label={"Gross Weight"}
-            value={`${data.weight} (Approx.(Kgs))`}
-            is_last
-          />
-          <TotalRowItem label={"Paid By"} value={data.ptype} />
+          <TotalRowItem label={"Total Item Count"} value={`${totalQuantity}`} />
           <TotalRowItem
             label={"Sub total"}
             value={`KES ${totalDiscount.subtotal}`}
@@ -371,6 +454,9 @@ const TransactionReceiptPDF = ({
         <View style={{ paddingVertical: 1, alignItems: "center" }}>
           <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
             Thank you for doing business with us
+          </Text>
+          <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
+            NO refund , No exchange
           </Text>
           <Text style={[styles.text]}></Text>
         </View>
@@ -471,7 +557,7 @@ const TransactionReceiptPDF = ({
               }}
             >
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {`Trans ID: ${data.unique_identifier}`}
+                {`Sales Code: ${data.unique_identifier}`}
               </Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
                 {"Transaction Receipt - Copy"}

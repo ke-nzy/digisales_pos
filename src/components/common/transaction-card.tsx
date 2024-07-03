@@ -189,7 +189,6 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
       } catch (error) {
         console.log("error", error);
       } finally {
-        setClearStatus(true);
         router.push(`/transactions`);
       }
     } else {

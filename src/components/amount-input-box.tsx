@@ -90,6 +90,32 @@ const AmountInput = ({
       setIsPrinted(false);
     }
   };
+  const updateCashPayments = (
+    paymentCart: PaymentCart[],
+    invoiceTotal: number,
+  ): PaymentCart[] => {
+    return paymentCart.map((cart) => {
+      const updatedPayments = cart.payments.map((payment) => {
+        if (
+          payment.Transtype === "Cash" &&
+          parseFloat(payment.TransAmount as string) > invoiceTotal
+        ) {
+          return {
+            ...payment,
+            TransAmount: (
+              parseFloat(payment.TransAmount as string) - invoiceTotal
+            ).toString(),
+          };
+        }
+        return payment;
+      });
+
+      return {
+        ...cart,
+        payments: updatedPayments,
+      };
+    });
+  };
   const handleProcessInvoice = async () => {
     if (isLoading) {
       return;
@@ -110,6 +136,8 @@ const AmountInput = ({
       return;
     }
 
+    const pmnts = updateCashPayments(paymentCarts, totalPaid);
+
     setIsLoading(true);
     try {
       const result = await submit_direct_sale_request(
@@ -119,7 +147,7 @@ const AmountInput = ({
         account!.user_id,
         currentCart.items,
         currentCustomer,
-        paymentCarts,
+        pmnts,
         currentCustomer.br_name,
         currentCart.cart_id,
       );
