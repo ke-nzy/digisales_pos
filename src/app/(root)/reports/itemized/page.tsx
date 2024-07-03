@@ -9,6 +9,7 @@ import { useItemizedSalesReport } from "~/hooks/use-reports";
 import { salesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 const Itemized = () => {
   const getCurrentDate = () => new Date().toISOString().split("T")[0];
@@ -90,7 +91,7 @@ const Itemized = () => {
           <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
             <div className="flex flex-col items-center gap-1 text-center">
               <h3 className="text-2xl font-bold tracking-tight">
-                You have no sales reports
+                You have no sales reports today
               </h3>
               <p className="text-sm text-muted-foreground">
                 You can start generating a report as soon as you make a sale.

@@ -85,8 +85,8 @@ const TransactionReceiptPDF = ({
 }) => {
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
-  const payments: Payment[] =
-    data.payments.length > 0 ? JSON.parse(data.payments) : [];
+  // const payments: Payment[] =
+  //   data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
   function get_printout_size(length: number): [number, number] {
     return [80, 140 + length * 14];

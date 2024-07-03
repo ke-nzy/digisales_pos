@@ -108,60 +108,89 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
   return (
     <div className="flex flex-col gap-4 space-y-5 ">
       <div className="flex flex-row justify-end">
-        <Button variant="outline" size="sm" onClick={() => handlePrint()}>
-          <PrinterIcon className="h-6 w-6 cursor-pointer text-gray-500 hover:text-gray-700" />
-          Print
-        </Button>
+        {parentItemSummary.length > 0 ? (
+          <Button variant="outline" size="sm" onClick={() => handlePrint()}>
+            <PrinterIcon className="h-6 w-6 cursor-pointer text-gray-500 hover:text-gray-700" />
+            Print
+          </Button>
+        ) : (
+          <></>
+        )}
       </div>
-
-      <Table className="rounded-md border">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Item</TableHead>
-            <TableHead className="text-right">Sold(Pcs)</TableHead>
-            <TableHead className="text-right">Value</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {parentItemSummary.map((is) => (
-            <TableRow key={is.parent_item}>
-              <TableCell className="font-medium">{is.parent_item}</TableCell>
-              <TableCell className="text-right">{is.total_quantity}</TableCell>
-              <TableCell className="text-right">
-                KES {is.total_unit_price}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Table className="mb-5">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Payment Type</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Object.keys(paymentTypes).map((ptype) => (
-            <TableRow key={ptype}>
-              <TableCell className="font-medium">{ptype}</TableCell>
-              <TableCell className="text-right">
-                {paymentTypes[ptype]!.toFixed(2)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell>Total</TableCell>
-            <TableCell className="text-right">
-              {Object.values(paymentTypes)
-                .reduce((acc, val) => acc + val, 0)
-                .toFixed(2)}
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+      <div className="">
+        {parentItemSummary.length > 0 ? (
+          <Table className="rounded-lg border border-dashed shadow-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Item</TableHead>
+                <TableHead className="text-right">Sold(Pcs)</TableHead>
+                <TableHead className="text-right">Value</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {parentItemSummary.map((is) => (
+                <TableRow key={is.parent_item}>
+                  <TableCell className="font-medium">
+                    {is.parent_item}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {is.total_quantity}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    KES {is.total_unit_price}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed py-10 shadow-sm">
+            <div className="flex flex-col items-center gap-1 text-center">
+              <h3 className="text-2xl font-bold tracking-tight">
+                You have no sales today
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                You can start generating a z report as soon as you make a sale
+                today.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+      <div>
+        {Object.keys(paymentTypes).length > 0 ? (
+          <Table className="rounded-lg border border-dashed shadow-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Payment Type</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.keys(paymentTypes).map((ptype) => (
+                <TableRow key={ptype}>
+                  <TableCell className="font-medium">{ptype}</TableCell>
+                  <TableCell className="text-right">
+                    {paymentTypes[ptype]!.toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell>Total</TableCell>
+                <TableCell className="text-right">
+                  {Object.values(paymentTypes)
+                    .reduce((acc, val) => acc + val, 0)
+                    .toFixed(2)}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        ) : (
+          <></>
+        )}
+      </div>
     </div>
   );
 };

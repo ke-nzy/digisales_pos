@@ -88,7 +88,7 @@ export const useItemizedSalesReport = (params: DateParams) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<SalesReportItem[], Error>({
-    queryKey: ["salesReport", params.to],
+    queryKey: ["salesReport", params],
     queryFn: () => fetchItemizedSalesReport(params),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
@@ -97,7 +97,8 @@ export const useItemizedSalesReport = (params: DateParams) => {
     salesReport: data || [],
     loading: isLoading,
     error: error ? error.message : null,
-    refetch: () => queryClient.invalidateQueries({ queryKey: ["salesReport"] }),
+    refetch: () =>
+      queryClient.invalidateQueries({ queryKey: ["salesReport", params] }),
   };
 };
 

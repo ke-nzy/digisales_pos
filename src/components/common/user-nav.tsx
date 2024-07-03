@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LayoutGrid, LogOut, User } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
+import { deleteMetadata } from "~/utils/indexeddb";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import {
   Tooltip,
@@ -21,9 +22,11 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { useAuthStore } from "~/store/auth-store";
+import { useRouter } from "next/navigation";
 
-export function UserNav() {
-  const { account } = useAuthStore();
+export default function UserNav() {
+  const { account, clear_auth_session } = useAuthStore();
+  const router = useRouter();
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -76,8 +79,10 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="hover:cursor-pointer"
-          onClick={() => {
-            console.log("Log out");
+          onClick={async () => {
+            await deleteMetadata();
+            clear_auth_session();
+            router.push("/sign-in");
           }}
         >
           <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />

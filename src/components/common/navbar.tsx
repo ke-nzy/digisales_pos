@@ -2,9 +2,11 @@
 import { MenuIcon } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { SheetMenu } from "./sheet-menu";
-import { UserNav } from "./user-nav";
+// import { UserNav } from "./user-nav";
 import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { useStore } from "~/hooks/use-store";
+import dynamic from "next/dynamic";
+const UserNav = dynamic(() => import("./user-nav"), { ssr: false });
 
 interface NavbarProps {
   title: string;

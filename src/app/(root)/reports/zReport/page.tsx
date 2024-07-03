@@ -77,7 +77,7 @@ const zReport = () => {
   return (
     <DashboardLayout title={"ZReport"}>
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-        <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+        <div className="flex h-full flex-1 items-center justify-center ">
           <div className="h-full w-full flex-grow  flex-col items-center justify-center gap-1 ">
             <ZReportTable data={posTransactionsReport} sales={salesReport} />
           </div>
