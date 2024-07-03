@@ -8,6 +8,7 @@ import {
   calculateCartTotal,
   calculateDiscount,
   cn,
+  generateRandomString,
   tallyTotalAmountPaid,
   toDate,
 } from "~/lib/utils";
@@ -95,25 +96,32 @@ const AmountInput = ({
     invoiceTotal: number,
   ): PaymentCart[] => {
     return paymentCart.map((cart) => {
-      const updatedPayments = cart.payments.map((payment) => {
-        if (
-          payment.Transtype === "Cash" &&
-          parseFloat(payment.TransAmount as string) > invoiceTotal
-        ) {
+      if (cart.paymentType === "CASH") {
+        const totalCashPayments = cart.payments.reduce((total, payment) => {
+          return total + parseFloat(payment.TransAmount as string);
+        }, 0);
+
+        console.log("totalCashPayments", totalCashPayments);
+
+        if (totalCashPayments > invoiceTotal) {
+          const updatedPayments: Payment[] = [
+            {
+              Auto: generateRandomString(6),
+              name: generateRandomString(6),
+              TransID: ` CASH ${generateRandomString(4)}`,
+              TransAmount: invoiceTotal.toString(),
+              TransTime: new Date().toISOString(),
+              Transtype: "CASH",
+            },
+          ];
+
           return {
-            ...payment,
-            TransAmount: (
-              parseFloat(payment.TransAmount as string) - invoiceTotal
-            ).toString(),
+            ...cart,
+            payments: updatedPayments,
           };
         }
-        return payment;
-      });
-
-      return {
-        ...cart,
-        payments: updatedPayments,
-      };
+      }
+      return cart;
     });
   };
   const handleProcessInvoice = async () => {
@@ -136,60 +144,61 @@ const AmountInput = ({
       return;
     }
 
-    const pmnts = updateCashPayments(paymentCarts, totalPaid);
+    const pmnts = updateCashPayments(paymentCarts, total);
+    console.log("pmnts", pmnts);
 
-    setIsLoading(true);
-    try {
-      const result = await submit_direct_sale_request(
-        site_url!,
-        site_company!.company_prefix,
-        account!.id,
-        account!.user_id,
-        currentCart.items,
-        currentCustomer,
-        pmnts,
-        currentCustomer.br_name,
-        currentCart.cart_id,
-      );
-      console.log("result", result);
-      if (!result) {
-        // sentry.captureException(result);
-        toast.error("Transaction failed");
-        setIsLoading(false);
-        return;
-      }
+    // setIsLoading(true);
+    // try {
+    //   const result = await submit_direct_sale_request(
+    //     site_url!,
+    //     site_company!.company_prefix,
+    //     account!.id,
+    //     account!.user_id,
+    //     currentCart.items,
+    //     currentCustomer,
+    //     pmnts,
+    //     currentCustomer.br_name,
+    //     currentCart.cart_id,
+    //   );
+    //   console.log("result", result);
+    //   if (!result) {
+    //     // sentry.captureException(result);
+    //     toast.error("Transaction failed");
+    //     setIsLoading(false);
+    //     return;
+    //   }
 
-      const transaction_history = await fetch_pos_transactions_report(
-        site_company!,
-        account!,
-        site_url!,
-        toDate(new Date()),
-        toDate(new Date()),
-      );
-      // process receipt
+    //   const transaction_history = await fetch_pos_transactions_report(
+    //     site_company!,
+    //     account!,
+    //     site_url!,
+    //     toDate(new Date()),
+    //     toDate(new Date()),
+    //   );
+    //   // process receipt
 
-      toast.success("Invoice processed successfully");
+    //   toast.success("Invoice processed successfully");
 
-      router.refresh();
+    //   router.refresh();
 
-      if (transaction_history) {
-        await handlePrint(transaction_history[0]!);
-      } else {
-        toast.error("Failed to print Something went wrong");
-      }
+    //   if (transaction_history) {
+    //     await handlePrint(transaction_history[0]!);
+    //   } else {
+    //     toast.error("Failed to print Something went wrong");
+    //   }
 
-      clearCart();
-      clearPaymentCarts();
-      if (isPrinted) {
-        router.push("/");
-      } else {
-        router.push("/transactions");
-      }
-    } catch (error) {
-      toast.error("Something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
+    //   clearCart();
+    //   clearPaymentCarts();
+    //   if (isPrinted) {
+    //     router.push("/");
+    //   } else {
+    //     router.push("/transactions");
+    //   }
+    // } catch (error) {
+    //   toast.error("Something went wrong");
+    // } finally {
+    //   setIsLoading(false);
+    // }
 
     // clearCart();
   };
