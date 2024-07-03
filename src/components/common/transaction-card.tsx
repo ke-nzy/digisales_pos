@@ -30,7 +30,7 @@ import { cn } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
 import { getCart } from "~/utils/indexeddb";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { pdf } from "@react-pdf/renderer";
 import TransactionReceiptPDF from "../thermal-receipt";
 import { useAuthStore } from "~/store/auth-store";
@@ -64,6 +64,8 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
   const [authorized, setAuthorized] = useState<boolean>(false);
+
+  const searchParams = useSearchParams();
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
   const payments: Payment[] =
@@ -156,7 +158,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
         setAuthPass("");
         setAction("");
         setAuthorizationDialogOpen(false);
-      }, 2000);
+      }, 1500);
     }
   };
 
@@ -187,7 +189,8 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
       } catch (error) {
         console.log("error", error);
       } finally {
-        router.refresh();
+        setClearStatus(true);
+        router.push(`/transactions`);
       }
     } else {
       setAction("edit_cart");
