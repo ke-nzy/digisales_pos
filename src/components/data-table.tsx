@@ -108,7 +108,7 @@ export function DataTable<TData, TValue>({
         />
         {filCol === "TransAmount" && (
           <>
-            <Label> Sear ch by Name </Label>
+            <Label> Search by Name </Label>
             <Input
               placeholder="Search by Name"
               name="cart-search"

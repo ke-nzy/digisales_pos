@@ -191,7 +191,7 @@ const TransactionReceiptPDF = ({
             }}
           >
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {`Trans ID: ${data.unique_identifier}`}
+              {`Trans ID: ${data.id}`}
             </Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
               {duplicate
@@ -560,7 +560,7 @@ const TransactionReceiptPDF = ({
               }}
             >
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {`Sales Code: ${data.unique_identifier}`}
+                {`Sales Code: ${data.id}`}
               </Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
                 {"Transaction Receipt - Copy"}
