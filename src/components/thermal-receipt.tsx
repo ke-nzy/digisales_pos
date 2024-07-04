@@ -10,7 +10,10 @@ import {
 } from "@react-pdf/renderer";
 import QrCode from "qrcode";
 
-import { calculateSubtotalAndDiscount } from "~/lib/utils";
+import {
+  calculateSubtotalAndDiscount,
+  tallyTotalAmountPaid,
+} from "~/lib/utils";
 Font.register({
   family: "Courier Prime",
   src: "http://fonts.gstatic.com/s/raleway/v11/bIcY3_3JNqUVRAQQRNVteQ.ttf",
@@ -92,11 +95,22 @@ const TransactionReceiptPDF = ({
     return [80, 140 + length * 14];
   }
 
+  function sumTransAmount(payments: Payment[]): number {
+    return payments.reduce((sum, payment) => {
+      const amount =
+        typeof payment.TransAmount === "string"
+          ? parseFloat(payment.TransAmount)
+          : payment.TransAmount;
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
+  }
+
   const calculateTotalQuantity = (items: TransactionInvItem[]): number => {
     return items.reduce((total, item) => total + parseFloat(item.quantity), 0);
   };
   const totalDiscount = calculateSubtotalAndDiscount(data);
   const totalQuantity = calculateTotalQuantity(items);
+  const totalPaid = sumTransAmount(payments);
   const kra_code = async () =>
     await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
   return (
@@ -391,6 +405,11 @@ const TransactionReceiptPDF = ({
           <TotalRowItem
             label={"Total"}
             value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount}`}
+            is_last
+          />
+          <TotalRowItem
+            label={"Balance"}
+            value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount - totalPaid}`}
             is_last
           />
         </View>
