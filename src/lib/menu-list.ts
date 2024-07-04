@@ -89,6 +89,11 @@ export function getMenuList(pathname: string): Group[] {
               label: "Z Report",
               active: pathname === "/zReport",
             },
+            {
+              href: "/reports/general",
+              label: "Daily Sales Report",
+              active: pathname === "/general",
+            },
             // {
             //   href: "/posts/new",
             //   label: "New Post",

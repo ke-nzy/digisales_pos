@@ -2,6 +2,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetch_daily_sales_target_summary,
+  fetch_general_sales_person_summary_report,
   fetch_held_transactions_report,
   fetch_pos_transactions_report,
   fetch_sales_person_summary_report,
@@ -28,6 +29,24 @@ const fetchItemizedSalesReport = async (
   );
 
   const list = sreport || [];
+
+  return list;
+};
+const fetchGeneralSalesReport = async (
+  params: DateParams,
+): Promise<GeneralSalesReportItem[]> => {
+  const { site_company, account, site_url } = useAuthStore.getState();
+
+  // Fetch from API
+  const sreport = await fetch_general_sales_person_summary_report(
+    site_company!,
+    account!,
+    site_url!,
+    params.from,
+    params.to,
+  );
+
+  const list = sreport !== null ? sreport.data : [];
 
   return list;
 };
@@ -99,6 +118,26 @@ export const useItemizedSalesReport = (params: DateParams) => {
     error: error ? error.message : null,
     refetch: () =>
       queryClient.invalidateQueries({ queryKey: ["salesReport", params] }),
+  };
+};
+
+export const useGeneralSalesReport = (params: DateParams) => {
+  const queryClient = useQueryClient();
+
+  const { data, error, isLoading } = useQuery<GeneralSalesReportItem[], Error>({
+    queryKey: ["generalSalesReport", params],
+    queryFn: () => fetchGeneralSalesReport(params),
+    // staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+
+  return {
+    generalSalesReport: data || [],
+    loading: isLoading,
+    error: error ? error.message : null,
+    refetch: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["generalSalesReport", params],
+      }),
   };
 };
 

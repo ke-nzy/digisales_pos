@@ -39,23 +39,15 @@ import { exportToPDF } from "~/lib/utils";
 import CsvDownloader from "react-csv-downloader";
 import { Button } from "../ui/button";
 import { DownloadIcon } from "lucide-react";
-import { Checkbox } from "~/components/ui/checkbox";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "~/components/ui/popover";
-import { PopoverPortal } from "@radix-ui/react-popover";
+// import { Checkbox } from "~/components/ui/checkbox";
+// import {
+//   Popover,
+//   PopoverTrigger,
+//   PopoverContent,
+// } from "~/components/ui/popover";
+// import { PopoverPortal } from "@radix-ui/react-popover";
 
 // Define the structure of the sales report item
-interface SalesReportItem {
-  stock_id: string;
-  description: string;
-  unit_price: string;
-  quantity: string;
-  category_name: string;
-  parent_item: string;
-}
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
@@ -63,7 +55,7 @@ interface DataTableProps<TData> {
   onRowClick: (rowData: TData) => void;
 }
 
-export function TransactionsDataTable<TData extends SalesReportItem>({
+export function TransactionsDataTable<TData extends GeneralSalesReportItem>({
   columns,
   data,
   onRowClick,
@@ -78,24 +70,10 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
   const tableRef = useRef<HTMLDivElement>(null);
 
   const filteredData = useMemo(() => {
-    return data.filter(
-      (item) =>
-        (selectedCategory ? item.category_name === selectedCategory : true) &&
-        (selectedParentItem ? item.parent_item === selectedParentItem : true),
+    return data.filter((item) =>
+      selectedCategory ? item.user_id === selectedCategory : true,
     );
-  }, [data, selectedCategory, selectedParentItem]);
-
-  const filtdData = useMemo(() => {
-    return data.filter(
-      (item) =>
-        (selectedCategories.length
-          ? selectedCategories.includes(item.category_name)
-          : true) &&
-        (selectedParentItems.length
-          ? selectedParentItems.includes(item.parent_item)
-          : true),
-    );
-  }, [data, selectedCategories, selectedParentItems]);
+  }, [data, selectedCategory]);
 
   const table = useReactTable({
     data: filteredData,
@@ -142,20 +120,24 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
   const totalSum = filteredData.reduce((sum, item) => {
     return sum + parseFloat(item.unit_price) * parseInt(item.quantity);
   }, 0);
+  const totalQuantity = filteredData.reduce((sum, item) => {
+    return sum + parseInt(item.quantity);
+  }, 0);
 
   const csvColumns = columns.map((column) => ({
     id: column.id!,
     displayName: column.header as string,
   }));
 
-  const transformDataForCSV = (data: SalesReportItem[]) => {
+  const transformDataForCSV = (data: GeneralSalesReportItem[]) => {
     return data.map((item) => ({
-      stock_id: item.stock_id,
+      receipt_no: item.receipt_no,
+      trans_time: item.trans_time,
       description: item.description,
+      location_name: item.location_name,
+      user_id: item.user_id,
       unit_price: item.unit_price,
       quantity: item.quantity,
-      category_name: item.category_name,
-      parent_item: item.parent_item,
     }));
   };
 
@@ -189,28 +171,13 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
         </Popover> */}
         <Select onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Category" />
+            <SelectValue placeholder="Select User" />
           </SelectTrigger>
           <SelectContent>
-            {Array.from(new Set(data.map((item) => item.category_name))).map(
+            {Array.from(new Set(data.map((item) => item.user_id))).map(
               (category) => (
                 <SelectItem key={category} value={category}>
                   {category}
-                </SelectItem>
-              ),
-            )}
-          </SelectContent>
-        </Select>
-
-        <Select onValueChange={setSelectedParentItem}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Item Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {Array.from(new Set(data.map((item) => item.parent_item))).map(
-              (parentItem) => (
-                <SelectItem key={parentItem} value={parentItem}>
-                  {parentItem}
                 </SelectItem>
               ),
             )}
@@ -229,7 +196,7 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
               onSelect={() =>
                 exportToPDF(
                   filteredData,
-                  columns as ColumnDef<SalesReportItem>[],
+                  columns as ColumnDef<GeneralSalesReportItem>[],
                 )
               }
             >
@@ -283,7 +250,7 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
                   className={focusedRowIndex === rowIndex ? "bg-gray-100" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-center">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -305,9 +272,13 @@ export function TransactionsDataTable<TData extends SalesReportItem>({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length - 1} className="text-right">
+              <TableCell colSpan={columns.length - 2} className="text-right">
                 Total:
               </TableCell>
+              <TableCell className="text-right">
+                {totalQuantity.toFixed(2)}
+              </TableCell>
+
               <TableCell className="text-right">
                 {totalSum.toFixed(2)}
               </TableCell>

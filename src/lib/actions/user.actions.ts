@@ -169,6 +169,45 @@ export async function fetch_sales_person_summary_report(
     return null;
   }
 }
+
+export async function fetch_general_sales_person_summary_report(
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+  site_url: string,
+  sdate: string | undefined,
+  edate: string | undefined,
+): Promise<GeneralReport | null> {
+  const sdate_ = sdate === undefined ? toDate(new Date()) : sdate;
+  const edate_ = edate === undefined ? toDate(new Date()) : edate;
+  const form_data = new FormData();
+  form_data.append("tp", "get_detailed_sales");
+  form_data.append("cp", site_company.company_prefix);
+  form_data.append("start_date", sdate_);
+  form_data.append("end_date", edate_);
+  form_data.append("branch_code", account.default_store);
+
+  try {
+    const response = await axios.postForm<GeneralReport>(
+      `${site_url}process.php`,
+      form_data,
+    );
+
+    if (!response.data) {
+      console.error("tp: get_detailed_sales failed");
+      // Add sentry here
+      return null;
+    }
+
+    console.log("response", response.data);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(error);
+    }
+    return null;
+  }
+}
 export async function fetch_pos_transactions_report(
   site_company: SiteCompany,
   account: UserAccountInfo,

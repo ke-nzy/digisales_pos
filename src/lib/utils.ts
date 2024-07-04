@@ -295,10 +295,17 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
     accessorKey: "quantity",
     header: "Quantity",
     cell: (props) => props.getValue(),
+    footer: (props) => {
+      const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
+        const rowData = row.original;
+        return sum + parseInt(rowData.quantity);
+      }, 0);
+      return total.toFixed(2);
+    },
   },
   {
     id: "total",
-    header: "Total",
+    header: "Total Sales Amount",
     cell: (props) => {
       const row = props.row.original;
       const rowTotal = parseInt(row.quantity) * parseFloat(row.unit_price);
@@ -388,17 +395,15 @@ export function calculateSubtotalAndDiscount(data: TransactionReportItem) {
 // };
 
 export const exportToPDF = (
-  data: SalesReportItem[],
-  columns: ColumnDef<SalesReportItem>[],
+  data: GeneralSalesReportItem[],
+  columns: ColumnDef<GeneralSalesReportItem>[],
 ) => {
   const doc = new jsPDF();
   const tableColumn = columns.map((column) => column.id!);
   const tableRows: any[] = [];
 
   data.forEach((row) => {
-    const rowData = columns.map(
-      (column) => row[column.id as keyof SalesReportItem],
-    );
+    const rowData = columns.map((column) => row[column.id as keyof unknown]);
     tableRows.push(rowData);
   });
 

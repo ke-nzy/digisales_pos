@@ -1,21 +1,37 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { Shell } from "~/components/shell";
 import { Skeleton } from "~/components/ui/skeleton";
-import { useItemizedSalesReport } from "~/hooks/use-reports";
-import { salesReportColumns, searchParamsSchema } from "~/lib/utils";
+import {
+  useGeneralSalesReport,
+  useItemizedSalesReport,
+} from "~/hooks/use-reports";
+import { generalSalesReportColumns, salesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 import GeneralSalesDataTable from "~/components/data-table/general-report";
 import { type IndexPageProps } from "../../transactions/page";
+import { useSearchParams } from "next/navigation";
 
-const Itemized = ({ searchParams }: IndexPageProps) => {
-  const params = searchParamsSchema.parse(searchParams);
+const Itemized = () => {
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<DateParams>({
+    from: searchParams.get("from") ?? getCurrentDate(),
+    to: searchParams.get("to") ?? getCurrentDate(),
+  });
   const { site_company } = useAuthStore();
-  const { salesReport, loading, error } = useItemizedSalesReport(params);
-
+  const { generalSalesReport, loading, error } = useGeneralSalesReport(params);
+  const { salesReport } = useItemizedSalesReport(params);
+  useEffect(() => {
+    const newParams = {
+      from: searchParams.get("from") ?? getCurrentDate(),
+      to: searchParams.get("to") ?? getCurrentDate(),
+    };
+    setParams(newParams);
+  }, [searchParams]);
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -62,6 +78,8 @@ const Itemized = ({ searchParams }: IndexPageProps) => {
         </div>
       </main>
     );
+
+  console.log("generalSalesReport", generalSalesReport);
   return (
     <DashboardLayout title={site_company?.branch ?? ""}>
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -70,6 +88,10 @@ const Itemized = ({ searchParams }: IndexPageProps) => {
             General Sales Reports
           </h1>
         </div>
+        <DateRangePicker
+          triggerSize="sm"
+          triggerClassName="ml-auto w-56 sm:w-60"
+        />
         {salesReport.length === 0 && !loading && !error ? (
           <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
             <div className="flex flex-col items-center gap-1 text-center">
@@ -102,8 +124,8 @@ const Itemized = ({ searchParams }: IndexPageProps) => {
             >
               <div className="flex flex-col gap-4">
                 <GeneralSalesDataTable
-                  columns={salesReportColumns}
-                  data={salesReport}
+                  columns={generalSalesReportColumns}
+                  data={generalSalesReport}
                   onRowClick={(rowData) => console.log(rowData)}
                 />
               </div>

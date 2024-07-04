@@ -236,6 +236,11 @@ declare type StockItem = {
   item: string;
   balance: string;
 };
+
+declare type GeneralReport = {
+  status: string;
+  data: GeneralSalesReportItem[];
+};
 declare type GeneralSalesReportItem = {
   stock_id: string;
   description: string;
