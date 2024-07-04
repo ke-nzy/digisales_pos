@@ -22,6 +22,7 @@ import {
 } from "~/components/ui/table";
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
+import { Label } from "./ui/label";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -93,7 +94,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex flex-col items-center space-y-3 py-4">
         <Input
           placeholder={searchKey}
           name="cart-search"
@@ -105,6 +106,22 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
+        {filCol === "TransAmount" && (
+          <>
+            <Label> Sear ch by Name </Label>
+            <Input
+              placeholder="Search by Name"
+              name="cart-search"
+              onChange={(event) =>
+                table.getColumn("name")?.setFilterValue(event.target.value)
+              }
+              value={
+                (table.getColumn("name")?.getFilterValue() as string) ?? "name"
+              }
+              className="max-w-sm"
+            />
+          </>
+        )}
       </div>
       <div className="rounded-md border" ref={tableRef}>
         <Table>

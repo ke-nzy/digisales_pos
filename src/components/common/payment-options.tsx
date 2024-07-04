@@ -103,7 +103,7 @@ const PaymentOptions = ({
               <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
                 <DataTable
                   columns={paymentColumns}
-                  filCol="name"
+                  filCol="TransAmount"
                   data={mpesaPayments}
                   onRowClick={handleMpesaRowClick}
                   searchKey={amount}
