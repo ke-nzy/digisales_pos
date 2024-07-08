@@ -124,6 +124,8 @@ const Itemized = () => {
             >
               <div className="flex flex-col gap-4">
                 <GeneralSalesDataTable
+                  from={params.from}
+                  to={params.to}
                   columns={generalSalesReportColumns}
                   data={generalSalesReport}
                   onRowClick={(rowData) => console.log(rowData)}

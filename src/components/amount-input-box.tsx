@@ -112,6 +112,7 @@ const AmountInput = ({
               TransAmount: invoiceTotal.toString(),
               TransTime: new Date().toISOString(),
               Transtype: "CASH",
+              balance: totalCashPayments - invoiceTotal,
             },
           ];
 

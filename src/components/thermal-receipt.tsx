@@ -102,12 +102,21 @@ const TransactionReceiptPDF = ({
   }
 
   function sumTransAmount(payments: Payment[]): number {
+    console.log("payments", payments);
     return payments.reduce((sum, payment) => {
       const amount =
         typeof payment.TransAmount === "string"
           ? parseFloat(payment.TransAmount)
           : payment.TransAmount;
-      return sum + (isNaN(amount) ? 0 : amount);
+      const balance =
+        payment.balance !== undefined
+          ? typeof payment.balance === "string"
+            ? parseFloat(payment.balance)
+            : payment.balance
+          : 0;
+      return (
+        sum + (isNaN(amount) ? 0 : amount) + (isNaN(balance) ? 0 : balance)
+      );
     }, 0);
   }
 
@@ -125,13 +134,13 @@ const TransactionReceiptPDF = ({
   return (
     <Document>
       <Page
-        size={get_printout_size(items.length + payments.length)}
+        size={get_printout_size(items.length + payments.length + 10)}
         style={{ padding: 2 }}
       >
         <View>
           <View
             style={{
-              paddingVertical: 4,
+              paddingVertical: 2,
               alignItems: "center",
             }}
           >
@@ -370,6 +379,20 @@ const TransactionReceiptPDF = ({
             </View>
           </View>
           {payments.map((item, index, array) => {
+            const transAmount =
+              typeof item.TransAmount === "string"
+                ? parseFloat(item.TransAmount)
+                : item.TransAmount;
+            const balance =
+              item.balance !== undefined
+                ? typeof item.balance === "string"
+                  ? parseFloat(item.balance)
+                  : item.balance
+                : 0;
+            const totalAmount =
+              (isNaN(transAmount) ? 0 : transAmount) +
+              (isNaN(balance) ? 0 : balance);
+
             return (
               <View style={{ flexDirection: "row" }} key={index}>
                 <View
@@ -389,34 +412,16 @@ const TransactionReceiptPDF = ({
                     index === array.length - 1 ? styles.table_col_last_row : {},
                   ]}
                 >
-                  <Text style={[styles.text]}>{item.TransAmount}</Text>
+                  <Text style={[styles.text]}>{totalAmount}</Text>
                 </View>
               </View>
             );
-            // <View style={styles.tableRow} key={index}>
-            //   <View style={[styles.tableCol, { width: "60rem" }]}>
-            //     <Text style={styles.tableCell}>{item.item_option}</Text>
-            //   </View>
-            //   <View style={styles.tableCol}>
-            //     <Text style={styles.tableCell}>{item.quantity}</Text>
-            //   </View>
-            //   <View style={styles.tableCol}>
-            //     <Text style={styles.tableCell}>{item.price}</Text>
-            //   </View>
-            //   <View style={styles.tableCol}>
-            //     <Text style={styles.tableCell}>
-            //       {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
-            //         2,
-            //       )}
-            //     </Text>
-            //   </View>
-            // </View>
           })}
         </View>
         <View style={{ alignItems: "flex-end" }}>
           <TotalRowItem label={"Total Item Count"} value={`${totalQuantity}`} />
           <TotalRowItem
-            label={"Sub total"}
+            label={"Total"}
             value={`KES ${totalDiscount.subtotal}`}
           />
           <TotalRowItem
@@ -425,15 +430,15 @@ const TransactionReceiptPDF = ({
             is_last
           />
           <TotalRowItem
-            label={"Total"}
-            value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount}`}
-            is_last
-          />
-          <TotalRowItem
             label={"Balance"}
             value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount - totalPaid}`}
             is_last
           />
+          {/* <TotalRowItem
+            label={"Total"}
+            value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount}`}
+            is_last
+          /> */}
         </View>
         <View
           style={{
@@ -493,8 +498,7 @@ const TransactionReceiptPDF = ({
             )}
           </View>
         </View>
-
-        <View style={{ flex: 1 }} />
+        <View style={{ flex: 0.8 }} />
         <View style={{ alignItems: "center" }}>
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
@@ -502,7 +506,6 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             NO refund , No exchange
           </Text>
-          <Text style={[styles.text]}></Text>
         </View>
       </Page>
       {duplicate && (
@@ -760,6 +763,20 @@ const TransactionReceiptPDF = ({
               </View>
             </View>
             {payments.map((item, index, array) => {
+              const transAmount =
+                typeof item.TransAmount === "string"
+                  ? parseFloat(item.TransAmount)
+                  : item.TransAmount;
+              const balance =
+                item.balance !== undefined
+                  ? typeof item.balance === "string"
+                    ? parseFloat(item.balance)
+                    : item.balance
+                  : 0;
+              const totalAmount =
+                (isNaN(transAmount) ? 0 : transAmount) +
+                (isNaN(balance) ? 0 : balance);
+
               return (
                 <View style={{ flexDirection: "row" }} key={index}>
                   <View
@@ -783,29 +800,36 @@ const TransactionReceiptPDF = ({
                         : {},
                     ]}
                   >
-                    <Text style={[styles.text]}>{item.TransAmount}</Text>
+                    <Text style={[styles.text]}>{totalAmount}</Text>
                   </View>
                 </View>
               );
-              // <View style={styles.tableRow} key={index}>
-              //   <View style={[styles.tableCol, { width: "60rem" }]}>
-              //     <Text style={styles.tableCell}>{item.item_option}</Text>
-              //   </View>
-              //   <View style={styles.tableCol}>
-              //     <Text style={styles.tableCell}>{item.quantity}</Text>
-              //   </View>
-              //   <View style={styles.tableCol}>
-              //     <Text style={styles.tableCell}>{item.price}</Text>
-              //   </View>
-              //   <View style={styles.tableCol}>
-              //     <Text style={styles.tableCell}>
-              //       {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
-              //         2,
-              //       )}
-              //     </Text>
-              //   </View>
-              // </View>
             })}
+          </View>
+          <View style={{ alignItems: "flex-end" }}>
+            <TotalRowItem
+              label={"Total Item Count"}
+              value={`${totalQuantity}`}
+            />
+            <TotalRowItem
+              label={"Total"}
+              value={`KES ${totalDiscount.subtotal}`}
+            />
+            <TotalRowItem
+              label={"Discount"}
+              value={`KES ${totalDiscount.totalDiscount}`}
+              is_last
+            />
+            {/* <TotalRowItem
+              label={"Total"}
+              value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount}`}
+              is_last
+            /> */}
+            <TotalRowItem
+              label={"Balance"}
+              value={`KES ${totalDiscount.subtotal - totalDiscount.totalDiscount - totalPaid}`}
+              is_last
+            />
           </View>
           <View
             style={{
@@ -868,7 +892,7 @@ const TransactionReceiptPDF = ({
             </View>
           </View>
 
-          <View style={{ flex: 1 }} />
+          <View style={{ flex: 0.5 }} />
           {/*NOTE: (teddy) THank you message*/}
           <View style={{ paddingVertical: 1, alignItems: "center" }}>
             <Text

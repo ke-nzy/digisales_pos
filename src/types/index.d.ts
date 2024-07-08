@@ -177,6 +177,7 @@ declare type Payment = {
   TransAmount: number | string;
   TransTime: number | string;
   Transtype?: string;
+  balance?: number;
 };
 
 declare type DateParams = {
