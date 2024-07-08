@@ -41,8 +41,9 @@
 - [x] Nullify Authorization after discount issued
 - [x] Send Cleared Cart to DB Enpoint
 - [x] UI Fix on transactions page when sidebar is open
-- [ ] Check on date filter in reports
-- [ ] Add general report to match excel file provided
+- [x] Check on date filter in reports
+- [x] Add general report to match excel file provided
+- [ ] Add role management on reports
+- [ ] Modify PDF reports to use react-pdf
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)
-- [ ] Generated reprt should have Logo
