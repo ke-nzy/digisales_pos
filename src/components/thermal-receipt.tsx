@@ -569,8 +569,21 @@ const TransactionReceiptPDF = ({
                       flexDirection: "row",
                     }}
                   >
-                    <Text style={[styles.text, {}]}>User</Text>
-                    <Text style={[styles.text, {}]}>{account.user_id}</Text>
+                    <Text style={[styles.text, {}]}>Cashier</Text>
+                    <Text style={[styles.text, {}]}>{account.real_name}</Text>
+                  </View>
+                  <View
+                    style={{
+                      justifyContent: "space-between",
+                      paddingVertical: 1,
+                      flexDirection: "row",
+                    }}
+                  >
+                    <Text style={[styles.text, {}]}>Branch ID</Text>
+                    {/* TODO: Add branch name */}
+                    <Text style={[styles.text, {}]}>
+                      {account.default_store_name}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -705,37 +718,12 @@ const TransactionReceiptPDF = ({
               // </View>
             })}
             <View style={{ flexDirection: "row" }}>
-              <View
-                style={[
-                  styles.table_col_last_row,
-                  { width: "47%" },
-                  styles.table_col_last_row,
-                  { borderLeftWidth: 0.3, borderLeftColor: "#000" },
-                ]}
-              ></View>
-              <View
-                style={[
-                  styles.table_col_last_row,
-                  { width: "13%" },
-                  styles.table_col_last_row,
-                ]}
-              ></View>
-              <View
-                style={[
-                  styles.table_col,
-                  { width: "20%" },
-                  styles.table_col_last_row,
-                ]}
-              >
-                <Text style={[styles.text]}> Total</Text>
+              <View style={[{ width: "47%" }]}></View>
+              <View style={[{ width: "13%" }]}></View>
+              <View style={[{ width: "20%" }]}>
+                <Text style={[styles.text]}> Subtotal</Text>
               </View>
-              <View
-                style={[
-                  styles.table_col,
-                  { width: "20%" },
-                  styles.table_col_last_row,
-                ]}
-              >
+              <View style={[{ width: "20%", border: 0.5 }]}>
                 <Text style={[styles.text]}> {totalDiscount.subtotal}</Text>
               </View>
             </View>
