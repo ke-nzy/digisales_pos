@@ -1,5 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { ContentLayout } from "~/components/common/content-layout";
 
 import { useAuthStore } from "~/store/auth-store";
@@ -19,6 +21,16 @@ const TotalSummary = dynamic(() => import("~/components/total-summary"), {
 
 export default function HomePage() {
   const { site_company, account } = useAuthStore();
+  const router = useRouter();
+  useEffect(() => {
+    const shift = localStorage.getItem("start_shift");
+    const shift_data = JSON.parse(shift ?? "{}");
+    if (shift_data.status === "SUCCESS") {
+      router.replace("/");
+    } else {
+      router.replace("/dashboard");
+    }
+  }, []);
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>
