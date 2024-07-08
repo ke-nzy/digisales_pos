@@ -286,12 +286,14 @@ export async function fetch_held_transactions_report(
 export async function submit_authorization_request(
   site_url: string,
   company_prefix: string,
+  username: string,
   password: string,
   action: string,
 ) {
   const form_data = new FormData();
   form_data.append("tp", "action_authorize");
   form_data.append("cp", company_prefix);
+  form_data.append("username", username);
   form_data.append("password", password);
   form_data.append("action", action);
 

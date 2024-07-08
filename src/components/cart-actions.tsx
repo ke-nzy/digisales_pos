@@ -96,6 +96,7 @@ const CartActions = () => {
   const [quantityDialogOpen, setQuantityDialogOpen] = useState<boolean>(false);
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -351,6 +352,7 @@ const CartActions = () => {
       const auth = await submit_authorization_request(
         site_url!,
         site_company!.company_prefix,
+        username,
         authPass,
         action,
       );
@@ -459,6 +461,46 @@ const CartActions = () => {
             </DialogHeader>
             <div className="flex items-center space-x-2">
               <div className="grid flex-1 gap-2">
+                <div className="grid gap-3">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="auth-cart-pass">Username</Label>
+                    <Input
+                      type="text"
+                      id="auth-cart-username"
+                      placeholder={"Authorization Username"}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="auth-cart-pass">Password</Label>
+                    <Input
+                      type="password"
+                      id="auth-cart-pass"
+                      placeholder={"Authorization Password"}
+                      value={authPass}
+                      onChange={(e) => setAuthPass(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => handleAuthorization()}>Authorize</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {/* <Dialog
+          open={authorizationDialogOpen}
+          onOpenChange={setAuthorizationDialogOpen}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Authorize</DialogTitle>
+              <DialogDescription>Authorize cart actions</DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
                 <ul className="grid gap-3">
                   <div className="grid w-full max-w-sm items-center gap-1.5">
                     <Label htmlFor="auth-cart-pass">Password</Label>
@@ -477,7 +519,7 @@ const CartActions = () => {
               <Button onClick={() => handleAuthorization()}>Authorize</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
         <Dialog
           open={quantityDialogOpen}
           onOpenChange={handleQuantityDialogOpen}

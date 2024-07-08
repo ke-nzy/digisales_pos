@@ -50,6 +50,7 @@ import {
 } from "~/lib/actions/user.actions";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
+import { set } from "date-fns";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
@@ -60,6 +61,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
   const { site_url, site_company, receipt_info, account } = useAuthStore();
   const router = useRouter();
   const [action, setAction] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
   const [authPass, setAuthPass] = useState<string>("");
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
@@ -141,6 +143,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
       const auth = await submit_authorization_request(
         site_url!,
         site_company!.company_prefix,
+        username,
         authPass,
         action,
       );
@@ -306,7 +309,17 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
             </DialogHeader>
             <div className="flex items-center space-x-2">
               <div className="grid flex-1 gap-2">
-                <ul className="grid gap-3">
+                <div className="grid gap-3">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="auth-cart-pass">Username</Label>
+                    <Input
+                      type="text"
+                      id="auth-cart-username"
+                      placeholder={"Authorization Username"}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                  </div>
                   <div className="grid w-full max-w-sm items-center gap-1.5">
                     <Label htmlFor="auth-cart-pass">Password</Label>
                     <Input
@@ -317,7 +330,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                       onChange={(e) => setAuthPass(e.target.value)}
                     />
                   </div>
-                </ul>
+                </div>
               </div>
             </div>
             <DialogFooter>
