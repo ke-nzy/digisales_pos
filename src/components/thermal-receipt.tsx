@@ -117,6 +117,9 @@ const TransactionReceiptPDF = ({
   const totalDiscount = calculateSubtotalAndDiscount(data);
   const totalQuantity = calculateTotalQuantity(items);
   const totalPaid = sumTransAmount(payments);
+
+  console.log("sub_total", totalDiscount);
+
   const kra_code = async () =>
     await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
   return (
@@ -196,7 +199,9 @@ const TransactionReceiptPDF = ({
                 >
                   <Text style={[styles.text, {}]}>Branch ID</Text>
                   {/* TODO: Add branch name */}
-                  <Text style={[styles.text, {}]}>{account.default_store}</Text>
+                  <Text style={[styles.text, {}]}>
+                    {account.default_store_name}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -325,36 +330,13 @@ const TransactionReceiptPDF = ({
             // </View>
           })}
           <View style={{ flexDirection: "row" }}>
-            <View
-              style={[
-                styles.table_col,
-                { width: "47%" },
-                styles.table_row_last,
-                { borderLeftWidth: 0.3, borderLeftColor: "#000" },
-              ]}
-            ></View>
-            <View
-              style={[
-                styles.table_col,
-                { width: "13%" },
-                styles.table_row_last,
-              ]}
-            ></View>
-            <View
-              style={[
-                styles.table_col,
-                { width: "20%" },
-                styles.table_row_last,
-              ]}
-            ></View>
-            <View
-              style={[
-                styles.table_col,
-                { width: "20%" },
-                styles.table_row_last,
-              ]}
-            >
-              <Text style={[styles.text]}>KES {totalDiscount.subtotal}</Text>
+            <View style={[{ width: "47%" }]}></View>
+            <View style={[{ width: "13%" }]}></View>
+            <View style={[{ width: "20%" }]}>
+              <Text style={[styles.text]}> Subtotal</Text>
+            </View>
+            <View style={[{ width: "20%", border: 0.5 }]}>
+              <Text style={[styles.text]}> {totalDiscount.subtotal}</Text>
             </View>
           </View>
         </View>

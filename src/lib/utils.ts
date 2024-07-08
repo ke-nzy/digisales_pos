@@ -367,8 +367,7 @@ export function calculateSubtotalAndDiscount(data: TransactionReportItem) {
   // Calculate the subtotal and total discount
   const result = pitems.reduce(
     (acc, item) => {
-      const total =
-        typeof item.total === "string" ? parseFloat(item.total) : item.total;
+      const total = parseFloat(item.quantity) * parseFloat(item.price);
       const discount = parseFloat(item.discount);
       acc.subtotal += total;
       acc.totalDiscount += discount;

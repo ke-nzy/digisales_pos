@@ -252,9 +252,7 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
                 </span>
               </div>
               <div className="flex flex-row items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">
-                  {data.unique_identifier}
-                </p>
+                <p className="text-sm text-muted-foreground">POS {data.id}</p>
               </div>
             </div>
           </div>
