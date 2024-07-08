@@ -411,7 +411,7 @@ export const exportToPDF = (
     body: tableRows,
   });
 
-  doc.save("item-report.pdf");
+  doc.save("gen-item-report.pdf");
 };
 
 export const searchParamsSchema = z.object({

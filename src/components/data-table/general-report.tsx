@@ -245,11 +245,17 @@ export function TransactionsDataTable<TData extends GeneralSalesReportItem>({
           <DropdownMenuContent>
             <DropdownMenuItem
               onSelect={() =>
-                exportToPDF(
+                handlePrint(
                   filteredData,
                   columns as ColumnDef<GeneralSalesReportItem>[],
                 )
               }
+              // onSelect={() =>
+              //   exportToPDF(
+              //     filteredData,
+              //     columns as ColumnDef<GeneralSalesReportItem>[],
+              //   )
+              // }
             >
               Export to PDF
             </DropdownMenuItem>

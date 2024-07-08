@@ -105,12 +105,12 @@ const Itemized = () => {
           </div>
         ) : (
           <Shell className="gap-2">
-            <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+            {/* <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
               <DateRangePicker
                 triggerSize="sm"
                 triggerClassName="ml-auto w-56 sm:w-60"
               />
-            </React.Suspense>
+            </React.Suspense> */}
             <React.Suspense
               fallback={
                 <DataTableSkeleton
