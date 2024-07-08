@@ -6,11 +6,28 @@ import { SidebarToggle } from "./sidebar-toggle";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const Menu = dynamic(() => import("./menu"), { ssr: false });
 
 export function Sidebar() {
+  const router = useRouter();
+  const path = usePathname();
   const sidebar = useStore(useSidebarToggle, (state) => state);
+  const [mainLink, setMainLink] = useState<string>("");
+
+  const sft = localStorage.getItem("start_shift");
+
+  useEffect(() => {
+    const shift = localStorage.getItem("start_shift");
+    const s: CheckInResponse = JSON.parse(shift!);
+    router.refresh();
+    if (s) {
+      setMainLink(s?.id ? "/" : path);
+    }
+  }, [sft, path]);
+
   if (!sidebar) return null;
   return (
     <aside
@@ -29,7 +46,7 @@ export function Sidebar() {
           variant="link"
           asChild
         >
-          <Link href="/" className="flex items-center gap-2">
+          <Link href={mainLink} className="flex items-center gap-2">
             <Image
               src={"/images/image-192.png"}
               width={50}

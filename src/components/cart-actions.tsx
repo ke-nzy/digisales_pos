@@ -133,7 +133,7 @@ const CartActions = () => {
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F9") {
-        handleLogout();
+        async () => await handleLogout();
         event.preventDefault(); // Optional: Prevents the default browser action for F9
       }
 
@@ -177,9 +177,20 @@ const CartActions = () => {
     }
   }, [currentCart]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (currentCart) {
+      const res = await handleHoldCart();
+      if (res) {
+        clear_auth_session();
+        router.push("/sign-in");
+      } else {
+        toast.error("Unable to hold cart");
+      }
+    } else {
+      clear_auth_session();
+      router.push("/sign-in");
+    }
     clear_auth_session();
-    router.push("/sign-in");
   };
 
   const handleHoldCart = async () => {
@@ -215,15 +226,16 @@ const CartActions = () => {
         // sentry.captureException(result);
         toast.error("Hold  Action failed");
         setIsLoading(false);
-        return;
+        return false;
       }
 
-      // process receipt
-
       holdCart();
+
       toast.success("Cart held successfully");
+      return true;
     } catch (error) {
       toast.error("Something went wrong");
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -393,20 +405,44 @@ const CartActions = () => {
     console.log("checkout");
     const shift = localStorage.getItem("start_shift");
     const s: CheckInResponse = JSON.parse(shift!);
-    const response = await submit_end_shift(
-      site_url!,
-      site_company!.company_prefix,
-      account!.id,
-      s.id,
-    );
-    console.log(" checkout response", response);
+    if (currentCart) {
+      const res = await handleHoldCart();
+      if (res) {
+        const response = await submit_end_shift(
+          site_url!,
+          site_company!.company_prefix,
+          account!.id,
+          s.id,
+        );
+        console.log(" checkout response", response);
 
-    if (response) {
-      localStorage.removeItem("start_shift");
-      toast.success("Shift ended");
-      router.push("/dashboard");
+        if (response) {
+          localStorage.removeItem("start_shift");
+          toast.success("Shift ended");
+          router.push("/dashboard");
+        } else {
+          toast.error("Failed to End shift");
+        }
+      } else {
+        toast.error("Unable to hold cart");
+        return;
+      }
     } else {
-      toast.error("Failed to End shift");
+      const response = await submit_end_shift(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        s.id,
+      );
+      console.log(" checkout response", response);
+
+      if (response) {
+        localStorage.removeItem("start_shift");
+        toast.success("Shift ended");
+        router.push("/dashboard");
+      } else {
+        toast.error("Failed to End shift");
+      }
     }
   };
 
