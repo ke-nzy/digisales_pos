@@ -188,6 +188,7 @@ export function TransactionsDataTable<TData extends GeneralSalesReportItem>({
       user_id: item.user_id,
       unit_price: item.unit_price,
       quantity: item.quantity,
+      total: (parseInt(item.quantity) * parseFloat(item.unit_price)).toString(),
     }));
   };
 
