@@ -39,8 +39,8 @@ const ReportDocument = ({
   columns,
   receipt_info,
 }: {
-  data: SalesReportItem[];
-  columns: ColumnDef<SalesReportItem>[];
+  data: any[];
+  columns: ColumnDef<any>[];
   receipt_info: CompanyReceiptInfo;
   from: string | undefined;
   to: string | undefined;
@@ -94,7 +94,7 @@ const ReportDocument = ({
             {columns.map((column, colIndex) => (
               <View style={styles.tableCol} key={colIndex}>
                 <Text style={styles.tableCell}>
-                  {row[column.id as keyof SalesReportItem]}
+                  {row[column.id as keyof any]}
                 </Text>
               </View>
             ))}

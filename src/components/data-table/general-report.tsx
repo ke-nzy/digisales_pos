@@ -39,6 +39,10 @@ import { exportToPDF } from "~/lib/utils";
 import CsvDownloader from "react-csv-downloader";
 import { Button } from "../ui/button";
 import { DownloadIcon } from "lucide-react";
+import ReportDocument from "../pdfs/itemized";
+import { pdf } from "@react-pdf/renderer";
+import { useAuthStore } from "~/store/auth-store";
+import { toast } from "sonner";
 // import { Checkbox } from "~/components/ui/checkbox";
 // import {
 //   Popover,
@@ -50,23 +54,29 @@ import { DownloadIcon } from "lucide-react";
 // Define the structure of the sales report item
 
 interface DataTableProps<TData> {
+  from: string | undefined;
+  to: string | undefined;
   columns: ColumnDef<TData>[];
   data: TData[];
   onRowClick: (rowData: TData) => void;
 }
 
 export function TransactionsDataTable<TData extends GeneralSalesReportItem>({
+  from,
+  to,
   columns,
   data,
   onRowClick,
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
+  const { receipt_info } = useAuthStore();
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedParentItem, setSelectedParentItem] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedParentItems, setSelectedParentItems] = useState<string[]>([]);
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
   const tableRef = useRef<HTMLDivElement>(null);
 
   const filteredData = useMemo(() => {
@@ -105,6 +115,46 @@ export function TransactionsDataTable<TData extends GeneralSalesReportItem>({
       );
     } else if (event.key === "Enter") {
       onRowClick(rowData);
+    }
+  };
+
+  const handlePrint = async (
+    data: GeneralSalesReportItem[],
+    columns: ColumnDef<GeneralSalesReportItem>[],
+  ) => {
+    try {
+      console.log("handlePrint", data);
+
+      const pdfBlob = await pdf(
+        <ReportDocument
+          data={data}
+          columns={columns}
+          receipt_info={receipt_info!}
+          from={from ?? getCurrentDate()}
+          to={to ?? getCurrentDate()}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(pdfBlob);
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.zIndex = "1000";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.focus();
+        iframe.contentWindow!.print();
+        iframe.contentWindow!.onafterprint = () => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+        };
+      };
+    } catch (error) {
+      console.error("Failed to print document:", error);
+      toast.error("Failed to print document");
     }
   };
 
