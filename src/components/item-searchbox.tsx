@@ -109,6 +109,10 @@ const ItemSearchBox = () => {
   useEffect(() => {
     if (item) {
       if (details !== null && details !== undefined) {
+        if (details.quantity_available <= 0) {
+          toast.error("Item is out of stock");
+          return;
+        }
         const directSalesItem: DirectSales = {
           __typename: "direct_sales",
           user: "current_user",
