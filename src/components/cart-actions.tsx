@@ -355,7 +355,10 @@ const CartActions = () => {
         toast.error("To increase quantity, please scan the barcode");
         return;
       }
+
       if (action !== "edit_cart") {
+        console.log("action", action);
+
         toast.error("Invalid action - please perform an edit cart action");
         return;
       }

@@ -105,6 +105,9 @@ const Paid = () => {
   const discount = items.reduce((acc, item) => {
     return acc + parseInt(item.discount || "0");
   }, 0);
+  const quantity = items.reduce((acc, item) => {
+    return acc + parseInt(item.quantity || "0");
+  }, 0);
   const paid = payments.reduce((acc, pymnt) => {
     return acc + Number(pymnt.TransAmount);
   }, 0);
@@ -152,7 +155,7 @@ const Paid = () => {
             </span>
             <span className="flex flex-row flex-wrap items-center justify-between space-x-4 text-sm font-bold">
               <p>Item Count</p>
-              <p>{items.length}</p>
+              <p>{quantity}</p>
             </span>
             <div className="my-2 rounded-lg border border-dashed border-zinc-400 " />
             <span className="flex flex-row flex-wrap items-center justify-between space-x-4 text-sm font-bold">

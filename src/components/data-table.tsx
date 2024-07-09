@@ -155,7 +155,9 @@ export function DataTable<TData, TValue>({
                     handleKeyDown(event, rowIndex, row.original)
                   }
                   onFocus={() => setFocusedRowIndex(rowIndex)}
-                  className={focusedRowIndex === rowIndex ? "bg-gray-100" : ""}
+                  className={
+                    focusedRowIndex === rowIndex ? "bg-blue-200  " : ""
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

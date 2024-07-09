@@ -4,7 +4,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -15,6 +14,7 @@ import { useAuthStore } from "~/store/auth-store";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { PrinterIcon } from "lucide-react";
+import ZReportTabled from "./data-table/z-report";
 
 interface ZReportTableProps {
   data: TransactionReportItem[];
@@ -25,9 +25,14 @@ interface ParentItemSummary {
   total_unit_price: number;
   total_quantity: number;
 }
+type TransTypeSummary = {
+  TransType: string | undefined;
+  TotalAmount: number;
+};
 type PaymentTypes = Record<string, number>;
 const ZReportTable = ({ data, sales }: ZReportTableProps) => {
   const { account, receipt_info } = useAuthStore();
+
   const processZReportData = (data: TransactionReportItem[]) => {
     const paymentTypes: PaymentTypes = {};
 
@@ -85,6 +90,34 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
 
   //   return result;
   // }
+  const summarizeByTransType = (
+    data: TransactionReportItem[],
+  ): TransTypeSummary[] => {
+    const summary: Record<string, number> = {};
+
+    data.forEach((transaction) => {
+      const payments: Payment[] = JSON.parse(transaction.payments);
+      payments.forEach((payment) => {
+        const { Transtype, TransAmount } = payment;
+        const amount =
+          typeof TransAmount === "string"
+            ? parseFloat(TransAmount)
+            : TransAmount;
+        const type = Transtype ?? "unknown_payment";
+
+        if (!summary[type]) {
+          summary[type] = 0;
+        }
+
+        summary[type] += amount;
+      });
+    });
+
+    return Object.entries(summary).map(([TransType, TotalAmount]) => ({
+      TransType,
+      TotalAmount,
+    }));
+  };
 
   function summarizeParentItems(items: SalesReportItem[]): ParentItemSummary[] {
     const summaryMap: Record<string, ParentItemSummary> = {};
@@ -144,10 +177,10 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
   };
 
   const paymentTypes = processZReportData(data);
-  // const aggregatedPaymentTypes = aggregatePaymentsByType(data);
+  const aggregatedPaymentTypes = summarizeByTransType(data);
   const parentItemSummary = summarizeParentItems(sales);
 
-  console.log("parentItemSummary", parentItemSummary);
+  console.log("parentItemSummary", aggregatedPaymentTypes);
 
   return (
     <div className="flex flex-col gap-4 space-y-5 ">
@@ -161,7 +194,7 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
           <></>
         )}
       </div>
-      <div className="">
+      <div className=" flex flex-col gap-4 space-y-5 ">
         {parentItemSummary.length > 0 ? (
           <Table className="rounded-lg border border-dashed shadow-sm">
             <TableHeader>
@@ -201,39 +234,8 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
           </div>
         )}
       </div>
-      <div>
-        {Object.keys(paymentTypes).length > 0 ? (
-          <Table className="rounded-lg border border-dashed shadow-sm">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Payment Type</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.keys(paymentTypes).map((ptype) => (
-                <TableRow key={ptype}>
-                  <TableCell className="font-medium">{ptype}</TableCell>
-                  <TableCell className="text-right">
-                    {/* {aggregatedPaymentTypes[ptype]!.toFixed(2)} */}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell>Total</TableCell>
-                <TableCell className="text-right">
-                  {Object.values(paymentTypes)
-                    .reduce((acc, val) => acc + val, 0)
-                    .toFixed(2)}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        ) : (
-          <></>
-        )}
+      <div className="flex flex-col gap-4 space-y-5 ">
+        <ZReportTabled data={aggregatedPaymentTypes} />
       </div>
     </div>
   );
