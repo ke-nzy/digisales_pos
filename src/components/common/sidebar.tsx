@@ -8,11 +8,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuthStore } from "~/store/auth-store";
 
 const Menu = dynamic(() => import("./menu"), { ssr: false });
 
 export function Sidebar() {
   const router = useRouter();
+  const { account } = useAuthStore();
   const path = usePathname();
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const [mainLink, setMainLink] = useState<string>("");
@@ -23,10 +25,10 @@ export function Sidebar() {
     const shift = localStorage.getItem("start_shift");
     const s: CheckInResponse = JSON.parse(shift!);
     router.refresh();
-    if (s) {
+    if (s.message === "Success" && s.user_id === account?.id) {
       setMainLink(s?.id ? "/" : path);
     }
-  }, [sft, path]);
+  }, [sft, path, account, router]);
 
   if (!sidebar) return null;
   return (

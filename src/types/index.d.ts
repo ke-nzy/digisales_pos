@@ -292,6 +292,7 @@ declare type TransactionReportItem = {
 declare type CheckInResponse = {
   id: string;
   message: string;
+  user_id: string;
 };
 
 declare type DailyTargetReportSummary = {

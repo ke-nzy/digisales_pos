@@ -192,7 +192,7 @@ const AmountInput = ({
       clearCart();
       clearPaymentCarts();
       // if (isPrinted) {
-      router.push("/");
+      router.push("/payment/paid");
       // }
     } catch (error) {
       toast.error("Something went wrong");

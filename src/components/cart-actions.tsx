@@ -351,6 +351,10 @@ const CartActions = () => {
         toast.error("Quantity exceeds available quantity");
         return;
       }
+      if (Number(quantityValue) > selectedCartItem.quantity) {
+        toast.error("To increase quantity, please scan the barcode");
+        return;
+      }
       if (action !== "edit_cart") {
         toast.error("Invalid action - please perform an edit cart action");
         return;

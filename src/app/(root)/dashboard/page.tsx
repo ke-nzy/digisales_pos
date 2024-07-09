@@ -57,8 +57,9 @@ const DashBoard = () => {
   console.log("dailyTargets", dailyTargets);
 
   const shift = localStorage.getItem("start_shift");
+  const sft: CheckInResponse = JSON.parse(shift || "{}");
   const handleCheckin = async () => {
-    if (shift) {
+    if (sft.message === "Success" && sft.user_id === account?.id) {
       router.push("/");
     } else {
       console.log("checkin");
@@ -237,7 +238,9 @@ const DashBoard = () => {
               variant={"default"}
               className="w-full"
             >
-              {shift && shift?.length > 0 ? "Continue" : "Start Shift"}
+              {sft.message === "Success" && sft.user_id === account?.id
+                ? "Continue"
+                : "Start Shift"}
             </Button>
             <div className="grid-col grid gap-4"></div>
           </div>
