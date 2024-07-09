@@ -5,26 +5,21 @@ import {
   fetch_item_details,
 } from "~/lib/actions/inventory.actions";
 import { useAuthStore } from "~/store/auth-store";
-import {
-  getMetadata,
-  setInventory,
-  setMetadata,
-  getInventory,
-} from "~/utils/indexeddb";
+import { setInventory, setMetadata } from "~/utils/indexeddb";
 
 const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
-  const lastUpdate = await getMetadata("metadata");
+  // const lastUpdate = await getMetadata("metadata");
   const now = new Date();
-  const aDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24);
+  // const aDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24);
 
-  if (lastUpdate && new Date(lastUpdate) >= aDayAgo) {
-    // Fetch from IndexedDB
-    const inventory = await getInventory("inventory", "");
-    if (inventory) {
-      return inventory;
-    }
-  }
+  // if (lastUpdate && new Date(lastUpdate) >= aDayAgo) {
+  //   // Fetch from IndexedDB
+  //   const inventory = await getInventory("inventory", "");
+  //   if (inventory) {
+  //     return inventory;
+  //   }
+  // }
 
   // Fetch from API
   const sellable = await fetch_all_sellable_items(

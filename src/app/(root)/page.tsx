@@ -21,16 +21,17 @@ const TotalSummary = dynamic(() => import("~/components/total-summary"), {
 
 export default function HomePage() {
   const { site_company, account } = useAuthStore();
+  const shift = localStorage.getItem("start_shift");
   const router = useRouter();
-  // useEffect(() => {
-  //   const shift = localStorage.getItem("start_shift");
-  //   const shift_data = JSON.parse(shift ?? "{}");
-  //   if (shift_data.status === "SUCCESS") {
-  //     router.replace("/");
-  //   } else {
-  //     router.replace("/dashboard");
-  //   }
-  // }, []);
+  useEffect(() => {
+    const shift = localStorage.getItem("start_shift");
+    const shift_data = JSON.parse(shift ?? "{}");
+    if (shift_data.status === "SUCCESS") {
+      router.replace("/");
+    } else {
+      router.replace("/dashboard");
+    }
+  }, [shift]);
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>
