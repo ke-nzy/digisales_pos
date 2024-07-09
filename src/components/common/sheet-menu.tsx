@@ -34,7 +34,7 @@ export function SheetMenu() {
                 height={50}
                 alt="logo"
               />
-              <h1 className="text-lg font-bold">DigiSales</h1>
+              <h1 className="text-lg font-bold">DigiSales </h1>
             </Link>
           </Button>
         </SheetHeader>

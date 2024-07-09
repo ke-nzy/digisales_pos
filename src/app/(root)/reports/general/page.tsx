@@ -4,15 +4,13 @@ import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { Shell } from "~/components/shell";
-import { Skeleton } from "~/components/ui/skeleton";
 import {
   useGeneralSalesReport,
   useItemizedSalesReport,
 } from "~/hooks/use-reports";
-import { generalSalesReportColumns, salesReportColumns } from "~/lib/utils";
+import { generalSalesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 import GeneralSalesDataTable from "~/components/data-table/general-report";
-import { type IndexPageProps } from "../../transactions/page";
 import { useSearchParams } from "next/navigation";
 
 const Itemized = () => {

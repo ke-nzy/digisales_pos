@@ -244,9 +244,10 @@ const CartActions = () => {
   const { customer } = useCustomers();
 
   const handleDeleteItem = () => {
-    if (authorized) {
+    if (authorized && action === "edit_cart") {
       if (selectedCartItem) {
         deleteItemFromCart(selectedCartItem);
+        setAuthorized(false);
       } else {
         toast.error("Please select an item to delete");
       }
@@ -313,6 +314,10 @@ const CartActions = () => {
         return;
       }
       console.log("discountValue", discountValue);
+      if (action !== "discount") {
+        toast.error("Invalid action - please perform a discount action");
+        return;
+      }
       update_cart_item({
         ...selectedCartItem,
         discount: discountValue,
@@ -344,6 +349,10 @@ const CartActions = () => {
       }
       if (Number(quantityValue) > selectedCartItem.details.quantity_available) {
         toast.error("Quantity exceeds available quantity");
+        return;
+      }
+      if (action !== "edit_cart") {
+        toast.error("Invalid action - please perform an edit cart action");
         return;
       }
       update_cart_item({

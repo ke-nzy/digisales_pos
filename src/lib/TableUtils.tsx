@@ -10,6 +10,7 @@ export const inventoryColumns: ColumnDef<StockItem>[] = [
   {
     accessorKey: "item",
     header: "Item Name",
+    footer: "Total",
   },
   {
     accessorKey: "balance",
@@ -28,6 +29,15 @@ export const inventoryColumns: ColumnDef<StockItem>[] = [
         { className: "text-right" },
         rowTotal.toFixed(2),
       );
+    },
+    footer: (props) => {
+      const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
+        const rowData = row.original;
+        console.log("rowData-sum", rowData.item, sum);
+
+        return sum + parseInt(rowData.balance);
+      }, 0);
+      return total.toFixed(2);
     },
   },
   {

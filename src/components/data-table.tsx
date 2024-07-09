@@ -94,9 +94,9 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className="flex flex-col items-center space-y-3 py-4">
+      <div className="flex flex-col items-center justify-end space-y-3 py-4">
         <Input
-          placeholder={searchKey}
+          placeholder={"Search...".concat(searchKey ? searchKey : "")}
           name="cart-search"
           onChange={(event) =>
             table.getColumn(filCol)?.setFilterValue(event.target.value)
@@ -104,7 +104,7 @@ export function DataTable<TData, TValue>({
           value={
             (table.getColumn(filCol)?.getFilterValue() as string) ?? searchKey
           }
-          className="max-w-sm"
+          className="max-w-md"
         />
         {filCol === "TransAmount" && (
           <>

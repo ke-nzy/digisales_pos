@@ -43,6 +43,49 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
 
     return paymentTypes;
   };
+
+  // function aggregatePaymentsByType(
+  //   items: TransactionReportItem[],
+  // ): { Transtype: string; totalAmount: number }[] {
+  //   const result: { Transtype: string; totalAmount: number }[] = [];
+
+  //   items.forEach((item) => {
+  //     const payments: Payment[] = JSON.parse(item.payments);
+
+  //     const transAmountByType = payments.reduce((acc, payment) => {
+  //       const transAmount =
+  //         typeof payment.TransAmount === "string"
+  //           ? parseFloat(payment.TransAmount)
+  //           : payment.TransAmount;
+  //       const balance =
+  //         payment.balance !== undefined
+  //           ? typeof payment.balance === "string"
+  //             ? parseFloat(payment.balance)
+  //             : payment.balance
+  //           : 0;
+  //       const totalAmount =
+  //         (isNaN(transAmount) ? 0 : transAmount) +
+  //         (isNaN(balance) ? 0 : balance);
+
+  //       if (payment.Transtype) {
+  //         if (acc[payment.Transtype] === undefined) {
+  //           acc[payment.Transtype] = 0;
+  //         }
+  //         acc[payment.Transtype] += totalAmount;
+  //       }
+  //       return acc;
+  //     }, {} as PaymentTypes);
+
+  //     for (const [Transtype, totalAmount] of Object.entries(
+  //       transAmountByType,
+  //     )) {
+  //       result.push({ Transtype: Transtype, totalAmount });
+  //     }
+  //   });
+
+  //   return result;
+  // }
+
   function summarizeParentItems(items: SalesReportItem[]): ParentItemSummary[] {
     const summaryMap: Record<string, ParentItemSummary> = {};
 
@@ -101,6 +144,7 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
   };
 
   const paymentTypes = processZReportData(data);
+  // const aggregatedPaymentTypes = aggregatePaymentsByType(data);
   const parentItemSummary = summarizeParentItems(sales);
 
   console.log("parentItemSummary", parentItemSummary);
@@ -171,7 +215,7 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
                 <TableRow key={ptype}>
                   <TableCell className="font-medium">{ptype}</TableCell>
                   <TableCell className="text-right">
-                    {paymentTypes[ptype]!.toFixed(2)}
+                    {/* {aggregatedPaymentTypes[ptype]!.toFixed(2)} */}
                   </TableCell>
                 </TableRow>
               ))}
