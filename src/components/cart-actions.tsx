@@ -244,8 +244,13 @@ const CartActions = () => {
   const { customer } = useCustomers();
 
   const handleDeleteItem = () => {
-    if (authorized && action === "edit_cart") {
+    if (authorized) {
+      setAction("edit_cart");
       if (selectedCartItem) {
+        if (action !== "edit_cart") {
+          toast.error("Invalid action - please perform an edit cart action");
+          return;
+        }
         deleteItemFromCart(selectedCartItem);
         setAuthorized(false);
       } else {
@@ -260,6 +265,7 @@ const CartActions = () => {
   const handleDiscountDialogOpen = () => {
     if (authorized) {
       if (selectedCartItem) {
+        setAction("discount");
         setDiscountDialogOpen(!discountDialogOpen);
       } else {
         setDiscountDialogOpen(false);
@@ -277,6 +283,7 @@ const CartActions = () => {
   const handleQuantityDialogOpen = () => {
     if (authorized) {
       if (selectedCartItem) {
+        setAction("edit_cart");
         setQuantityDialogOpen(true);
       } else {
         setQuantityDialogOpen(false);
@@ -306,6 +313,10 @@ const CartActions = () => {
         toast.error("Please enter a valid discount value");
         return;
       }
+      if (action !== "discount") {
+        toast.error("Invalid action - please perform a discount action");
+        return;
+      }
       if (
         Number(discountValue) >
         selectedCartItem.details.price * selectedCartItem.quantity
@@ -314,10 +325,7 @@ const CartActions = () => {
         return;
       }
       console.log("discountValue", discountValue);
-      if (action !== "discount") {
-        toast.error("Invalid action - please perform a discount action");
-        return;
-      }
+
       update_cart_item({
         ...selectedCartItem,
         discount: discountValue,
@@ -355,13 +363,11 @@ const CartActions = () => {
         toast.error("To increase quantity, please scan the barcode");
         return;
       }
-
       if (action !== "edit_cart") {
-        console.log("action", action);
-
         toast.error("Invalid action - please perform an edit cart action");
         return;
       }
+
       update_cart_item({
         ...selectedCartItem,
         quantity: Number(quantityValue),
