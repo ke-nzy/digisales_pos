@@ -25,7 +25,7 @@ export function Sidebar() {
     const shift = localStorage.getItem("start_shift");
     const s: CheckInResponse = JSON.parse(shift!);
     router.refresh();
-    if (s.message === "Success" && s.user_id === account?.id) {
+    if (s?.message === "Success" && s.user_id === account?.id) {
       setMainLink(s?.id ? "/" : path);
     } else {
       setMainLink("/dashboard");
