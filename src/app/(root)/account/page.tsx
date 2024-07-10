@@ -52,7 +52,7 @@ export default function AccountPage() {
                   <Label>Store Name</Label>
                   <Input
                     placeholder="Store Name"
-                    value={account?.default_store ?? "Digisoft"}
+                    value={account?.default_store_name ?? "Digisoft"}
                   />
                 </div>
               </CardContent>
