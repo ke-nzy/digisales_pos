@@ -27,6 +27,8 @@ export function Sidebar() {
     router.refresh();
     if (s.message === "Success" && s.user_id === account?.id) {
       setMainLink(s?.id ? "/" : path);
+    } else {
+      setMainLink("/");
     }
   }, [sft, path, account, router]);
 
