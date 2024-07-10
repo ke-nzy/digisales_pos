@@ -156,16 +156,23 @@ const PaymentOptions = ({
             </CardHeader>
             <CardContent className="no-scrollbar max-h-[400px] overflow-y-auto">
               <div className="flex flex-col justify-evenly space-y-4">
-                <Label> Paid By</Label>
-                <Input
-                  value={pName}
-                  onChange={(e) => setPName(e.target.value)}
-                />
-                <Label>Transaction Number</Label>
-                <Input
-                  value={transactionNumber}
-                  onChange={(e) => setTransactionNumber(e.target.value)}
-                />
+                {paid?.ttp === "CASH" ? (
+                  <></>
+                ) : (
+                  <div className="flex flex-col justify-evenly space-y-4">
+                    <Label> Paid By</Label>
+                    <Input
+                      value={pName}
+                      onChange={(e) => setPName(e.target.value)}
+                    />
+                    <Label>Transaction Number</Label>
+                    <Input
+                      value={transactionNumber}
+                      onChange={(e) => setTransactionNumber(e.target.value)}
+                    />
+                  </div>
+                )}
+
                 <Label>Amount</Label>
                 <Input value={amnt} onChange={(e) => setAmnt(e.target.value)} />
               </div>
