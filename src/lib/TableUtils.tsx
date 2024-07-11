@@ -31,12 +31,18 @@ export const inventoryColumns: ColumnDef<StockItem>[] = [
       );
     },
     footer: (props) => {
-      const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
-        const rowData = row.original;
-        console.log("rowData-sum", rowData.item, sum);
+      const total = props.table
+        .getCoreRowModel()
+        .rows.filter(
+          (row) =>
+            row.original.item !== "HANGERS" && row.original.item !== "CLIPPERS",
+        )
+        .reduce((sum, row) => {
+          const rowData = row.original;
+          console.log("rowData-sum", rowData.item, sum);
 
-        return sum + parseInt(rowData.balance);
-      }, 0);
+          return sum + parseInt(rowData.balance);
+        }, 0);
       return total.toFixed(2);
     },
   },

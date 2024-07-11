@@ -26,7 +26,7 @@ export function Sidebar() {
     const s: CheckInResponse = JSON.parse(shift!);
     router.refresh();
     if (s?.message === "Success" && s.user_id === account?.id) {
-      setMainLink(s?.id ? "/" : path);
+      setMainLink(s?.id ? "/" : "/dashboard");
     } else {
       setMainLink("/dashboard");
     }

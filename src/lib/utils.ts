@@ -323,6 +323,53 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
   },
 ];
 
+export const posTransactionColumns: ColumnDef<TransactionReportItem>[] = [
+  {
+    accessorKey: "id",
+    header: "TransNo",
+  },
+  {
+    accessorKey: "uid",
+    header: "CASHIER_ID",
+  },
+  {
+    accessorKey: "uname",
+    header: "CASHIER",
+  },
+  {
+    accessorKey: "customerid",
+    header: "CUSTOMER_ID",
+  },
+  {
+    accessorKey: "customername",
+    header: "CUSTOMER_NAME",
+  },
+  {
+    accessorKey: "branch_name",
+    header: "LOCATION",
+  },
+  {
+    accessorKey: "",
+    header: "PRODUCT_NAME",
+  },
+  {
+    accessorKey: "",
+    header: "PRODUCT_CODE",
+  },
+  {
+    accessorKey: "",
+    header: "VALUE_SOLD",
+  },
+  {
+    accessorKey: "ptotal",
+    header: "CART_TOTAL",
+  },
+  {
+    accessorKey: "pdate",
+    header: "TRANSACTION_DATE",
+  },
+];
+
 export const cartColumns: ColumnDef<DirectSales>[] = [
   {
     id: "description",

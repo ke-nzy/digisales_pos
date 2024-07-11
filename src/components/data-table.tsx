@@ -43,6 +43,7 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
+  console.log("data", data);
 
   const table = useReactTable({
     data,
@@ -59,7 +60,6 @@ export function DataTable<TData, TValue>({
     enableMultiRowSelection: true,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   const handleKeyDown = (

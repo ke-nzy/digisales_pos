@@ -288,6 +288,7 @@ declare type TransactionReportItem = {
   middlewareInvoiceNumber: string | null;
   weight: number;
   status?: string;
+  vat?: string;
 };
 declare type CheckInResponse = {
   id: string;
