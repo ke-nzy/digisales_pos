@@ -425,6 +425,10 @@ const TransactionReceiptPDF = ({
             value={`KES ${totalDiscount.subtotal}`}
           />
           <TotalRowItem
+            label={"Tax"}
+            value={`KES ${data.vat ? data.vat : 0}`}
+          />
+          <TotalRowItem
             label={"Discount"}
             value={`KES ${totalDiscount.totalDiscount}`}
             is_last
@@ -814,6 +818,10 @@ const TransactionReceiptPDF = ({
             <TotalRowItem
               label={"Total"}
               value={`KES ${totalDiscount.subtotal}`}
+            />
+            <TotalRowItem
+              label={"Tax"}
+              value={`KES ${data.vat ? data.vat : 0}`}
             />
             <TotalRowItem
               label={"Discount"}
