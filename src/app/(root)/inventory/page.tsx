@@ -3,6 +3,7 @@ import React from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DataTable } from "~/components/data-table";
 import { Shell } from "~/components/shell";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useBranchInventory } from "~/hooks/useBranchInventory";
 import { inventoryColumns } from "~/lib/TableUtils";
 import { useAuthStore } from "~/store/auth-store";
@@ -10,6 +11,12 @@ import { useAuthStore } from "~/store/auth-store";
 const InventoryPage = () => {
   const { site_company } = useAuthStore();
   const { inventory, loading, error } = useBranchInventory();
+  const saleable_inventory = inventory.filter(
+    (item) => item.item !== "HANGERS" && item.item !== "CLIPPERS",
+  );
+  const non_saleable_inventory = inventory.filter(
+    (item) => item.item === "HANGERS" || item.item === "CLIPPERS",
+  );
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -76,12 +83,40 @@ const InventoryPage = () => {
           </div>
         ) : (
           <Shell className="gap-2">
-            <DataTable
-              columns={inventoryColumns}
-              data={inventory}
-              filCol="stock_id"
-              onRowClick={(rowData) => console.log(rowData)}
-            />
+            <Tabs defaultValue="all">
+              <div className="flex items-center">
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="saleable">Saleable</TabsTrigger>
+                  <TabsTrigger value="non-saleable">Non Saleable</TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="all">
+                <DataTable
+                  columns={inventoryColumns}
+                  data={inventory}
+                  filCol="stock_id"
+                  onRowClick={(rowData) => console.log(rowData)}
+                />
+              </TabsContent>
+              <TabsContent value="saleable">
+                <DataTable
+                  columns={inventoryColumns}
+                  data={saleable_inventory}
+                  filCol="stock_id"
+                  onRowClick={(rowData) => console.log(rowData)}
+                />
+              </TabsContent>
+              <TabsContent value="non-saleable">
+                <DataTable
+                  columns={inventoryColumns}
+                  data={non_saleable_inventory}
+                  filCol="stock_id"
+                  onRowClick={(rowData) => console.log(rowData)}
+                />
+              </TabsContent>
+            </Tabs>
           </Shell>
         )}
       </main>
