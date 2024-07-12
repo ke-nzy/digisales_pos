@@ -277,6 +277,7 @@ declare type TransactionReportItem = {
   print: string;
   customername: string;
   customerid: string;
+  pin: string;
   booking: string;
   dispatch: string;
   salepersonId: string;
@@ -288,7 +289,7 @@ declare type TransactionReportItem = {
   middlewareInvoiceNumber: string | null;
   weight: number;
   status?: string;
-  vat?: string;
+  vat_amount?: string;
 };
 declare type CheckInResponse = {
   id: string;

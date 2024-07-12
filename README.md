@@ -47,3 +47,4 @@
 - [ ] Modify PDF reports to use react-pdf
 - [ ] Add Push Notification Hook
 - [ ] Error Handling (Sentry)
+- [ ] Mapping integrations

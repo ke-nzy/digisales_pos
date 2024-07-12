@@ -174,9 +174,28 @@ const TransactionReceiptPDF = ({
               }}
             >
               <View style={{ width: "100%" }}>
-                <Text style={[styles.text, { marginBottom: 1 }]}>
-                  {`Customer: ${data.customername ?? "N/A"}`}
-                </Text>
+                <View
+                  style={{
+                    justifyContent: "space-between",
+                    paddingVertical: 1,
+                    flexDirection: "row",
+                  }}
+                >
+                  <Text style={[styles.text, {}]}>Customer:</Text>
+                  <Text style={[styles.text, {}]}>
+                    {` ${data.customername ?? "N/A"}`}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    justifyContent: "space-between",
+                    paddingVertical: 1,
+                    flexDirection: "row",
+                  }}
+                >
+                  <Text style={[styles.text]}>Customer Pin: </Text>
+                  <Text style={[styles.text]}>{` ${data.pin ?? "N/A"}`}</Text>
+                </View>
                 <View
                   style={{
                     justifyContent: "space-between",
@@ -426,7 +445,7 @@ const TransactionReceiptPDF = ({
           />
           <TotalRowItem
             label={"Tax"}
-            value={`KES ${data.vat ? data.vat : 0}`}
+            value={`KES ${data.vat_amount ? data.vat_amount : 0}`}
           />
           <TotalRowItem
             label={"Discount"}
@@ -554,9 +573,28 @@ const TransactionReceiptPDF = ({
                 }}
               >
                 <View style={{ width: "100%" }}>
-                  <Text style={[styles.text, { marginBottom: 1 }]}>
-                    {`Customer: ${data.customername ?? "N/A"}`}
-                  </Text>
+                  <View
+                    style={{
+                      justifyContent: "space-between",
+                      paddingVertical: 1,
+                      flexDirection: "row",
+                    }}
+                  >
+                    <Text style={[styles.text, {}]}>Customer:</Text>
+                    <Text style={[styles.text, {}]}>
+                      {` ${data.customername ?? "N/A"}`}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      justifyContent: "space-between",
+                      paddingVertical: 1,
+                      flexDirection: "row",
+                    }}
+                  >
+                    <Text style={[styles.text]}>Customer Pin: </Text>
+                    <Text style={[styles.text]}>{` ${data.pin ?? "N/A"}`}</Text>
+                  </View>
                   <View
                     style={{
                       justifyContent: "space-between",
@@ -821,7 +859,7 @@ const TransactionReceiptPDF = ({
             />
             <TotalRowItem
               label={"Tax"}
-              value={`KES ${data.vat ? data.vat : 0}`}
+              value={`KES ${data.vat_amount ? data.vat_amount : 0}`}
             />
             <TotalRowItem
               label={"Discount"}
