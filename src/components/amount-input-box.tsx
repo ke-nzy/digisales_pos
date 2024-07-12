@@ -37,8 +37,12 @@ const AmountInput = ({
   selectedCustomer,
 }: AmountInputProps) => {
   const { site_company, site_url, account, receipt_info } = useAuthStore();
-  const { paymentCarts, removeItemFromPayments, clearPaymentCarts } =
-    usePayStore();
+  const {
+    paymentCarts,
+    removeItemFromPayments,
+    clearPaymentCarts,
+    setPaidStatus,
+  } = usePayStore();
 
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
@@ -50,6 +54,12 @@ const AmountInput = ({
   useEffect(() => {
     setCurrentCustomer(selectedCustomer);
   }, [selectedCustomer]);
+
+  useEffect(() => {
+    if (!currentCart) {
+      router.push("/");
+    }
+  }, [currentCart, router]);
 
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
@@ -168,7 +178,7 @@ const AmountInput = ({
         setIsLoading(false);
         return;
       }
-
+      setPaidStatus(true);
       const transaction_history = await fetch_pos_transactions_report(
         site_company!,
         account!,

@@ -7,16 +7,19 @@ interface PaymentCart {
 
 interface PayState {
   paymentCarts: PaymentCart[];
+  paidStatus: boolean;
   addItemToPayments: (item: Payment, paymentType: string) => void;
   removeItemFromPayments: (
     paymentType: string,
     transID: string | number,
   ) => void;
   clearPaymentCarts: () => void;
+  setPaidStatus: (status: boolean) => void;
 }
 
 export const usePayStore = create<PayState>((set) => ({
   paymentCarts: [],
+  paidStatus: false,
   addItemToPayments: (item, paymentType) => {
     set((state) => {
       const existingCartIndex = state.paymentCarts.findIndex(
@@ -58,5 +61,8 @@ export const usePayStore = create<PayState>((set) => ({
   },
   clearPaymentCarts: () => {
     set({ paymentCarts: [] });
+  },
+  setPaidStatus: (status) => {
+    set({ paidStatus: status });
   },
 }));

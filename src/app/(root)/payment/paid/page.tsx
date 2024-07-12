@@ -12,9 +12,11 @@ import { Separator } from "~/components/ui/separator";
 import { Banknote, PrinterIcon, ShoppingCartIcon } from "lucide-react";
 import { Card, CardHeader } from "~/components/ui/card";
 import { useRouter } from "next/navigation";
+import { usePayStore } from "~/store/pay-store";
 
 const Paid = () => {
   const { site_company, site_url, account, receipt_info } = useAuthStore();
+  const { paidStatus, setPaidStatus } = usePayStore();
   const [trans, setTrans] = React.useState<
     TransactionReportItem | null | undefined
   >(null);
@@ -82,8 +84,21 @@ const Paid = () => {
   }, []);
 
   useEffect(() => {
+    if (paidStatus) {
+      setTimeout(() => {
+        setPaidStatus(false);
+        router.push("/");
+      }, 10000);
+    }
+    if (!paidStatus) {
+      router.push("/");
+    }
+  }, [paidStatus]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        setPaidStatus(false);
         router.push("/");
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
@@ -223,7 +238,10 @@ const Paid = () => {
                 </Card>
                 <Card
                   className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-                  onClick={() => router.push("/")}
+                  onClick={() => {
+                    setPaidStatus(false);
+                    router.push("/");
+                  }}
                 >
                   <CardHeader className="flex-col items-center justify-center  p-2 ">
                     <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">

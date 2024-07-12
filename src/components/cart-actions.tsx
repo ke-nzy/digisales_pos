@@ -59,7 +59,6 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
   submit_authorization_request,
-  submit_clear_cart_request,
   submit_end_shift,
   submit_hold_direct_sale_request,
 } from "~/lib/actions/user.actions";

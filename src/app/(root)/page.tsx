@@ -23,15 +23,15 @@ export default function HomePage() {
   const { site_company, account } = useAuthStore();
   const shift = localStorage.getItem("start_shift");
   const router = useRouter();
-  // useEffect(() => {
-  //   const shift = localStorage.getItem("start_shift");
-  //   const shift_data = JSON.parse(shift ?? "{}");
-  //   if (shift_data.status === "SUCCESS") {
-  //     router.replace("/");
-  //   } else {
-  //     router.replace("/dashboard");
-  //   }
-  // }, [shift]);
+  useEffect(() => {
+    const shift = localStorage.getItem("start_shift");
+    const shift_data: CheckInResponse = JSON.parse(shift ?? "{}");
+    if (shift_data.user_id === account?.id) {
+      router.replace("/");
+    } else {
+      router.replace("/dashboard");
+    }
+  }, []);
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>

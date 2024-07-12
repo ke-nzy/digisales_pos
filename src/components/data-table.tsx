@@ -95,32 +95,45 @@ export function DataTable<TData, TValue>({
   return (
     <>
       <div className="flex flex-col items-center justify-end space-y-3 py-4">
-        <Input
-          placeholder={"Search...".concat(searchKey ? searchKey : "")}
-          name="cart-search"
-          onChange={(event) =>
-            table.getColumn(filCol)?.setFilterValue(event.target.value)
-          }
-          value={
-            (table.getColumn(filCol)?.getFilterValue() as string) ?? searchKey
-          }
-          className="max-w-md"
-        />
+        {filCol !== "TransAmount" && (
+          <Input
+            placeholder={"Search...".concat(searchKey ? searchKey : "")}
+            name="cart-search"
+            onChange={(event) =>
+              table.getColumn(filCol)?.setFilterValue(event.target.value)
+            }
+            value={
+              (table.getColumn(filCol)?.getFilterValue() as string) ?? searchKey
+            }
+            className="max-w-md"
+          />
+        )}
         {filCol === "TransAmount" && (
-          <>
-            <Label> Search by Name </Label>
+          <div className="flex flex-row justify-between space-x-3">
+            <Input
+              placeholder={"Search...".concat(searchKey ? searchKey : filCol)}
+              name="cart-search"
+              onChange={(event) =>
+                table.getColumn(filCol)?.setFilterValue(event.target.value)
+              }
+              value={
+                (table.getColumn(filCol)?.getFilterValue() as string) ??
+                searchKey
+              }
+              className="max-w-md"
+            />
             <Input
               placeholder="Search by Name"
               name="cart-search"
               onChange={(event) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
               }
-              value={
-                (table.getColumn("name")?.getFilterValue() as string) ?? "name"
-              }
+              // value={
+              //   (table.getColumn("name")?.getFilterValue() as string) ?? "name"
+              // }
               className="max-w-sm"
             />
-          </>
+          </div>
         )}
       </div>
       <div className="rounded-md border" ref={tableRef}>
