@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 

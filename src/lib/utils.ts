@@ -325,52 +325,63 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
 
 export const posTransactionColumns: ColumnDef<any>[] = [
   {
+    id: "transactionId",
     accessorKey: "transactionId",
     header: "TransNo",
   },
   {
+    id: "uid",
     accessorKey: "uid",
     header: "CASHIER_ID",
   },
   {
+    id: "uname",
     accessorKey: "uname",
     header: "CASHIER",
   },
   {
+    id: "customerid",
     accessorKey: "customerid",
     header: "CUSTOMER_ID",
   },
   {
+    id: "customername",
     accessorKey: "customername",
     header: "CUSTOMER_NAME",
   },
   {
+    id: "branch_name",
     accessorKey: "branch_name",
     header: "LOCATION",
   },
   {
+    id: "item_option",
     accessorKey: "item_option",
     header: "PRODUCT_NAME",
   },
   {
+    id: "item_option_id",
     accessorKey: "item_option_id",
     header: "PRODUCT_CODE",
   },
   {
-    id: "value_sold",
+    id: "total",
+    accessorKey: "total",
     header: "VALUE_SOLD",
-    cell: ({ row }) => {
-      const quantity = parseFloat(row.original.quantity as string);
-      const price = parseFloat(row.original.price as string);
-      const valueSold = quantity * price;
-      return valueSold.toFixed(2); // Format to two decimal places
-    },
+    // cell: ({ row }) => {
+    //   const quantity = parseFloat(row.original.quantity as string);
+    //   const price = parseFloat(row.original.price as string);
+    //   const valueSold = quantity * price;
+    //   return valueSold.toFixed(2); // Format to two decimal places
+    // },
   },
   {
+    id: "ptotal",
     accessorKey: "ptotal",
     header: "CART_TOTAL",
   },
   {
+    id: "pdate",
     accessorKey: "pdate",
     header: "TRANSACTION_DATE",
   },

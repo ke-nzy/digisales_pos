@@ -30,6 +30,7 @@ export async function submit_direct_sale_request(
 
   const items = data_items.map((x: DirectSales) => {
     const tax = (parseInt(x.item.rate) * x.details.price) / 100;
+    const item_total = x.details.price * x.quantity;
 
     return {
       quantity: x.quantity.toFixed(2),
@@ -47,7 +48,7 @@ export async function submit_direct_sale_request(
       item_option_id: x.item.stock_id,
       rate: x.item.rate,
       deposit: "",
-      total: total,
+      total: item_total.toFixed(2),
       price: x.details.price.toFixed(2),
       posBatchSelect: "",
       bottles_issued: x.bottles_issued ?? "",
