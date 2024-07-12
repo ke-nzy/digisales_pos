@@ -18,6 +18,8 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { set } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { SearchCodeIcon } from "lucide-react";
 
 interface PaymentProps {
   item: Payment;
@@ -94,22 +96,51 @@ const PaymentOptions = ({
                 Select a payment to that matches {amount}.
               </DialogDescription>
             </DialogHeader>
-            <Card>
-              <CardHeader>
-                <CardDescription>
-                  Search using amount or customer name to find payment
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
-                <DataTable
-                  columns={paymentColumns}
-                  filCol="TransAmount"
-                  data={mpesaPayments}
-                  onRowClick={handleMpesaRowClick}
-                  searchKey={amount}
-                />
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="all">
+              <div className="flex items-center">
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="manual">Lookup</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="all">
+                <Card>
+                  <CardHeader>
+                    <CardDescription>
+                      Search using amount or customer name to find payment
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
+                    <DataTable
+                      columns={paymentColumns}
+                      filCol="TransAmount"
+                      data={mpesaPayments}
+                      onRowClick={handleMpesaRowClick}
+                      searchKey={amount}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="manual">
+                <Card>
+                  <CardHeader>
+                    <CardDescription>
+                      Search using reference number to find payment
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Input />
+                      <div className="flex w-full justify-end *:flex-row">
+                        <Button>
+                          <SearchCodeIcon className="h-4 w-4" /> Lookup
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       ))}
