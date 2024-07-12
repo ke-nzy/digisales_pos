@@ -44,6 +44,7 @@ export function DataTable<TData, TValue>({
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   console.log("data", data);
+  const [rowClicked, setRowClicked] = useState<number | null>(null);
 
   const table = useReactTable({
     data,
@@ -163,14 +164,15 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   tabIndex={0}
-                  onClick={() => onRowClick(row.original)}
+                  onClick={() => {
+                    onRowClick(row.original);
+                    setRowClicked(rowIndex);
+                  }}
                   onKeyDown={(event) =>
                     handleKeyDown(event, rowIndex, row.original)
                   }
                   onFocus={() => setFocusedRowIndex(rowIndex)}
-                  className={
-                    focusedRowIndex === rowIndex ? "bg-blue-200  " : ""
-                  }
+                  className={rowClicked === rowIndex ? "bg-blue-200  " : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

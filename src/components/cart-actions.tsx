@@ -132,12 +132,12 @@ const CartActions = () => {
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F9") {
-        async () => await handleLogout();
         event.preventDefault(); // Optional: Prevents the default browser action for F9
+        void handleLogout();
       }
 
       if (event.key === "F10") {
-        router.push("/payments");
+        router.push("/payment");
         event.preventDefault(); // Optional: Prevents the default browser action for F9
       }
     };
@@ -812,31 +812,10 @@ const CartActions = () => {
             </Card>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Checkout</DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
+            <DialogHeader></DialogHeader>
             <div className="flex items-center space-x-2">
               <div className="grid flex-1 gap-2">
                 <ul className="grid gap-3">
-                  <li className="flex items-center justify-between font-semibold">
-                    <span className="text-muted-foreground">Total</span>
-
-                    <span>KSH {total + discount}</span>
-                  </li>
-                  <li className="flex items-center justify-between font-semibold">
-                    <span className="text-green-900/80">Paid</span>
-                    <span className="text-right">
-                      KSH {totalPaid ?? "0.00"}
-                    </span>
-                  </li>
-                  <li className="flex items-center justify-between font-semibold">
-                    <span className="text-orange-900/80">Balance</span>
-                    <span className="text-right text-orange-900/80">
-                      KSH {total - totalPaid ?? "0.00"}
-                    </span>
-                  </li>
-                  <Separator className="my-2" />
                   <Label>Select Customer</Label>
                   <CustomerComboBox
                     type="Customer"

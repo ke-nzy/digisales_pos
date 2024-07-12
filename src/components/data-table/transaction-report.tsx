@@ -15,64 +15,46 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { useState, useEffect, useRef, useMemo } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "~/components/ui/dropdown-menu";
-import { exportToPDF } from "~/lib/utils";
-import CsvDownloader from "react-csv-downloader";
-import { useAuthStore } from "~/store/auth-store";
+import { useState, useRef } from "react";
 
 interface DataTableProps<TData> {
-  from: string | undefined;
-  to: string | undefined;
   columns: ColumnDef<TData>[];
   data: TData[];
-  onRowClick: (rowData: TData) => void;
 }
 
 export function TransactionsDataTable<TData extends TransactionReportItem>({
-  from,
-  to,
   columns,
   data,
-  onRowClick,
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
-  const { receipt_info } = useAuthStore();
-  const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedParentItem, setSelectedParentItem] = useState<string>("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedParentItems, setSelectedParentItems] = useState<string[]>([]);
-  const getCurrentDate = () => new Date().toISOString().split("T")[0];
   const tableRef = useRef<HTMLDivElement>(null);
 
-  //   const filteredData = useMemo(() => {
-  //     return data.filter((item) =>
-  //       selectedCategory ? item.user_id === selectedCategory : true,
-  //     );
-  //   }, [data, selectedCategory]);
+  function transformData(data: TransactionReportItem[]) {
+    return data.flatMap((transaction) => {
+      const pitems = JSON.parse(transaction.pitems);
+      return pitems.map((item: any) => ({
+        ...item,
+        transactionId: transaction.id,
+        uid: transaction.uid,
+        uname: transaction.uname,
+        customerid: transaction.customerid,
+        customername: transaction.customername,
+        branch_name: transaction.branch_name,
+        ptotal: transaction.ptotal,
+        pdate: transaction.pdate,
+      }));
+    });
+  }
+
+  const transformedData = transformData(data);
 
   const table = useReactTable({
-    data: data,
+    data: transformedData,
     columns,
     state: {
       rowSelection: rowSelection,
@@ -85,12 +67,10 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
     enableMultiRowSelection: true,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
     <>
-      <div className="flex items-center space-x-4 py-4">Transaction report</div>
       <div className="rounded-md border" ref={tableRef}>
         <Table>
           <TableHeader>
@@ -112,15 +92,12 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
             ))}
           </TableHeader>
           <TableBody>
-            {data.length ? (
-              table.getRowModel().rows.map((row, rowIndex) => (
+            {transformedData.length ? (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   tabIndex={0}
-                  onClick={() => onRowClick(row.original)}
-                  onFocus={() => setFocusedRowIndex(rowIndex)}
-                  className={focusedRowIndex === rowIndex ? "bg-gray-100" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="text-center">
@@ -143,16 +120,6 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
               </TableRow>
             )}
           </TableBody>
-          {/* <TableFooter>
-            <TableRow>
-              <TableCell colSpan={columns.length - 2} className="text-right">
-                Total:
-              </TableCell>
-              <TableCell className="text-right">
-                {totalSum.toFixed(2)}
-              </TableCell>
-            </TableRow>
-          </TableFooter> */}
         </Table>
       </div>
     </>

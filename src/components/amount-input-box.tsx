@@ -38,6 +38,7 @@ const AmountInput = ({
 }: AmountInputProps) => {
   const { site_company, site_url, account, receipt_info } = useAuthStore();
   const {
+    paidStatus,
     paymentCarts,
     removeItemFromPayments,
     clearPaymentCarts,
@@ -56,10 +57,12 @@ const AmountInput = ({
   }, [selectedCustomer]);
 
   useEffect(() => {
-    if (!currentCart) {
+    if (!currentCart && !paidStatus) {
       router.push("/");
+    } else if (!currentCart && paidStatus) {
+      router.push("/payment/paid");
     }
-  }, [currentCart, router]);
+  }, [currentCart, router, paidStatus]);
 
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
@@ -67,6 +70,7 @@ const AmountInput = ({
   const handlePrint = async (data: TransactionReportItem) => {
     try {
       console.log("handlePrint", data);
+      setPaidStatus(true);
 
       const pdfBlob = await pdf(
         <TransactionReceiptPDF
@@ -178,7 +182,7 @@ const AmountInput = ({
         setIsLoading(false);
         return;
       }
-      setPaidStatus(true);
+
       const transaction_history = await fetch_pos_transactions_report(
         site_company!,
         account!,
@@ -194,6 +198,10 @@ const AmountInput = ({
 
       if (transaction_history) {
         await handlePrint(transaction_history[0]!);
+        localStorage.setItem(
+          "transaction_history",
+          JSON.stringify(transaction_history[0]!),
+        );
       } else {
         toast.error("Failed to print Something went wrong");
         setIsPrinted(false);

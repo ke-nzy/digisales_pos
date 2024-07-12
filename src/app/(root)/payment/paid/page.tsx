@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 
@@ -20,6 +20,8 @@ const Paid = () => {
   const [trans, setTrans] = React.useState<
     TransactionReportItem | null | undefined
   >(null);
+  const tr = localStorage.getItem("transaction_history");
+  const transaction = tr ? JSON.parse(tr) : null;
   const router = useRouter();
   const handleFetchLatestTransaction = async () => {
     console.log("handleFetchLatestTransaction");
@@ -39,7 +41,6 @@ const Paid = () => {
       return pos_transactions_report[0];
     }
   };
-  console.log("trans", trans);
   const handlePrint = async (data: TransactionReportItem) => {
     try {
       console.log("handlePrint", data);
@@ -76,6 +77,13 @@ const Paid = () => {
     }
   };
 
+  const triggerPrint = async () => {
+    console.log("triggerPrint");
+    transaction
+      ? await handlePrint(transaction as TransactionReportItem)
+      : await handlePrint(trans!);
+  };
+
   useEffect(() => {
     handleFetchLatestTransaction().catch((error) => {
       console.error("Failed to fetch transactions:", error);
@@ -84,29 +92,36 @@ const Paid = () => {
   }, []);
 
   useEffect(() => {
-    if (paidStatus) {
-      setTimeout(() => {
-        setPaidStatus(false);
-        router.push("/");
-      }, 10000);
-    }
-    if (!paidStatus) {
-      router.push("/");
-    }
+    // if (paidStatus) {
+    //   setTimeout(() => {
+    //     setPaidStatus(false);
+    //     router.push("/");
+    //   }, 10000);
+    // }
+    // if (!paidStatus) {
+    //   router.push("/");
+    // }
+    console.log("paidStatus", paidStatus);
   }, [paidStatus]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "n" || event.key === "N") {
+        console.log("keydown", "n");
+
+        event.preventDefault(); // Optional: Prevents the default browser action for F1
         setPaidStatus(false);
         router.push("/");
-        event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
-      if (event.key === "p") {
-        async () => await handlePrint(trans!);
-        event.preventDefault(); // Optional: Prevents the default browser action for F1
+      if (event.key === "p" || event.key === "P") {
+        console.log("keydown", "p");
+        void triggerPrint();
       }
     };
+
+    // window.addEventListener("keypress", () => console.log("keypress"));
+    // window.addEventListener("keyup", () => console.log("keyup"));
+    // window.addEventListener("keydown", () => console.log("keydown"));
 
     window.addEventListener("keydown", handleKeyDown);
 
@@ -228,7 +243,7 @@ const Paid = () => {
                   className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
                   onClick={() => handlePrint(trans!)}
                 >
-                  <CardHeader className="flex-col items-center justify-center  p-2 ">
+                  <CardHeader className="flex-col items-center justify-center p-2 ">
                     <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">
                       P
                     </h6>
@@ -245,7 +260,7 @@ const Paid = () => {
                 >
                   <CardHeader className="flex-col items-center justify-center  p-2 ">
                     <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">
-                      Esc
+                      N
                     </h6>
                     <ShoppingCartIcon className="h-8 w-8 " />
                     <h4 className="text-center text-sm font-normal">

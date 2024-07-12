@@ -140,10 +140,6 @@ const ItemSearchBox = () => {
         itemSearchRef.current?.focus();
         event.preventDefault();
       }
-      if (event.key === "F9") {
-        setDialogOpen(true);
-        event.preventDefault();
-      }
     };
 
     window.addEventListener("keydown", handleKeyDown);

@@ -103,6 +103,12 @@ const TransactionsPage = () => {
               triggerClassName="ml-auto w-56 sm:w-60"
               align="end"
             />
+            <div className=" ml-auto w-56 sm:w-60">
+              <p className="text-right text-xs text-muted-foreground">
+                from <strong>{params.from}</strong> to{" "}
+                <strong>{params.to}</strong>
+              </p>
+            </div>
           </React.Suspense>
           <div className="flex items-center">
             <h1 className="text-lg font-semibold md:text-2xl"> Transactions</h1>
@@ -111,7 +117,7 @@ const TransactionsPage = () => {
           <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
             <div className="flex flex-col items-center gap-1 text-center">
               <h3 className="text-2xl font-bold tracking-tight">
-                You have no transactions today
+                You have no transactions for the selected date range
               </h3>
               <p className="text-sm text-muted-foreground">
                 You can start generating a report as soon as you make a sale.
@@ -126,13 +132,19 @@ const TransactionsPage = () => {
 
   return (
     <DashboardLayout title="Transactions">
-      <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+      <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-5 lg:p-6">
         <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
           <DateRangePicker
             triggerSize="sm"
             triggerClassName="ml-auto w-56 sm:w-60"
             align="end"
           />
+          <div className=" ml-auto w-56 sm:w-60">
+            <p className="text-right text-xs text-muted-foreground">
+              from <strong>{params.from}</strong> to{" "}
+              <strong>{params.to}</strong>
+            </p>
+          </div>
         </React.Suspense>
         <Tabs defaultValue="all">
           <div className="flex flex-row items-center justify-between space-x-1">
@@ -174,12 +186,7 @@ const TransactionsPage = () => {
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
                   data={all}
-                  from={params.from}
-                  to={params.to}
                   columns={posTransactionColumns}
-                  onRowClick={() => {
-                    console.log("row clicked");
-                  }}
                 />
               </div>
             )}
@@ -196,12 +203,7 @@ const TransactionsPage = () => {
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
                   data={posTransactionsReport}
-                  from={params.from}
-                  to={params.to}
                   columns={posTransactionColumns}
-                  onRowClick={() => {
-                    console.log("row clicked");
-                  }}
                 />
               </div>
             )}
@@ -218,12 +220,7 @@ const TransactionsPage = () => {
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
                   data={heldTransactionsReport}
-                  from={params.from}
-                  to={params.to}
                   columns={posTransactionColumns}
-                  onRowClick={() => {
-                    console.log("row clicked");
-                  }}
                 />
               </div>
             )}

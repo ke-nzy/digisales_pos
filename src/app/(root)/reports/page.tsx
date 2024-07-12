@@ -11,8 +11,12 @@ import { salesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 
 const SalesReports = () => {
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
   const { site_company } = useAuthStore();
-  const { salesReport, loading, error } = useItemizedSalesReport();
+  const { salesReport, loading, error } = useItemizedSalesReport({
+    from: getCurrentDate(),
+    to: getCurrentDate(),
+  });
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">

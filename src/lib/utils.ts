@@ -323,9 +323,9 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
   },
 ];
 
-export const posTransactionColumns: ColumnDef<TransactionReportItem>[] = [
+export const posTransactionColumns: ColumnDef<any>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "transactionId",
     header: "TransNo",
   },
   {
@@ -349,16 +349,22 @@ export const posTransactionColumns: ColumnDef<TransactionReportItem>[] = [
     header: "LOCATION",
   },
   {
-    accessorKey: "",
+    accessorKey: "item_option",
     header: "PRODUCT_NAME",
   },
   {
-    accessorKey: "",
+    accessorKey: "item_option_id",
     header: "PRODUCT_CODE",
   },
   {
-    accessorKey: "",
+    id: "value_sold",
     header: "VALUE_SOLD",
+    cell: ({ row }) => {
+      const quantity = parseFloat(row.original.quantity as string);
+      const price = parseFloat(row.original.price as string);
+      const valueSold = quantity * price;
+      return valueSold.toFixed(2); // Format to two decimal places
+    },
   },
   {
     accessorKey: "ptotal",
