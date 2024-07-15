@@ -11,6 +11,7 @@ export async function submit_direct_sale_request(
   payments: PaymentCart[],
   customer_name: string,
   uid: string,
+  pin: string,
 ) {
   console.log("Submitting payment details for direct sale");
 
@@ -78,6 +79,7 @@ export async function submit_direct_sale_request(
   form_data.append("cpbooking_id", "");
   form_data.append("cust_name", customer_name);
   form_data.append("unique_identifier", uid);
+  form_data.append("cust_pin", pin);
 
   try {
     const response = await axios.postForm<SalesReceiptInformation>(

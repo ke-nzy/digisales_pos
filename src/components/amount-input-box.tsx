@@ -29,12 +29,16 @@ interface AmountInputProps {
   onChange: (value: string) => void;
   paid: number;
   selectedCustomer: Customer | null;
+  pin: string;
+  setPin: (pin: string) => void;
 }
 const AmountInput = ({
   value,
   onChange,
   paid,
   selectedCustomer,
+  pin,
+  setPin,
 }: AmountInputProps) => {
   const { site_company, site_url, account, receipt_info } = useAuthStore();
   const {
@@ -174,6 +178,7 @@ const AmountInput = ({
         pmnts,
         currentCustomer.br_name,
         currentCart.cart_id,
+        pin,
       );
       console.log("result", result);
       if (!result) {
@@ -198,6 +203,7 @@ const AmountInput = ({
 
       if (transaction_history) {
         await handlePrint(transaction_history[0]!);
+
         localStorage.setItem(
           "transaction_history",
           JSON.stringify(transaction_history[0]!),
@@ -209,6 +215,7 @@ const AmountInput = ({
 
       clearCart();
       clearPaymentCarts();
+      setPin("");
       // if (isPrinted) {
       router.push("/payment/paid");
       // }

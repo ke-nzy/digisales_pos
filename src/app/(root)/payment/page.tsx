@@ -26,8 +26,10 @@ import { Separator } from "~/components/ui/separator";
 import { Label } from "~/components/ui/label";
 import { CustomerComboBox } from "~/components/common/customercombo";
 import { useCustomers } from "~/hooks/use-customer-payments";
-import { Users2Icon } from "lucide-react";
+import { Users2, Users2Icon } from "lucide-react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import Image from "next/image";
+import { Input } from "~/components/ui/input";
 const AmountInput = dynamic(() => import("~/components/amount-input-box"), {
   ssr: false,
 });
@@ -44,9 +46,11 @@ const Payment = () => {
     lon: "",
     is_farmer: "0",
     sales_type: "1",
+    pin: "-",
   });
-
+  const [pin, setPin] = useState<string>(selectedCustomer?.pin ?? "");
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [pinDialogOpen, setPinDialogOpen] = useState<boolean>(false);
   const { paymentCarts } = usePayStore();
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const router = useRouter();
@@ -75,12 +79,12 @@ const Payment = () => {
           defaultSize={75}
           className="flex h-full flex-col justify-between py-2"
         >
-          <div className="flex flex-row px-6">
+          <div className="flex flex-row space-x-4 px-6">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Card className="cursor-pointer py-2 hover:bg-accent focus:bg-accent">
                   <CardHeader className="flex-col items-center justify-center  p-2 ">
-                    <Users2Icon className="h-8 w-8 " />
+                    <Users2 className="h-12 w-12 font-light " />
                     <h4 className="text-center text-sm font-normal">
                       {selectedCustomer
                         ? selectedCustomer.br_name
@@ -111,6 +115,47 @@ const Payment = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <Dialog open={pinDialogOpen} onOpenChange={setPinDialogOpen}>
+              <DialogTrigger asChild>
+                <Card className="cursor-pointer py-2 hover:bg-accent focus:bg-accent">
+                  <CardHeader className="flex-col items-center justify-center  px-3 py-2 ">
+                    <Image
+                      src={"/images/kra-logo.png"}
+                      width={50}
+                      height={50}
+                      alt="kra-logo"
+                    />
+                    <h4 className="text-center text-sm font-normal">
+                      {pin.length >= 10 ? pin : "Customer Pin"}
+                    </h4>
+                  </CardHeader>
+                </Card>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Customer KRA Pin</DialogTitle>
+                </DialogHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <ul className="grid gap-3">
+                      <Separator className="my-2" />
+                      <Input
+                        type="text"
+                        className="h-14 border-gray-700 bg-transparent px-1 text-right  shadow-none"
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value)}
+                        placeholder="Customer Pin"
+                      />
+                    </ul>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => setPinDialogOpen(false)}>
+                    Submit
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
           <div className="h-full flex-col items-start justify-between p-6">
             <AmountInput
@@ -118,6 +163,8 @@ const Payment = () => {
               onChange={setAmount}
               paid={totalPaid}
               selectedCustomer={selectedCustomer}
+              pin={pin}
+              setPin={setPin}
             />
           </div>
         </ResizablePanel>

@@ -134,6 +134,7 @@ declare type Customer = {
   lon: string;
   is_farmer: string;
   sales_type: string;
+  pin: string;
 };
 declare type CustomerBranch = {
   branch_code: string;
