@@ -24,7 +24,9 @@ interface MenuProps {
 
 export default function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
-  const menuList = getMenuList(pathname);
+  const roles = localStorage.getItem("roles");
+  const isBranchManager = roles?.includes("mBranchManager");
+  const menuList = getMenuList(pathname, isBranchManager);
   const { clear_auth_session } = useAuthStore();
   const router = useRouter();
 

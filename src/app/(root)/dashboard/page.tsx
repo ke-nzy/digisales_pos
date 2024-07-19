@@ -14,7 +14,10 @@ import {
   useItemizedSalesReport,
   usePosTransactionsReport,
 } from "~/hooks/use-reports";
-import { submit_start_shift } from "~/lib/actions/user.actions";
+import {
+  fetch_user_roles,
+  submit_start_shift,
+} from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
 
 interface DateParams {
@@ -54,10 +57,36 @@ const DashBoard = () => {
     };
     setParams(newParams);
   }, [searchParams]);
-  console.log("dailyTargets", dailyTargets);
 
   const shift = localStorage.getItem("start_shift");
   const sft: CheckInResponse = JSON.parse(shift || "{}");
+
+  const roles = localStorage.getItem("roles");
+  console.log("roles", roles);
+
+  useEffect(() => {
+    if (roles === null) {
+      console.log("rolesssss");
+
+      handleFetchRoles().catch((err) => {
+        console.log("error", err);
+      });
+    }
+  }, [roles]);
+
+  const handleFetchRoles = async () => {
+    const response = await fetch_user_roles(
+      site_url!,
+      site_company!.company_prefix,
+      account!.role_id,
+      account!.id,
+    );
+    if (response === null) {
+      toast.error("Failed to fetch roles");
+    } else {
+      localStorage.setItem("roles", JSON.stringify(response));
+    }
+  };
   const handleCheckin = async () => {
     if (sft.message === "Success" && sft.user_id === account?.id) {
       router.push("/");
@@ -172,39 +201,40 @@ const DashBoard = () => {
             align="end"
           />
         </React.Suspense>
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex w-full flex-col">
-              <div>
-                <p className="text-lg font-bold ">
-                  KES{" "}
-                  {dailyTargets?.status === "SUCCESS"
-                    ? dailyTargets.data.sales_to_date
-                    : 0}
-                  {/* {dailyTargets?.data.sales_to_date &&
-                dailyTargets?.data.sales_to_date
-                  ? dailyTargets?.data.sales_to_date
-                  : 0} */}
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
+          {roles?.includes("mBranchManager") && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Sales
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex w-full flex-col">
+                <div>
+                  <p className="text-lg font-bold ">
+                    KES{" "}
+                    {dailyTargets?.status === "SUCCESS"
+                      ? dailyTargets.data.sales_to_date
+                      : 0}
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {dailyTargets?.status === "SUCCESS" ? achievement() : 0}%
+                  achieved against
+                  <span className="font-bold">
+                    {" "}
+                    KES{" "}
+                    {dailyTargets?.status === "SUCCESS"
+                      ? parseInt(dailyTargets.data.target).toLocaleString()
+                      : 0}{" "}
+                  </span>
+                  target
                 </p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {dailyTargets?.status === "SUCCESS" ? achievement() : 0}%
-                achieved against
-                <span className="font-bold">
-                  {" "}
-                  KES{" "}
-                  {dailyTargets?.status === "SUCCESS"
-                    ? parseInt(dailyTargets.data.target).toLocaleString()
-                    : 0}{" "}
-                </span>
-                target
-              </p>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">

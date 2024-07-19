@@ -221,7 +221,7 @@ export async function fetch_pos_transactions_report(
   const form_data = new FormData();
   form_data.append("tp", "loadPOSTransaction");
   form_data.append("cp", site_company.company_prefix);
-  form_data.append("id", account.id);
+  // form_data.append("id", account.id);
   form_data.append("postrans_date", sdate_);
   form_data.append("end_date", edate_);
 
