@@ -226,7 +226,7 @@ export async function fetch_pos_transactions_report(
     form_data.append("id", account.id);
   }
   if (roles?.includes("mBranchManager")) {
-    form_data.append("id", account.default_store);
+    form_data.append("branch_code", account.default_store);
   }
   // form_data.append("id", account.id);
   form_data.append("postrans_date", sdate_);
