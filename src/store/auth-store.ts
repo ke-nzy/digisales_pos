@@ -21,6 +21,7 @@ export const useAuthStore = create<AuthInfo>()(
               account: null,
               without_sign_in_auth: null,
             });
+            localStorage.removeItem("roles");
           },
 
           set_site_url: (url: string) => set(() => ({ site_url: url })),

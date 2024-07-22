@@ -11,10 +11,12 @@ import {
 import { generalSalesReportColumns } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 import GeneralSalesDataTable from "~/components/data-table/general-report";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Itemized = () => {
   const getCurrentDate = () => new Date().toISOString().split("T")[0];
+  const roles = localStorage.getItem("roles");
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [params, setParams] = useState<DateParams>({
     from: searchParams.get("from") ?? getCurrentDate(),
@@ -30,6 +32,12 @@ const Itemized = () => {
     };
     setParams(newParams);
   }, [searchParams]);
+  useEffect(() => {
+    if (!roles?.includes("mBranchManager")) {
+      router.push("/dashboard");
+    }
+  }, [roles]);
+
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
