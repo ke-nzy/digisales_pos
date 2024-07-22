@@ -135,7 +135,7 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
       }
 
       const summary = summaryMap[item.parent_item]!;
-      summary.total_unit_price += unitPrice;
+      summary.total_unit_price += unitPrice * quantity;
       summary.total_quantity += quantity;
     });
     return Object.values(summaryMap);
