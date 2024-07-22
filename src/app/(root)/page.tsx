@@ -22,6 +22,7 @@ const TotalSummary = dynamic(() => import("~/components/total-summary"), {
 export default function HomePage() {
   const { site_company, account } = useAuthStore();
   const shift = localStorage.getItem("start_shift");
+  const roles = localStorage.getItem("roles");
   const router = useRouter();
   useEffect(() => {
     const shift = localStorage.getItem("start_shift");
@@ -32,6 +33,12 @@ export default function HomePage() {
       router.replace("/dashboard");
     }
   }, []);
+
+  useEffect(() => {
+    if (roles?.includes("mBranchManager")) {
+      router.replace("/dashboard");
+    }
+  }, [roles]);
 
   return (
     <ContentLayout title={site_company?.branch ?? ""}>

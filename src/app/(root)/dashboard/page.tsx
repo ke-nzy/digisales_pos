@@ -99,7 +99,11 @@ const DashBoard = () => {
       );
       if (response?.id) {
         toast.success("Shift started");
-        router.push("/");
+        if (roles?.includes("mBranchManager")) {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
       } else {
         toast.error("Failed to start shift");
       }
