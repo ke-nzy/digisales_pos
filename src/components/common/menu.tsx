@@ -17,18 +17,27 @@ import { getMenuList } from "~/lib/menu-list";
 import { CollapseMenuButton } from "./collapse-menu-button";
 import { useAuthStore } from "~/store/auth-store";
 import { deleteMetadata } from "~/utils/indexeddb";
+import { useEffect, useState } from "react";
 
 interface MenuProps {
   isOpen: boolean | undefined;
 }
 
 export default function Menu({ isOpen }: MenuProps) {
-  const pathname = usePathname();
   const roles = localStorage.getItem("roles");
-  const isBranchManager = roles?.includes("mBranchManager");
-  const menuList = getMenuList(pathname, isBranchManager);
+  const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
+  const [bManager, setBManager] = useState<boolean>(isBranchManager);
+  const pathname = usePathname();
   const { clear_auth_session } = useAuthStore();
   const router = useRouter();
+  useEffect(() => {
+    if (roles?.includes("mBranchManager")) {
+      setBManager(true);
+    } else {
+      setBManager(false);
+    }
+  }, [roles]);
+  const menuList = getMenuList(pathname, bManager);
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">

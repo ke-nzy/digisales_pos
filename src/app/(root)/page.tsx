@@ -27,6 +27,9 @@ export default function HomePage() {
   useEffect(() => {
     const shift = localStorage.getItem("start_shift");
     const shift_data: CheckInResponse = JSON.parse(shift ?? "{}");
+    if (site_company === null || undefined) {
+      router.replace("/sign-in");
+    }
     if (shift_data.user_id === account?.id) {
       router.replace("/");
     } else {
@@ -35,6 +38,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const roles = localStorage.getItem("roles");
     if (roles?.includes("mBranchManager")) {
       router.replace("/dashboard");
     }
