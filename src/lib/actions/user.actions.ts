@@ -142,10 +142,16 @@ export async function fetch_sales_person_summary_report(
 ) {
   const sdate_ = sdate === undefined ? toDate(new Date()) : sdate;
   const edate_ = edate === undefined ? toDate(new Date()) : edate;
+  const roles = localStorage.getItem("roles");
   const form_data = new FormData();
   form_data.append("tp", "salespersonitemsales");
   form_data.append("cp", site_company.company_prefix);
-  form_data.append("id", account.id);
+  if (!roles?.includes("mBranchManager") || roles === null) {
+    form_data.append("id", account.id);
+  }
+  if (roles?.includes("mBranchManager")) {
+    form_data.append("branch_code", account.default_store);
+  }
   form_data.append("sdate", sdate_);
   form_data.append("edate", edate_);
 
