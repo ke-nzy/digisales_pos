@@ -112,6 +112,20 @@ const SignIn = () => {
           //TODO:  show error message
           return;
         }
+        // Fetch Roles
+        //  const handleFetchRoles = async () => {
+        const roles = await fetch_user_roles(
+          company_information[0]!.company_url,
+          selectedCompany!.company_prefix,
+          login_result.role_id,
+          login_result.id,
+        );
+        if (roles === null) {
+          toast.error("Failed to fetch roles");
+        } else {
+          localStorage.setItem("roles", JSON.stringify(roles));
+        }
+        //  };
         update_account(login_result);
         update_site_info(company_information[0]!);
         set_receipt_info(receipt_info);

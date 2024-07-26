@@ -134,7 +134,7 @@ const TransactionReceiptPDF = ({
   return (
     <Document>
       <Page
-        size={get_printout_size(items.length + payments.length + 10)}
+        size={get_printout_size(items.length + payments.length + 3)}
         style={{ padding: 2 }}
       >
         <View>
@@ -533,7 +533,7 @@ const TransactionReceiptPDF = ({
       </Page>
       {duplicate && (
         <Page
-          size={get_printout_size(items.length + payments.length)}
+          size={get_printout_size(items.length + payments.length + 3)}
           style={{ padding: 2 }}
         >
           <View>

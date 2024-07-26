@@ -15,7 +15,7 @@
         }
     ],
     "id": "1",
-    "start_url": "/",
+    "start_url": "/sign-in",
     "background_color": "#c9184a",
     "display_override": [
         "window-control-overlay",
