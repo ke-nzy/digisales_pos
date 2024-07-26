@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent } from "~/components/ui/card";
 
 import { useCartStore } from "../store/cart-store";
@@ -8,10 +8,23 @@ import { useSidebarToggle } from "~/hooks/use-sidebar-toggle";
 import { cartColumns, cn } from "~/lib/utils";
 import { CartTable } from "./cart-table";
 import { DataTable } from "./data-table";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "~/store/auth-store";
 
 const ShoppingCart = () => {
   const { currentCart, setSelectedCartItem } = useCartStore();
+  const { site_company, account } = useAuthStore();
+  const router = useRouter();
   const sidebar = useStore(useSidebarToggle, (state) => state);
+
+  useEffect(() => {
+    if (site_company === null || site_company === undefined) {
+      router.replace("/sign-in");
+    }
+    if (account === null || account === undefined) {
+      router.replace("/sign-in");
+    }
+  }, [account, site_company]);
 
   return (
     <Card

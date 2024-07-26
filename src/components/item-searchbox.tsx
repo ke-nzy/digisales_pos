@@ -29,6 +29,7 @@ import { DataTable } from "./data-table";
 import { paymentColumns } from "~/lib/utils";
 import { usePayStore } from "~/store/pay-store";
 import { useUpdateCart } from "../hooks/use-cart";
+import { useRouter } from "next/navigation";
 
 const ItemSearchBox = () => {
   const { addItemToPayments } = usePayStore();
@@ -38,6 +39,7 @@ const ItemSearchBox = () => {
   const { addItemToCart, currentCart } = useCartStore();
   const { mutate: updateCartMutate } = useUpdateCart();
   const itemSearchRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const item = inventory.find((invItem) => invItem.stock_id === searchTerm);
   const {
@@ -101,6 +103,14 @@ const ItemSearchBox = () => {
   const handleUpdateCart = (cart_id: string, newCart: Cart) => {
     updateCartMutate({ cart_id, newCart });
   };
+  useEffect(() => {
+    if (site_company === null || site_company === undefined) {
+      router.replace("/sign-in");
+    }
+    if (account === null || account === undefined) {
+      router.replace("/sign-in");
+    }
+  }, [account, site_company]);
   useEffect(() => {
     if (currentCart) {
       handleUpdateCart(currentCart.cart_id, currentCart);
