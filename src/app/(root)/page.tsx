@@ -32,7 +32,7 @@ export default function HomePage() {
     if (shift_data.user_id === account?.id) {
       router.replace("/");
     } else {
-      router.replace("/dashboard");
+      router.replace("/sign-in");
     }
   }, []);
 
