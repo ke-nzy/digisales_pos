@@ -16,6 +16,7 @@ import {
 } from "~/hooks/use-reports";
 import {
   fetch_user_roles,
+  submit_end_shift,
   submit_start_shift,
 } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
@@ -99,14 +100,50 @@ const DashBoard = () => {
       );
       if (response?.id) {
         toast.success("Shift started");
-        if (roles?.includes("mBranchManager")) {
-          router.push("/dashboard");
-        } else {
-          router.push("/");
-        }
+        router.push("/");
       } else {
         toast.error("Failed to start shift");
       }
+    }
+  };
+  const handleBMCheckin = async () => {
+    if (sft.message === "Success" && sft.user_id === account?.id) {
+      await handleCheckOut();
+    } else {
+      console.log("checkin");
+      const response = await submit_start_shift(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+      );
+      if (response?.id) {
+        toast.success("Shift started");
+        router.refresh();
+        router.push("/dashboard");
+      } else {
+        toast.error("Failed to start shift");
+      }
+    }
+  };
+  const handleCheckOut = async () => {
+    console.log("checkout");
+    const shift = localStorage.getItem("start_shift");
+    const s: CheckInResponse = JSON.parse(shift!);
+
+    const response = await submit_end_shift(
+      site_url!,
+      site_company!.company_prefix,
+      account!.id,
+      s.id,
+    );
+    console.log(" checkout response", response);
+
+    if (response) {
+      localStorage.removeItem("start_shift");
+      toast.success("Shift ended");
+      router.push("/dashboard");
+    } else {
+      toast.error("Failed to End shift");
     }
   };
   const completedTrnasactions = posTransactionsReport.length;
@@ -267,15 +304,27 @@ const DashBoard = () => {
           </Card>
 
           <div className="flex-col items-center space-y-6 ">
-            <Button
-              onClick={() => handleCheckin()}
-              variant={"default"}
-              className="w-full"
-            >
-              {sft.message === "Success" && sft.user_id === account?.id
-                ? "Continue"
-                : "Start Shift"}
-            </Button>
+            {roles?.includes("mBranchManager") && (
+              <Button
+                onClick={() => handleBMCheckin()}
+                variant={"default"}
+                className="w-full"
+              >
+                {sft.message === "Success" ? "End Shift" : "Start Shift"}
+              </Button>
+            )}
+            {!roles?.includes("mBranchManager") && (
+              <Button
+                onClick={() => handleCheckin()}
+                variant={"default"}
+                className="w-full"
+              >
+                {sft.message === "Success" && sft.user_id === account?.id
+                  ? "Continue"
+                  : "Start Shift"}
+              </Button>
+            )}
+
             <div className="grid-col grid gap-4"></div>
           </div>
         </div>

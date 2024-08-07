@@ -38,12 +38,14 @@ export async function submit_direct_sale_request(
       quantityAval: x.details.quantity_available.toFixed(2),
       booking_id: "",
       customer_option: customer.br_name,
+      // new user will not have branch code
       customer_option_id: customer.branch_code,
       booking_type: "",
       discount: x.discount ?? "0",
       mode_prices: "1",
       kit: x.item.kit,
       batch_no: "",
+      // tax is not applicable for direct sale
       tax: tax.toFixed(2),
       item_option: x.item.description,
       item_option_id: x.item.stock_id,

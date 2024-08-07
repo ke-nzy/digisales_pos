@@ -20,17 +20,21 @@ export function Sidebar() {
   const [mainLink, setMainLink] = useState<string>("");
 
   const sft = localStorage.getItem("start_shift");
+  const roles = localStorage.getItem("roles");
+  const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
 
   useEffect(() => {
     const shift = localStorage.getItem("start_shift");
     const s: CheckInResponse = JSON.parse(shift!);
     router.refresh();
     if (s?.message === "Success" && s.user_id === account?.id) {
-      setMainLink(s?.id ? "/" : "/dashboard");
+      setMainLink(
+        s?.id ? (isBranchManager ? "/dashboard" : "/") : "/dashboard",
+      );
     } else {
       setMainLink("/dashboard");
     }
-  }, [sft, path, account, router]);
+  }, [sft, path, account, router, isBranchManager]);
 
   if (!sidebar) return null;
   return (
