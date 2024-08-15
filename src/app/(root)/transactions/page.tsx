@@ -212,7 +212,7 @@ const TransactionsPage = () => {
             {tableView && (
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
-                  data={filteredTransactions}
+                  data={all.filter((x) => x.status === "1")}
                   columns={posTransactionColumns}
                 />
               </div>
@@ -236,7 +236,7 @@ const TransactionsPage = () => {
             {tableView && (
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
-                  data={filteredTransactions.filter((x) => x.status === "0")}
+                  data={all.filter((x) => x.status === "0")}
                   columns={posTransactionColumns}
                 />
               </div>
@@ -260,7 +260,7 @@ const TransactionsPage = () => {
             {tableView && (
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
-                  data={filteredTransactions.filter((x) => x.status === "2")}
+                  data={all.filter((x) => x.status === "2")}
                   columns={posTransactionColumns}
                 />
               </div>
