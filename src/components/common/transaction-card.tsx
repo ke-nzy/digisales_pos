@@ -54,9 +54,10 @@ import { set } from "date-fns";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
+  onRefresh: () => void;
   // onPrint: (data: TransactionReportItem) => void;
 }
-const TransactionCard = ({ data, status }: TransactionCardProps) => {
+const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const { currentCart } = useCartStore();
   const { site_url, site_company, receipt_info, account } = useAuthStore();
   const router = useRouter();
@@ -186,13 +187,15 @@ const TransactionCard = ({ data, status }: TransactionCardProps) => {
         const result = await issueClearCart(data.unique_identifier);
         if (result) {
           toast.success("Transaction cleared successfully");
+          router.refresh();
+          onRefresh();
         } else {
           toast.error("Failed to clear transaction");
         }
       } catch (error) {
         console.log("error", error);
       } finally {
-        router.push(`/transactions`);
+        router.replace("/transactions");
       }
     } else {
       setAction("edit_cart");

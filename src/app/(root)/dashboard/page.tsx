@@ -141,13 +141,15 @@ const DashBoard = () => {
     if (response) {
       localStorage.removeItem("start_shift");
       toast.success("Shift ended");
-      router.push("/dashboard");
+      router.push("/sign-in");
     } else {
       toast.error("Failed to End shift");
     }
   };
   const completedTrnasactions = posTransactionsReport.length;
-  const heldTrnasactions = heldTransactionsReport.length;
+  const heldTrnasactions = heldTransactionsReport.filter(
+    (item) => item.status === "0",
+  ).length;
 
   function findTop5PopularItems(
     items: SalesReportItem[],
@@ -310,7 +312,8 @@ const DashBoard = () => {
                 variant={"default"}
                 className="w-full"
               >
-                {sft.message === "Success" ? "End Shift" : "Start Shift"}
+                {sft.message === "Success" && "End Shift"}
+                {!(sft.user_id === account?.id) && "Start Shift"}
               </Button>
             )}
             {!roles?.includes("mBranchManager") && (

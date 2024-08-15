@@ -2,7 +2,7 @@
 import { Search, Table2Icon, Wallet2Icon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
 import { TransactionsDataTable } from "~/components/data-table/transaction-report";
@@ -27,18 +27,36 @@ export interface IndexPageProps {
 }
 
 const TransactionsPage = () => {
-  const getCurrentDate = () => new Date().toISOString().split("T")[0];
+  const getCurrentDate: any = () => new Date().toISOString().split("T")[0];
   const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [params, setParams] = useState<DateParams>({
     from: searchParams.get("from") ?? getCurrentDate(),
     to: searchParams.get("to") ?? getCurrentDate(),
   });
   const [tableView, setTableView] = useState<boolean>(false);
-  const { posTransactionsReport, loading } = usePosTransactionsReport(params);
-  const { heldTransactionsReport, loading: loadingHeld } =
-    useHeldTransactionsReport(params);
-  console.log("posTransactionsReport", heldTransactionsReport);
-  const all = posTransactionsReport.concat(heldTransactionsReport);
+  const { posTransactionsReport, loading, refetch } =
+    usePosTransactionsReport(params);
+  const {
+    heldTransactionsReport,
+    loading: loadingHeld,
+    refetch: refetchHeld,
+  } = useHeldTransactionsReport(params);
+
+  const all = useMemo(
+    () =>
+      posTransactionsReport.concat(
+        heldTransactionsReport.filter((x) => x.status !== "1"),
+      ),
+    [posTransactionsReport, heldTransactionsReport],
+  );
+
+  // Apply the filter based on the search term
+  const filteredTransactions = useMemo(() => {
+    return all.filter((transaction) =>
+      transaction.ptotal.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [all, searchTerm]);
   useEffect(() => {
     const newParams = {
       from: searchParams.get("from") ?? getCurrentDate(),
@@ -93,7 +111,7 @@ const TransactionsPage = () => {
     );
   }
 
-  if (all.length === 0 && !loading && !loadingHeld) {
+  if (filteredTransactions.length === 0 && !loading && !loadingHeld) {
     return (
       <DashboardLayout title="Transactions">
         <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -146,12 +164,12 @@ const TransactionsPage = () => {
             </p>
           </div>
         </React.Suspense>
-        <Tabs defaultValue="all">
+        <Tabs defaultValue="completed">
           <div className="flex flex-row items-center justify-between space-x-1">
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="held">Held</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="held">Held</TabsTrigger>
+              <TabsTrigger value="closed">Closed</TabsTrigger>
             </TabsList>
             <Button
               variant="default"
@@ -169,40 +187,32 @@ const TransactionsPage = () => {
               <Input
                 type="search"
                 placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
               />
             </div>
           </div>
 
-          <TabsContent value="all">
-            {!tableView && (
-              <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-                {all.map((x) => (
-                  <TransactionCard key={x.id} data={x} />
-                ))}
-              </div>
-            )}
-            {tableView && (
-              <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                <TransactionsDataTable
-                  data={all}
-                  columns={posTransactionColumns}
-                />
-              </div>
-            )}
-          </TabsContent>
           <TabsContent value="completed">
             {!tableView && (
               <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-                {posTransactionsReport.map((x) => (
-                  <TransactionCard key={x.id} data={x} status="Completed" />
-                ))}
+                {filteredTransactions
+                  .filter((x) => x.status === "1")
+                  .map((x) => (
+                    <TransactionCard
+                      key={x.id}
+                      data={x}
+                      status="Completed"
+                      onRefresh={refetch}
+                    />
+                  ))}
               </div>
             )}
             {tableView && (
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
-                  data={posTransactionsReport}
+                  data={filteredTransactions}
                   columns={posTransactionColumns}
                 />
               </div>
@@ -211,15 +221,46 @@ const TransactionsPage = () => {
           <TabsContent value="held">
             {!tableView && (
               <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-                {heldTransactionsReport.map((x) => (
-                  <TransactionCard key={x.id} data={x} status="Held" />
-                ))}
+                {filteredTransactions
+                  .filter((x) => x.status === "0")
+                  .map((x) => (
+                    <TransactionCard
+                      key={x.id}
+                      data={x}
+                      status="Held"
+                      onRefresh={refetchHeld}
+                    />
+                  ))}
               </div>
             )}
             {tableView && (
               <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <TransactionsDataTable
-                  data={heldTransactionsReport}
+                  data={filteredTransactions.filter((x) => x.status === "0")}
+                  columns={posTransactionColumns}
+                />
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="closed">
+            {!tableView && (
+              <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
+                {filteredTransactions
+                  .filter((x) => x.status === "2")
+                  .map((x) => (
+                    <TransactionCard
+                      key={x.id}
+                      data={x}
+                      status="Held"
+                      onRefresh={refetchHeld}
+                    />
+                  ))}
+              </div>
+            )}
+            {tableView && (
+              <div className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                <TransactionsDataTable
+                  data={filteredTransactions.filter((x) => x.status === "2")}
                   columns={posTransactionColumns}
                 />
               </div>

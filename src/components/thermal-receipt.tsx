@@ -444,7 +444,7 @@ const TransactionReceiptPDF = ({
             value={`KES ${totalDiscount.subtotal}`}
           />
           <TotalRowItem
-            label={"Tax"}
+            label={"Tax 16%"}
             value={`KES ${data.vat_amount ? data.vat_amount : 0}`}
           />
           <TotalRowItem
