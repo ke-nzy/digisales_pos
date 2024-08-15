@@ -137,7 +137,6 @@ const ItemSearchBox = () => {
         setSearchTerm("");
       }
     } else if (searchTerm.length >= 13) {
-      toast.error("Item not found in inventory");
     } else if (searchTerm.length >= 15) {
       toast.error("Item not found in inventory");
       setSearchTerm(""); // Clear the input field
