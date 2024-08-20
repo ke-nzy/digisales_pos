@@ -104,11 +104,11 @@ const CartActions = () => {
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F2") {
-        handleDiscountDialogOpen();
+        handleQuantityDialogOpen();
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F3") {
-        handleQuantityDialogOpen();
+        handleDiscountDialogOpen();
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F4") {
