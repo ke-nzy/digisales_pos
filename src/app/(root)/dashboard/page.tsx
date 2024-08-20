@@ -34,6 +34,11 @@ const DashBoard = () => {
     from: searchParams.get("from") ?? getCurrentDate(),
     to: searchParams.get("to") ?? getCurrentDate(),
   });
+  const shift = localStorage.getItem("start_shift");
+  const sft: CheckInResponse = JSON.parse(shift || "{}");
+  const [shift_started, set_shift_started] = useState<boolean>(
+    sft.message === "Success" && sft.user_id === account?.id,
+  );
   const { posTransactionsReport } = usePosTransactionsReport(params);
   const { heldTransactionsReport } = useHeldTransactionsReport(params);
   const { salesReport, loading: loadingItemizedSalesReport } =
@@ -58,9 +63,6 @@ const DashBoard = () => {
     };
     setParams(newParams);
   }, [searchParams]);
-
-  const shift = localStorage.getItem("start_shift");
-  const sft: CheckInResponse = JSON.parse(shift || "{}");
 
   const roles = localStorage.getItem("roles");
   console.log("roles", roles);
@@ -89,7 +91,7 @@ const DashBoard = () => {
     }
   };
   const handleCheckin = async () => {
-    if (sft.message === "Success" && sft.user_id === account?.id) {
+    if (shift_started) {
       router.push("/");
     } else {
       console.log("checkin");
@@ -99,15 +101,17 @@ const DashBoard = () => {
         account!.id,
       );
       if (response?.id) {
+        set_shift_started(true);
         toast.success("Shift started");
         router.push("/");
       } else {
         toast.error("Failed to start shift");
+        set_shift_started(false);
       }
     }
   };
   const handleBMCheckin = async () => {
-    if (sft.message === "Success" && sft.user_id === account?.id) {
+    if (shift_started) {
       await handleCheckOut();
     } else {
       console.log("checkin");
@@ -118,10 +122,12 @@ const DashBoard = () => {
       );
       if (response?.id) {
         toast.success("Shift started");
+        set_shift_started(true);
         router.refresh();
         router.push("/dashboard");
       } else {
         toast.error("Failed to start shift");
+        set_shift_started(false);
       }
     }
   };
@@ -140,6 +146,7 @@ const DashBoard = () => {
 
     if (response) {
       localStorage.removeItem("start_shift");
+      set_shift_started(false);
       toast.success("Shift ended");
       router.push("/sign-in");
     } else {
@@ -312,8 +319,8 @@ const DashBoard = () => {
                 variant={"default"}
                 className="w-full"
               >
-                {sft.message === "Success" && "End Shift"}
-                {!(sft.user_id === account?.id) && "Start Shift"}
+                {!shift_started && "Start Shift"}
+                {shift_started && "End Shift"}
               </Button>
             )}
             {!roles?.includes("mBranchManager") && (
@@ -322,9 +329,7 @@ const DashBoard = () => {
                 variant={"default"}
                 className="w-full"
               >
-                {sft.message === "Success" && sft.user_id === account?.id
-                  ? "Continue"
-                  : "Start Shift"}
+                {shift_started ? "Continue" : "Start Shift"}
               </Button>
             )}
 

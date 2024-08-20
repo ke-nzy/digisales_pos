@@ -22,6 +22,7 @@ export const useAuthStore = create<AuthInfo>()(
               without_sign_in_auth: null,
             });
             localStorage.removeItem("roles");
+            localStorage.removeItem("start_shift");
           },
 
           set_site_url: (url: string) => set(() => ({ site_url: url })),

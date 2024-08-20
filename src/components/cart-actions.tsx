@@ -472,7 +472,7 @@ const CartActions = () => {
   return (
     <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
       <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-        <Card
+        {/* <Card
           className={cn(
             "rounded-none py-6",
             selectedCartItem
@@ -497,7 +497,7 @@ const CartActions = () => {
               Delete
             </h4>
           </CardHeader>
-        </Card>
+        </Card> */}
         <Card className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
