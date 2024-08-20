@@ -36,7 +36,7 @@ import {
   tallyTotalAmountPaid,
 } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import { usePayStore } from "~/store/pay-store";
 import { useAuthStore } from "~/store/auth-store";
 import {
@@ -76,8 +76,9 @@ const CartActions = () => {
     setSelectedCartItem,
     setCurrentCustomer,
     deleteItemFromCart,
-  } = useCartStore();
+  } = useCartStore((state) => state);
   const { mutate: updateCartMutate } = useUpdateCart();
+  const router = useRouter();
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const [isLoading, setIsLoading] = useState<boolean | null>(null);
   const { paymentCarts } = usePayStore();
@@ -89,7 +90,7 @@ const CartActions = () => {
   const [discountPercentage, setDiscountPercentage] = useState<string>("0");
   const [quantityValue, setQuantityValue] = useState<string>("0");
   const [authPass, setAuthPass] = useState<string>("");
-  const [authorized, setAuthorized] = useState<boolean>(false);
+  const [isAuthorized, setAuthorized] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [discountDialogOpen, setDiscountDialogOpen] = useState<boolean>(false);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState<boolean>(false);
@@ -128,7 +129,10 @@ const CartActions = () => {
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F8") {
-        () => handleHoldCart();
+        handleHoldCart().catch((error) => {
+          console.log("error", error);
+          toast.error("Unable to hold cart");
+        });
         event.preventDefault(); // Optional: Prevents the default browser action for F1
       }
       if (event.key === "F9") {
@@ -147,12 +151,7 @@ const CartActions = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
-
-  const total = calculateCartTotal(currentCart!);
-  const discount = calculateDiscount(currentCart!);
-  const totalPaid = tallyTotalAmountPaid(paymentCarts);
-  const router = useRouter();
+  });
 
   useEffect(() => {
     if (discountPercentage !== "") {
@@ -243,7 +242,7 @@ const CartActions = () => {
   const { customer } = useCustomers();
 
   const handleDeleteItem = () => {
-    if (authorized) {
+    if (isAuthorized) {
       setAction("edit_cart");
       if (selectedCartItem) {
         if (action !== "edit_cart") {
@@ -262,38 +261,33 @@ const CartActions = () => {
   };
 
   const handleDiscountDialogOpen = () => {
-    if (authorized) {
-      if (selectedCartItem) {
+    if (!selectedCartItem) {
+      toast.error("Please select an item to discount");
+      return;
+    } else {
+      if (isAuthorized) {
         setAction("discount");
         setDiscountDialogOpen(!discountDialogOpen);
+        return;
       } else {
-        setDiscountDialogOpen(false);
-        toast.error("Please select an item to discount");
-      }
-    } else {
-      if (selectedCartItem) {
         setAction("discount");
         setAuthorizationDialogOpen(true);
-      } else {
-        toast.error("Please select an item to discount");
       }
     }
   };
+
   const handleQuantityDialogOpen = () => {
-    if (authorized) {
-      if (selectedCartItem) {
+    if (!selectedCartItem) {
+      toast.error("Please select an item to edit");
+      return;
+    } else {
+      if (isAuthorized) {
         setAction("edit_cart");
         setQuantityDialogOpen(true);
+        return;
       } else {
-        setQuantityDialogOpen(false);
-        toast.error("Please select an item to update");
-      }
-    } else {
-      if (selectedCartItem) {
         setAction("edit_cart");
         setAuthorizationDialogOpen(true);
-      } else {
-        toast.error("Please select an item to update");
       }
     }
   };
