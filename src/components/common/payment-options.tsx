@@ -214,7 +214,7 @@ const PaymentOptions = ({
                   disabled={paid === null}
                   onClick={() => handleManualSubmit(paid ? paid.ttp : "")}
                 >
-                  Submit
+                  Add Payment
                 </Button>
               </div>
               {/* <Input>
