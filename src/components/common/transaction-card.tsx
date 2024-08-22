@@ -187,14 +187,15 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
         const result = await issueClearCart(data.unique_identifier);
         if (result) {
           toast.success("Transaction cleared successfully");
-          router.refresh();
           onRefresh();
+          router.refresh();
         } else {
           toast.error("Failed to clear transaction");
         }
       } catch (error) {
         console.log("error", error);
       } finally {
+        onRefresh();
         router.replace("/transactions");
       }
     } else {
