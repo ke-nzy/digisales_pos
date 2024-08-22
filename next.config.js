@@ -24,24 +24,24 @@ const nextConfigFunction = async () => {
   const withPWA = (await import("@ducanh2912/next-pwa")).default({
     dest: "public",
     cacheOnFrontEndNav: true,
-    extendDefaultRuntimeCaching: true,
+    // extendDefaultRuntimeCaching: true,
     reloadOnOnline: true,
     workboxOptions: {
       disableDevLogs: true,
-      runtimeCaching: [
-        {
-          urlPattern: ({ url: { pathname }, sameOrigin }) =>
-            sameOrigin && !pathname.startsWith("/api/"),
-          handler: "NetworkFirst",
-          options: {
-            cacheName: "pages",
-            expiration: {
-              maxEntries: 32,
-              maxAgeSeconds: 24 * 60 * 60, // 24 hours
-            },
-          },
-        },
-      ],
+      // runtimeCaching: [
+      //   {
+      //     urlPattern: ({ url: { pathname }, sameOrigin }) =>
+      //       sameOrigin && !pathname.startsWith("/api/"),
+      //     handler: "NetworkFirst",
+      //     options: {
+      //       cacheName: "pages",
+      //       expiration: {
+      //         maxEntries: 32,
+      //         maxAgeSeconds: 24 * 60 * 60, // 24 hours
+      //       },
+      //     },
+      //   },
+      // ],
     },
     // aggressiveFrontEndNavCaching: true,
     // reloadOnOnline: true,
