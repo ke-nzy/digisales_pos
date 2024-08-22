@@ -23,12 +23,27 @@ const config = {
 const nextConfigFunction = async () => {
   const withPWA = (await import("@ducanh2912/next-pwa")).default({
     dest: "public",
-    // cacheOnFrontEndNav: true,
+    cacheOnFrontEndNav: true,
+    aggressiveFrontEndNavCaching: true,
     // reloadOnOnline: true,
+    extendDefaultRuntimeCaching: true,
     workboxOptions: {
       disableDevLogs: true,
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/digisales-pos\.vercel\.app\/.*$/,
+          handler: "StaleWhileRevalidate",
+          options: {
+            cacheName: "pages-cache",
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            },
+          },
+        },
+        // Add more runtime caching options here
+      ],
     },
-    // aggressiveFrontEndNavCaching: true,
     // reloadOnOnline: true,
     // swMinFiles: true,
   });
