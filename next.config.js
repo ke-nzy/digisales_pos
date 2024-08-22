@@ -24,7 +24,7 @@ const nextConfigFunction = async () => {
   const withPWA = (await import("@ducanh2912/next-pwa")).default({
     dest: "public",
     // cacheOnFrontEndNav: true,
-    reloadOnOnline: true,
+    // reloadOnOnline: true,
     workboxOptions: {
       disableDevLogs: true,
     },
