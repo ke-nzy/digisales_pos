@@ -42,28 +42,32 @@ interface Invoice {
 }
 let dbPromise: Promise<IDBPDatabase<Database>> | undefined;
 if (typeof window !== "undefined") {
-  // dbPromise = openDB<Database>("posdatabase", 2, {
-  //   upgrade(db) {
-  //     db.createObjectStore("inventory", { keyPath: "stock_id" });
-  //     db.createObjectStore("carts", { keyPath: "cart_id" });
-  //     db.createObjectStore("priceList", { keyPath: "stock_id" });
-  //     db.createObjectStore("metadata");
-  //     if (!db.objectStoreNames.contains("unsynced_invoices")) {
-  //       db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
-  //     }
-  //   },
-  // });
   dbPromise = openDB<Database>("posdatabase", 2, {
-    // Increment version number
-    upgrade(db, oldVersion) {
-      if (oldVersion < 1) {
-        db.createObjectStore("inventory", { keyPath: "stock_id" });
-        db.createObjectStore("carts", { keyPath: "cart_id" });
-        db.createObjectStore("priceList", { keyPath: "stock_id" });
-        db.createObjectStore("metadata");
-      }
-      if (oldVersion < 2) {
-        db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
+    upgrade(db, oldVersion, newVersion, transaction) {
+      switch (oldVersion) {
+        case 0:
+        case 1:
+          // Creating all object stores from version 1
+          if (!db.objectStoreNames.contains("inventory")) {
+            db.createObjectStore("inventory", { keyPath: "stock_id" });
+          }
+          if (!db.objectStoreNames.contains("carts")) {
+            db.createObjectStore("carts", { keyPath: "cart_id" });
+          }
+          if (!db.objectStoreNames.contains("priceList")) {
+            db.createObjectStore("priceList", { keyPath: "stock_id" });
+          }
+          if (!db.objectStoreNames.contains("metadata")) {
+            db.createObjectStore("metadata");
+          }
+        // Intentionally no break, so that we also create the `unsynced_invoices` store for version 2
+        case 2:
+          if (!db.objectStoreNames.contains("unsynced_invoices")) {
+            db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
+          }
+          break;
+        default:
+          console.warn("Unexpected oldVersion:", oldVersion);
       }
     },
   });
