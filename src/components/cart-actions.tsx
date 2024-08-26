@@ -1,11 +1,10 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "~/components/ui/card";
 import {
   CaptionsOffIcon,
@@ -15,16 +14,12 @@ import {
   // MoveVerticalIcon,
   PauseIcon,
   PercentIcon,
-  RefreshCcw,
   RefreshCcwIcon,
-  RefreshCwOff,
   RefreshCwOffIcon,
   SearchIcon,
   SendIcon,
   ShoppingBasketIcon,
-  Trash2Icon,
   User2Icon,
-  XIcon,
 } from "lucide-react";
 // import {
 //   DropdownMenu,
@@ -33,14 +28,9 @@ import {
 //   DropdownMenuTrigger,
 //   DropdownMenuSeparator,
 // } from "~/components/ui/dropdown-menu";
-import {
-  calculateCartTotal,
-  calculateDiscount,
-  cn,
-  tallyTotalAmountPaid,
-} from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { usePayStore } from "~/store/pay-store";
 import { useAuthStore } from "~/store/auth-store";
 import {
@@ -69,7 +59,6 @@ import {
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useUpdateCart } from "~/hooks/use-cart";
-import { getAllUnsyncedInvoices } from "~/utils/indexeddb";
 import {
   useOfflineInvoices,
   useUnsyncedInvoices,
