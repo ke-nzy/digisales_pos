@@ -126,9 +126,14 @@ export async function submit_direct_sale_request(
       return {
         offline: true,
         uid,
+        customer: customer,
+        uname: username,
+        id: user_id,
+        pin: pin,
         inv_date: new Date().toISOString(),
         pos_payments: JSON.stringify(payment),
         pos_items: JSON.stringify(items),
+        total: total.toString(),
         synced: false,
         synced_at: "",
       };

@@ -424,6 +424,24 @@ export const cartColumns: ColumnDef<DirectSales>[] = [
   },
 ];
 
+export function calculateOfflineSubtotalAndDiscount(data: UnsynchedInvoice) {
+  // Parse the pitems JSON string into an array of objects
+  const pitems: TransactionInvItem[] = JSON.parse(data.pos_items);
+
+  // Calculate the subtotal and total discount
+  const result = pitems.reduce(
+    (acc, item) => {
+      const total = parseFloat(item.quantity) * parseFloat(item.price);
+      const discount = parseFloat(item.discount);
+      acc.subtotal += total;
+      acc.totalDiscount += discount;
+      return acc;
+    },
+    { subtotal: 0, totalDiscount: 0 },
+  );
+
+  return result;
+}
 export function calculateSubtotalAndDiscount(data: TransactionReportItem) {
   // Parse the pitems JSON string into an array of objects
   const pitems: TransactionInvItem[] = JSON.parse(data.pitems);

@@ -25,6 +25,7 @@ import TransactionReceiptPDF from "./thermal-receipt";
 import { pdf } from "@react-pdf/renderer";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 import { addInvoice } from "~/utils/indexeddb";
+import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
 
 interface AmountInputProps {
   value: string;
@@ -87,6 +88,44 @@ const AmountInput = ({
         />,
       ).toBlob();
 
+      const url = URL.createObjectURL(pdfBlob);
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.zIndex = "1000";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.focus();
+        iframe.contentWindow!.print();
+        iframe.contentWindow!.onafterprint = () => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+          setIsPrinted(true);
+        };
+      };
+    } catch (error) {
+      console.error("Failed to print document:", error);
+      toast.error("Failed to print document");
+      setIsPrinted(false);
+    }
+  };
+
+  const handleOfflinePrint = async (data: UnsynchedInvoice) => {
+    try {
+      console.log("handlePrint", data);
+      setPaidStatus(true);
+
+      const pdfBlob = await pdf(
+        <OfflineTransactionReceiptPDF
+          data={data}
+          receipt_info={receipt_info!}
+          account={account!}
+          duplicate={true}
+        />,
+      ).toBlob();
       const url = URL.createObjectURL(pdfBlob);
       const iframe = document.createElement("iframe");
       iframe.style.position = "fixed";
@@ -188,6 +227,7 @@ const AmountInput = ({
       if (result && (result as OfflineSalesReceiptInformation).offline) {
         await addInvoice(result as OfflineSalesReceiptInformation);
         toast.info("Transaction saved Offline");
+        await handleOfflinePrint(result as UnsynchedInvoice);
         clearCart();
         clearPaymentCarts();
         setPin("");
@@ -226,11 +266,13 @@ const AmountInput = ({
         setIsPrinted(false);
       }
 
-      clearCart();
-      clearPaymentCarts();
       setPin("");
+      if (result && !(result as OfflineSalesReceiptInformation).offline) {
+        clearCart();
+        clearPaymentCarts();
+        router.push("/payment/paid");
+      }
       // if (isPrinted) {
-      router.push("/payment/paid");
       // }
     } catch (error) {
       console.error("Something went wrong", error);
