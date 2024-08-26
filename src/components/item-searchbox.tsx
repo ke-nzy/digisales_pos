@@ -50,8 +50,8 @@ const ItemSearchBox = () => {
     site_url!,
     site_company!,
     account!,
-    item?.stock_id ?? undefined,
-    item?.kit ?? undefined,
+    item?.stock_id ?? "",
+    item?.kit ?? "",
   );
 
   const dt = {
@@ -119,6 +119,7 @@ const ItemSearchBox = () => {
   useEffect(() => {
     if (item) {
       if (details !== null && details !== undefined) {
+        console.log("details", details);
         if (details.quantity_available <= 0) {
           toast.error("Item is out of stock");
           return;
@@ -167,7 +168,7 @@ const ItemSearchBox = () => {
       </div>
     );
   if (error) return <div>Error: {error}</div>;
-  if (detailsError) return <div>Error: {detailsError.message}</div>;
+  // if (detailsError) return <div>Error: {detailsError.message}</div>;
 
   const handleMpesaRowClick = (rowData: Payment) => {
     const paymentType = dt.paymentType; // Extract the payment type from the data table

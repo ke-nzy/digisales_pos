@@ -29,7 +29,9 @@ export interface IndexPageProps {
 const TransactionsPage = () => {
   const getCurrentDate: any = () => new Date().toISOString().split("T")[0];
   const searchParams = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>(
+    searchParams.get("searchTerm") ?? "",
+  );
   const [params, setParams] = useState<DateParams>({
     from: searchParams.get("from") ?? getCurrentDate(),
     to: searchParams.get("to") ?? getCurrentDate(),
@@ -53,10 +55,17 @@ const TransactionsPage = () => {
 
   // Apply the filter based on the search term
   const filteredTransactions = useMemo(() => {
-    return all.filter((transaction) =>
-      transaction.ptotal.toLowerCase().includes(searchTerm.toLowerCase()),
+    return all.filter(
+      (transaction) =>
+        transaction.ptotal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.unique_identifier
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()),
     );
   }, [all, searchTerm]);
+
+  console.log("searchParams", searchParams.get("searchTerm"));
   useEffect(() => {
     const newParams = {
       from: searchParams.get("from") ?? getCurrentDate(),

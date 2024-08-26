@@ -23,6 +23,7 @@ import { Button } from "./ui/button";
 import TransactionReceiptPDF from "./thermal-receipt";
 import { pdf } from "@react-pdf/renderer";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
+import { addInvoice } from "~/utils/indexeddb";
 
 interface AmountInputProps {
   value: string;
@@ -167,6 +168,8 @@ const AmountInput = ({
     console.log("pmnts", pmnts);
 
     setIsLoading(true);
+
+    console.log("currentCart-submit");
     try {
       const result = await submit_direct_sale_request(
         site_url!,
@@ -181,6 +184,15 @@ const AmountInput = ({
         pin,
       );
       console.log("result", result);
+      if (result && (result as OfflineSalesReceiptInformation).offline) {
+        await addInvoice(result as OfflineSalesReceiptInformation);
+        toast.info("Transaction saved Offline");
+        clearCart();
+        clearPaymentCarts();
+        setPin("");
+        setIsLoading(false);
+        return;
+      }
       if (!result) {
         // sentry.captureException(result);
         toast.error("Transaction failed");
@@ -220,6 +232,7 @@ const AmountInput = ({
       router.push("/payment/paid");
       // }
     } catch (error) {
+      console.error("Something went wrong", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);

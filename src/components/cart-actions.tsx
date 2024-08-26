@@ -15,6 +15,10 @@ import {
   // MoveVerticalIcon,
   PauseIcon,
   PercentIcon,
+  RefreshCcw,
+  RefreshCcwIcon,
+  RefreshCwOff,
+  RefreshCwOffIcon,
   SearchIcon,
   SendIcon,
   ShoppingBasketIcon,
@@ -65,6 +69,13 @@ import {
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useUpdateCart } from "~/hooks/use-cart";
+import { getAllUnsyncedInvoices } from "~/utils/indexeddb";
+import {
+  useOfflineInvoices,
+  useUnsyncedInvoices,
+} from "~/hooks/use-unsynced-invoices";
+import { sync_invoice } from "~/lib/actions/pay.actions";
+import { Skeleton } from "./ui/skeleton";
 
 const CartActions = () => {
   const {
@@ -96,7 +107,12 @@ const CartActions = () => {
   const [quantityDialogOpen, setQuantityDialogOpen] = useState<boolean>(false);
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
+  const [auto_sync_status, setAutoSyncStatus] = useState<boolean>(true);
   const [username, setUsername] = useState<string>("");
+  const { unsyncedInvoices, loading, error, refetch } = useUnsyncedInvoices();
+  const { unsyncedInvoices: offlineInvoices, loading: offlineLoading } =
+    useOfflineInvoices();
+  const [syncing, setSyncing] = useState<boolean>(false);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -175,6 +191,17 @@ const CartActions = () => {
     }
   }, [currentCart]);
 
+  useEffect(() => {
+    if (unsyncedInvoices.length > 0 && navigator.onLine) {
+      handleAutoSync().catch((error) => {
+        console.log("error", error);
+        toast.error("Unable to sync invoices");
+      });
+    } else {
+      setAutoSyncStatus(false);
+    }
+  }, []);
+
   const handleLogout = async () => {
     if (currentCart) {
       const res = await handleHoldCart();
@@ -236,6 +263,37 @@ const CartActions = () => {
       return false;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAutoSync = async () => {
+    console.log("handleAutoSync");
+    if (offlineInvoices.length > 0 && auto_sync_status) {
+      setSyncing(true);
+      const failedIndexes: number[] = [];
+      for (let i = 0; i < offlineInvoices.length; i++) {
+        const invoice: UnsynchedInvoice = offlineInvoices[i];
+        try {
+          const response = await sync_invoice(
+            site_url!,
+            site_company!.company_prefix,
+            invoice,
+          );
+          if (!response) {
+            failedIndexes.push(i);
+            console.log("failed to sync invoice", invoice.uid);
+          }
+        } catch (error) {
+          failedIndexes.push(i);
+          console.log("failed to sync invoice", invoice.uid);
+        }
+      }
+      setSyncing(false);
+      if (failedIndexes.length > 0) {
+        toast.error("Failed to sync all invoices");
+        console.log("failedIndexes", failedIndexes);
+        setAutoSyncStatus(false);
+      }
     }
   };
 
@@ -462,6 +520,34 @@ const CartActions = () => {
   };
 
   // if (!currentCart) return null;
+  if (loading)
+    return (
+      <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
+        <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+          <div className="flex flex-col space-y-3">
+            <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+          <div className="flex flex-col space-y-3">
+            <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+          <div className="flex flex-col space-y-3">
+            <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
@@ -851,6 +937,16 @@ const CartActions = () => {
           </CardHeader>
         </Card>
         <Card
+          className="flex-grow cursor-pointer  rounded-none hover:bg-accent focus:bg-accent"
+          onClick={() => sidebar?.setIsOpen()}
+        >
+          <CardHeader className="flex-col items-center justify-center  p-2 ">
+            <h6 className="self-start py-1 text-left text-xs font-semibold text-muted-foreground"></h6>
+            <EllipsisIcon className="h-8 w-8 " />
+            <h4 className="text-center text-sm font-normal">Menu</h4>
+          </CardHeader>
+        </Card>
+        <Card
           className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
           onClick={handleLogout}
         >
@@ -862,19 +958,10 @@ const CartActions = () => {
             <h4 className="text-center text-sm font-normal">Logout</h4>
           </CardHeader>
         </Card>
-        <Card
-          className="flex-grow cursor-pointer  rounded-none hover:bg-accent focus:bg-accent"
-          onClick={() => sidebar?.setIsOpen()}
-        >
-          <CardHeader className="flex-col items-center justify-center  p-2 ">
-            <h6 className="self-start py-1 text-left text-xs font-semibold text-muted-foreground"></h6>
-            <EllipsisIcon className="h-8 w-8 " />
-            <h4 className="text-center text-sm font-normal">Menu</h4>
-          </CardHeader>
-        </Card>
+
         <Card
           className="flex-grow cursor-pointer rounded-none bg-green-800 text-white hover:bg-green-800/90 "
-          onClick={() => router.push("/payment")}
+          onClick={() => (syncing ? null : router.push("/payment"))}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-white">
@@ -882,6 +969,33 @@ const CartActions = () => {
             </h6>
             <SendIcon className="h-8 w-8 text-white " />
             <h4 className="text-center text-sm font-normal">Process Payment</h4>
+          </CardHeader>
+        </Card>
+        <Card
+          className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
+          onClick={() => (syncing ? null : router.push("/unsynced-invoices"))}
+        >
+          <CardHeader className="flex-col items-center justify-center  p-2 ">
+            <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
+              F11
+            </h6>
+            {syncing && (
+              <RefreshCcwIcon className={cn("h-8 w-8 animate-spin")} />
+            )}
+            {!syncing && (
+              <RefreshCwOffIcon
+                className={cn(
+                  "h-8 w-8",
+                  unsyncedInvoices.length > 0 ? "h-4 w-4 animate-pulse" : "",
+                )}
+              />
+            )}
+            <h4 className="text-center text-sm font-normal">
+              Unsynced Invoices{" "}
+              {!loading && !error && unsyncedInvoices.length > 0
+                ? unsyncedInvoices.length
+                : ""}
+            </h4>
           </CardHeader>
         </Card>
       </div>

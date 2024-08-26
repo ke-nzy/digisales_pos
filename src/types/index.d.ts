@@ -111,6 +111,17 @@ declare type InventoryItem = {
   mb_flag: string;
 };
 
+declare type PriceList = {
+  balance: string;
+  description: string;
+  kit: string;
+  mb_flag: string;
+  price: string;
+  rate: string;
+  stock_id: string;
+  units: string;
+};
+
 declare type PricingMode = {
   id: string;
   sales_type: string;
@@ -233,7 +244,15 @@ declare type SalesReceiptInformation = {
   invNo: string;
   message: "Success" | object;
 };
-
+declare type OfflineSalesReceiptInformation = {
+  offline: true;
+  uid: string;
+  inv_date: string;
+  pos_payments: string;
+  pos_items: string;
+  synced: boolean;
+  synced_at: string;
+};
 declare type StockItem = {
   stock_id: string;
   item: string;
@@ -313,6 +332,22 @@ declare type DataTableFilterField<TData> = {
   value: keyof TData;
   placeholder?: string;
   options?: Option[];
+};
+
+declare type UnsynchedInvoice = {
+  offline: boolean;
+  uid: string;
+  customer: Customer;
+  uname: string;
+  id: string;
+  pin: string;
+  inv_date: string;
+  pos_payments: string;
+  pos_items: string;
+  total: string;
+  synced: boolean;
+  synced_at: string;
+  inv_total: string;
 };
 
 declare type SearchParams = Record<string, string | string[] | undefined>;
