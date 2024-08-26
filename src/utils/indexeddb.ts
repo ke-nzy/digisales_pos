@@ -1,4 +1,4 @@
-import { openDB } from "idb";
+import { IDBPDatabase, openDB } from "idb";
 
 interface InventoryItem {
   stock_id: string;
@@ -40,23 +40,26 @@ interface Invoice {
   synced: boolean;
   synced_at: string;
 }
-
-const dbPromise = openDB<Database>("posdatabase", 1, {
-  upgrade(db) {
-    db.createObjectStore("inventory", { keyPath: "stock_id" });
-    db.createObjectStore("carts", { keyPath: "cart_id" });
-    db.createObjectStore("priceList", { keyPath: "stock_id" });
-    db.createObjectStore("metadata");
-    if (!db.objectStoreNames.contains("unsynced_invoices")) {
-      db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
-    }
-  },
-});
+let dbPromise: Promise<IDBPDatabase<Database>> | undefined;
+if (typeof window !== "undefined") {
+  dbPromise = openDB<Database>("posdatabase", 1, {
+    upgrade(db) {
+      db.createObjectStore("inventory", { keyPath: "stock_id" });
+      db.createObjectStore("carts", { keyPath: "cart_id" });
+      db.createObjectStore("priceList", { keyPath: "stock_id" });
+      db.createObjectStore("metadata");
+      if (!db.objectStoreNames.contains("unsynced_invoices")) {
+        db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
+      }
+    },
+  });
+}
 
 export const setPriceList = async (
   storeName: keyof Database,
   value: PriceList[],
 ): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction(storeName, "readwrite");
   const store = tx.objectStore(storeName);
@@ -70,6 +73,7 @@ export const getPriceList = async (
   storeName: keyof Database,
   key: string,
 ): Promise<PriceList[] | undefined> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   if (storeName === "priceList") {
     const tx = db.transaction(storeName, "readonly");
@@ -83,6 +87,7 @@ export const getPriceList = async (
 export const getItemPriceDetails = async (
   stock_id: string,
 ): Promise<PriceList | undefined> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("priceList", "readonly");
   const store = tx.objectStore("priceList");
@@ -102,6 +107,7 @@ export const deletePriceList = async (
   storeName: keyof Database,
   key: string,
 ): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction(storeName, "readwrite");
   const store = tx.objectStore(storeName);
@@ -113,6 +119,7 @@ export const setInventory = async (
   storeName: keyof Database,
   value: InventoryItem[],
 ): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction(storeName, "readwrite");
   const store = tx.objectStore(storeName);
@@ -126,6 +133,7 @@ export const getInventory = async (
   storeName: keyof Database,
   key: string,
 ): Promise<InventoryItem[] | undefined> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   if (storeName === "inventory") {
     const tx = db.transaction(storeName, "readonly");
@@ -137,6 +145,7 @@ export const getInventory = async (
 };
 
 export const setCart = async (cart: Cart): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("carts", "readwrite");
   const store = tx.objectStore("carts");
@@ -145,6 +154,7 @@ export const setCart = async (cart: Cart): Promise<void> => {
 };
 
 export const getCart = async (cart_id: string): Promise<Cart | undefined> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("carts", "readonly");
   const store = tx.objectStore("carts");
@@ -155,6 +165,7 @@ export const updateCart = async (
   cart_id: string,
   newCart: Cart,
 ): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("carts", "readwrite");
   const store = tx.objectStore("carts");
@@ -168,6 +179,7 @@ export const updateCart = async (
 };
 
 export const deleteCart = async (cart_id: string): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("carts", "readwrite");
   const store = tx.objectStore("carts");
@@ -179,6 +191,7 @@ export const setMetadata = async (
   key: string,
   value: string,
 ): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("metadata", "readwrite");
   const store = tx.objectStore("metadata");
@@ -187,11 +200,13 @@ export const setMetadata = async (
 };
 
 export const getMetadata = async (key: string): Promise<string | undefined> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   return await db.get("metadata", key);
 };
 
 export const deleteMetadata = async (): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("metadata", "readwrite");
   const store = tx.objectStore("metadata");
@@ -202,6 +217,7 @@ export const deleteMetadata = async (): Promise<void> => {
 //  invoices
 export const addInvoice = async (invoice: Invoice): Promise<void> => {
   console.log("addInvoice", invoice);
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("unsynced_invoices", "readwrite");
   const store = tx.objectStore("unsynced_invoices");
@@ -209,14 +225,18 @@ export const addInvoice = async (invoice: Invoice): Promise<void> => {
   await tx.done;
 };
 
-export const getAllUnsyncedInvoices = async (): Promise<Invoice[]> => {
+export const getAllUnsyncedInvoices = async (): Promise<
+  Invoice[] | undefined
+> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("unsynced_invoices", "readonly");
   const store = tx.objectStore("unsynced_invoices");
   return await store.getAll();
 };
 
-export const getUnsyncedInvoices = async (): Promise<Invoice[]> => {
+export const getUnsyncedInvoices = async (): Promise<Invoice[] | undefined> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("unsynced_invoices", "readonly");
   const store = tx.objectStore("unsynced_invoices");
@@ -239,6 +259,7 @@ export const updateInvoice = async (
   uid: string,
   updatedInvoice: Partial<Invoice>,
 ): Promise<void> => {
+  if (!dbPromise) return; // Skip execution on the server
   const db = await dbPromise;
   const tx = db.transaction("unsynced_invoices", "readwrite");
   const store = tx.objectStore("unsynced_invoices");
