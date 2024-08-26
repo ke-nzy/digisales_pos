@@ -1,4 +1,5 @@
 import "~/styles/globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import "@fontsource/courier-prime";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "~/components/ui/sonner";
@@ -38,7 +39,11 @@ export default function RootLayout({
           fontSans.variable,
         )}
       > */}
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+
+          <Analytics />
+        </Providers>
         <Toaster richColors />
       </body>
     </html>
