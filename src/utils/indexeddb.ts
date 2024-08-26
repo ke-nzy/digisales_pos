@@ -42,13 +42,27 @@ interface Invoice {
 }
 let dbPromise: Promise<IDBPDatabase<Database>> | undefined;
 if (typeof window !== "undefined") {
+  // dbPromise = openDB<Database>("posdatabase", 2, {
+  //   upgrade(db) {
+  //     db.createObjectStore("inventory", { keyPath: "stock_id" });
+  //     db.createObjectStore("carts", { keyPath: "cart_id" });
+  //     db.createObjectStore("priceList", { keyPath: "stock_id" });
+  //     db.createObjectStore("metadata");
+  //     if (!db.objectStoreNames.contains("unsynced_invoices")) {
+  //       db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
+  //     }
+  //   },
+  // });
   dbPromise = openDB<Database>("posdatabase", 2, {
-    upgrade(db) {
-      db.createObjectStore("inventory", { keyPath: "stock_id" });
-      db.createObjectStore("carts", { keyPath: "cart_id" });
-      db.createObjectStore("priceList", { keyPath: "stock_id" });
-      db.createObjectStore("metadata");
-      if (!db.objectStoreNames.contains("unsynced_invoices")) {
+    // Increment version number
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        db.createObjectStore("inventory", { keyPath: "stock_id" });
+        db.createObjectStore("carts", { keyPath: "cart_id" });
+        db.createObjectStore("priceList", { keyPath: "stock_id" });
+        db.createObjectStore("metadata");
+      }
+      if (oldVersion < 2) {
         db.createObjectStore("unsynced_invoices", { keyPath: "uid" });
       }
     },
