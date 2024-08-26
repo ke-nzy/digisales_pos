@@ -42,7 +42,7 @@ interface Invoice {
 }
 let dbPromise: Promise<IDBPDatabase<Database>> | undefined;
 if (typeof window !== "undefined") {
-  dbPromise = openDB<Database>("posdatabase", 1, {
+  dbPromise = openDB<Database>("posdatabase", 2, {
     upgrade(db) {
       db.createObjectStore("inventory", { keyPath: "stock_id" });
       db.createObjectStore("carts", { keyPath: "cart_id" });
