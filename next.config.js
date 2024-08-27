@@ -41,6 +41,18 @@ const nextConfigFunction = async () => {
             },
           },
         },
+        {
+          urlPattern:
+            /^https:\/\/digisales-pos\.vercel\.app\/unsynced-invoices\/.*$/,
+          handler: "NetworkFirst",
+          options: {
+            cacheName: "offline-invoices-cache",
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            },
+          },
+        },
         // Add more runtime caching options here
       ],
     },
