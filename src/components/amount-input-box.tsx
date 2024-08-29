@@ -19,7 +19,7 @@ import { useAuthStore } from "~/store/auth-store";
 import { usePayStore } from "~/store/pay-store";
 import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
 import { useRouter } from "next/navigation";
-import { Trash2Icon } from "lucide-react";
+import { Loader2, Trash2Icon } from "lucide-react";
 import { Button } from "./ui/button";
 import TransactionReceiptPDF from "./thermal-receipt";
 import { pdf } from "@react-pdf/renderer";
@@ -362,7 +362,13 @@ const AmountInput = ({
           className="w-full"
           disabled={isLoading}
         >
-          Submit
+          {isLoading ? (
+            <>
+              <Loader2 size={20} className="animate-spin" /> &nbsp;
+            </>
+          ) : (
+            <>Submit</>
+          )}
         </Button>
       </div>
     </div>

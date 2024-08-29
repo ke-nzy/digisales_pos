@@ -9,6 +9,7 @@ import {
 import {
   CaptionsOffIcon,
   EllipsisIcon,
+  Loader2,
   LogOutIcon,
   // CopyIcon,
   // MoveVerticalIcon,
@@ -86,6 +87,7 @@ const CartActions = () => {
     useAuthStore();
 
   const [action, setAction] = useState<string>("");
+  const [pload, setPload] = useState<boolean>(false);
   const [discountValue, setDiscountValue] = useState<string>("0");
   const [discountPercentage, setDiscountPercentage] = useState<string>("0");
   const [quantityValue, setQuantityValue] = useState<string>("0");
@@ -612,7 +614,18 @@ const CartActions = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => handleAuthorization()}>Authorize</Button>
+              <Button
+                disabled={pload || isAuthorized}
+                onClick={() => handleAuthorization()}
+              >
+                {pload ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" /> &nbsp;
+                  </>
+                ) : (
+                  <>Authorize</>
+                )}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
