@@ -272,3 +272,116 @@ export async function fetch_manual_bank_payment_accounts(
     return null;
   }
 }
+
+export async function lookup_mpesa_payment(
+  ref: string,
+  site_url: string,
+  company_prefix: string,
+  user_id: string,
+  short_code: string,
+) {
+  const form = new FormData();
+  form.append("tp", "MpesaTransactionStatus");
+  form.append("cp", company_prefix);
+  form.append("id", user_id);
+  form.append("trans_id", ref);
+  form.append("short_code", short_code);
+
+  try {
+    const response = await axios.postForm<LookUpResponse>(
+      `${site_url}process.php`,
+      form,
+    );
+
+    if (response.data.result === "Failed") {
+      return null;
+    }
+
+    await delay(3000);
+
+    const transaction = await handleTransactionEnd(
+      site_url,
+      company_prefix,
+      response.data.ConversationID,
+      ref,
+      user_id,
+    );
+    return transaction;
+
+    // return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.log("Failed to load mpesa transactions");
+    }
+    console.log(e);
+    return null;
+  }
+}
+
+async function handleTransactionEnd(
+  site_url: string,
+  cp: string,
+  conversation_id: string,
+  ref: string,
+  user_id: string,
+) {
+  try {
+    const conversation = await lookup_mpesa_end(site_url, cp, conversation_id);
+    if (
+      conversation &&
+      conversation[0]?.TransAction ===
+        "The transaction receipt number does not exist."
+    ) {
+      return {
+        result: "Failed",
+        message: "Transaction number does not exist.",
+      };
+    }
+
+    const transactions = await fetch_mpesa_transactions(site_url, cp, user_id);
+    const foundTransaction = transactions?.find((tx) => tx.TransID === ref);
+
+    if (foundTransaction) {
+      console.log("Found transaction", foundTransaction);
+      return foundTransaction;
+    } else {
+      console.log("Transaction not found after conversation end.");
+      return null;
+    }
+  } catch (error) {
+    console.log("Failed to end conversation");
+    return null;
+  }
+}
+
+export async function lookup_mpesa_end(
+  site_url: string,
+  cp: string,
+  conversation_id: string,
+) {
+  const form = new FormData();
+  form.append("tp", "MpesaTransactionResponse");
+  form.append("cp", cp);
+  form.append("ConversationID", conversation_id);
+
+  try {
+    const response = await axios.postForm<ConversationResponse[]>(
+      `${site_url}process.php`,
+      form,
+    );
+
+    console.log("MPESA ", response.data);
+
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.log("Failed to load mpesa transactions");
+    }
+    console.log(e);
+    return null;
+  }
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

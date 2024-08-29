@@ -10,6 +10,8 @@ import {
   DialogDescription,
   DialogTitle,
   DialogHeader,
+  DialogFooter,
+  DialogClose,
 } from "../ui/dialog";
 import { DataTable } from "../data-table";
 import { paymentColumns } from "~/lib/utils";
@@ -18,7 +20,10 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { SearchCodeIcon } from "lucide-react";
+import { Loader2, SearchCodeIcon } from "lucide-react";
+import { lookup_mpesa_payment } from "~/lib/actions/pay.actions";
+import { useAuthStore } from "~/store/auth-store";
+import { toast } from "sonner";
 
 interface PaymentProps {
   item: Payment;
@@ -32,6 +37,7 @@ const PaymentOptions = ({
   amount: string;
   setAmount: React.Dispatch<React.SetStateAction<string>>;
 }) => {
+  const { site_url, site_company, account } = useAuthStore();
   const { manualPayments } = useManualPayments();
   const { mpesaPayments } = useMpesaPayments();
   const { addItemToPayments } = usePayStore();
@@ -39,15 +45,46 @@ const PaymentOptions = ({
   const [pName, setPName] = useState<string>("");
   const [transactionNumber, setTransactionNumber] = useState<string>("");
   const [amnt, setAmnt] = useState<string>(amount);
+  const [lookupRef, setLookupRef] = useState<string>("");
   const [mpesaDialogOpen, setMpesaDialogOpen] = React.useState<boolean>(false);
   const [manualDialogOpen, setManualDialogOpen] =
     React.useState<boolean>(false);
+  const [transactionFoundDialog, setTransactionFoundDialog] =
+    useState<boolean>(false);
+  const [foundTransaction, setFoundTransaction] = useState<Payment | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleMpesaRowClick = (rowData: Payment) => {
     const paymentType = "MPESA"; // Extract the payment type from the data table
     addItemToPayments(rowData, paymentType);
     setAmount("");
     setMpesaDialogOpen(false);
+  };
+
+  const handleMpesaLookup = async () => {
+    setIsLoading(true);
+    const res = await lookup_mpesa_payment(
+      lookupRef,
+      site_url!,
+      site_company!.company_prefix,
+      account!.id,
+      "7451193",
+    );
+    if (res) {
+      if ((res as LookUpResponse).result === "Failed") {
+        toast.error((res as LookUpResponse).message);
+        setIsLoading(false);
+        return;
+      } else {
+        console.log("We have found ", res);
+        setFoundTransaction(res as Payment);
+        setTransactionFoundDialog(true);
+        setIsLoading(false);
+        return;
+      }
+    }
   };
 
   const handleManualSubmit = (ttp: string) => {
@@ -65,11 +102,19 @@ const PaymentOptions = ({
     setAmount("");
     setManualDialogOpen(false);
   };
+
+  const handleTransactionFound = () => {
+    addItemToPayments(foundTransaction!, "MPESA");
+    setAmount("");
+    setMpesaDialogOpen(false);
+    setLookupRef("");
+    setTransactionFoundDialog(false);
+  };
   return (
     <div className="mx-auto grid w-full max-w-md grid-cols-1 gap-4">
       {getPaymentList().map((paymentOption) => (
         <Dialog
-          open={mpesaDialogOpen}
+          open={mpesaDialogOpen || isLoading}
           onOpenChange={
             paymentOption.id === "mpesa"
               ? setMpesaDialogOpen
@@ -128,11 +173,26 @@ const PaymentOptions = ({
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
-                    <div className="flex flex-col items-center space-y-2">
-                      <Input />
+                    <div className="flex flex-col items-center space-y-2 py-4">
+                      <Input
+                        value={lookupRef}
+                        onChange={(e) => setLookupRef(e.target.value)}
+                      />
                       <div className="flex w-full justify-end *:flex-row">
-                        <Button>
-                          <SearchCodeIcon className="h-4 w-4" /> Lookup
+                        <Button
+                          disabled={lookupRef === "" || isLoading}
+                          onClick={() => handleMpesaLookup()}
+                        >
+                          {isLoading ? (
+                            <>
+                              <span className="mr-1">Looking </span>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </>
+                          ) : (
+                            <>
+                              <SearchCodeIcon className="h-4 w-4" /> Lookup
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -220,6 +280,29 @@ const PaymentOptions = ({
                  </Input> */}
             </CardContent>
           </Card>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={transactionFoundDialog}
+        onOpenChange={setTransactionFoundDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle> Transaction Found</DialogTitle>
+            <DialogDescription>
+              Do you want to proceed with this transaction?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="justify-between">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                No
+              </Button>
+            </DialogClose>
+            <Button variant="default" onClick={handleTransactionFound}>
+              Yes
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

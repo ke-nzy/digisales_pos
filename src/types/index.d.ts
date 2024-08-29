@@ -350,4 +350,17 @@ declare type UnsynchedInvoice = {
   inv_total: string;
 };
 
+declare type LookUpResponse = {
+  result: "Success" | "Failed";
+  ConversationID: string;
+  message?: string;
+};
+
+declare type ConversationResponse = {
+  ResponseTime: string;
+  TransAction:
+    | "The transaction receipt number does not exist."
+    | "Transaction Verified";
+};
+
 declare type SearchParams = Record<string, string | string[] | undefined>;
