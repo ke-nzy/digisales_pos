@@ -7,12 +7,13 @@ import {
 import { useAuthStore } from "~/store/auth-store";
 
 const fetchManualPayments = async (): Promise<ManualBankPaymentAccount[]> => {
-  const { site_company, site_url } = useAuthStore.getState();
+  const { site_company, site_url, account } = useAuthStore.getState();
 
   // Fetch from API
   const banks = await fetch_manual_bank_payment_accounts(
     site_url!,
     site_company!.company_prefix,
+    account!.id,
   );
 
   const list = banks || [];

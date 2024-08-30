@@ -251,10 +251,12 @@ export async function fetch_mpesa_transactions(
 export async function fetch_manual_bank_payment_accounts(
   site_url: string,
   company_prefix: string,
+  user_id: string,
 ) {
   const form = new FormData();
   form.append("tp", "getManualBanks");
   form.append("cp", company_prefix);
+  form.append("id", user_id);
 
   try {
     const response = await axios.postForm<ManualBankPaymentAccount[]>(

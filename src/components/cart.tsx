@@ -38,7 +38,7 @@ const ShoppingCart = () => {
       <CardContent className="overflow-y-auto">
         <DataTable
           columns={cartColumns}
-          data={currentCart?.items ?? []}
+          data={currentCart?.items.reverse() ?? []}
           filCol="description"
           onRowClick={(rowData) => setSelectedCartItem(rowData)}
         />
