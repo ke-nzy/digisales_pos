@@ -16,16 +16,16 @@ const zReport = () => {
     to: getCurrentDate(),
   });
   const { posTransactionsReport, loading } = usePosTransactionsReport({
-    from: "2024-08-16",
-    to: "2024-08-16",
+    from: params.from,
+    to: params.to,
   });
   const {
     salesReport,
     loading: itemizedLoading,
     error,
   } = useItemizedSalesReport({
-    from: "2024-08-16",
-    to: "2024-08-16",
+    from: params.from,
+    to: params.to,
   });
 
   if (loading || itemizedLoading)

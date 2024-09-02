@@ -4,6 +4,7 @@ import {
   LayoutGrid,
   ScrollText,
   ArrowLeftRight,
+  UserCheck,
   // ShoppingBag,
 } from "lucide-react";
 
@@ -112,6 +113,13 @@ export function getMenuList(
             icon: ArrowLeftRight,
             submenus: [],
           },
+          // {
+          //   href: "/clearance",
+          //   label: "Cashier Clearance",
+          //   active: pathname.includes("/clearance"),
+          //   icon: UserCheck,
+          //   submenus: [],
+          // },
           // {
           //   href: "/reservations",
           //   label: "Reservations",

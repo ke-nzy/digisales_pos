@@ -42,6 +42,22 @@ export const authFormSchema = () =>
     })
     .required();
 
+export const clearanceFormSchema = () =>
+  z.object({
+    shift_no: z.string().min(1, { message: "Please enter shift number." }),
+    user_id: z.string().min(1, { message: "Please enter user id." }),
+    collections: z
+      .array(
+        z.object({
+          payment_mode: z
+            .string()
+            .min(1, { message: "Please enter payment mode." }),
+          amount: z.string().min(1, { message: "Please enter amount." }),
+        }),
+      )
+      .min(1, { message: "Please enter collections." }),
+  });
+
 export function generateRandomString(length: number) {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

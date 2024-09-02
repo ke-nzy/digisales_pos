@@ -220,6 +220,7 @@ export async function fetch_pos_transactions_report(
   site_url: string,
   postrans_date: string | undefined,
   end_date: string | undefined,
+  cashier_id?: string,
 ) {
   const sdate_ =
     postrans_date === undefined ? toDate(new Date()) : postrans_date;
@@ -234,7 +235,9 @@ export async function fetch_pos_transactions_report(
   if (roles?.includes("mBranchManager")) {
     form_data.append("branch_code", account.default_store);
   }
-  // form_data.append("id", account.id);
+  if (cashier_id) {
+    form_data.append("id", cashier_id);
+  }
   form_data.append("postrans_date", sdate_);
   form_data.append("end_date", edate_);
 
@@ -555,6 +558,75 @@ export async function fetch_daily_sales_target_summary(
     if (response.data.status === "Failed") {
       return null;
     }
+
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.log("Failed to fetch items sales");
+    }
+    console.log(e);
+    return null;
+  }
+}
+
+export async function fetch_shift_collections(
+  site_url: string,
+  company_prefix: string,
+  start_date: string | undefined,
+  end_date: string | undefined,
+  shift_no?: string,
+  user_id?: string,
+) {
+  const sdate_ = start_date === undefined ? toDate(new Date()) : start_date;
+  const edate_ = end_date === undefined ? toDate(new Date()) : end_date;
+
+  const form = new FormData();
+  form.append("tp", "get_shift_collections");
+  form.append("cp", company_prefix);
+  form.append("start_date", sdate_);
+  form.append("end_date", edate_);
+  if (shift_no) {
+    form.append("shift_no", shift_no);
+  }
+  if (user_id) {
+    form.append("id", user_id);
+  }
+  try {
+    const response = await axios.postForm<any[]>(
+      `${site_url}process.php`,
+      form,
+    );
+
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.log("Failed to fetch items sales");
+    }
+    console.log(e);
+    return null;
+  }
+}
+
+export async function fetch_shifts(
+  site_url: string,
+  company_prefix: string,
+  start_date: string | undefined,
+  end_date: string | undefined,
+) {
+  const sdate_ = start_date === undefined ? toDate(new Date()) : start_date;
+  const edate_ = end_date === undefined ? toDate(new Date()) : end_date;
+
+  const form = new FormData();
+  form.append("tp", "get_shifts");
+  form.append("cp", company_prefix);
+  form.append("start_date", sdate_);
+  form.append("end_date", edate_);
+
+  try {
+    const response = await axios.postForm<Shift[]>(
+      `${site_url}process.php`,
+      form,
+    );
 
     return response.data;
   } catch (e) {

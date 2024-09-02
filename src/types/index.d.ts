@@ -196,7 +196,10 @@ declare type DateParams = {
   from?: string;
   to?: string;
 };
-
+declare type TransTypeSummary = {
+  TransType: string | undefined;
+  TotalAmount: number;
+};
 declare type TransactionInvItem = {
   batch_no: string;
   booking_id: string;
@@ -363,4 +366,14 @@ declare type ConversationResponse = {
     | "Transaction Verified";
 };
 
+declare type Shift = {
+  id: string;
+  user_id: string;
+  dimension_id: string;
+  cycle_id: string;
+  start_date: string;
+  end_date: string;
+  closed: string;
+  user_name: string;
+};
 declare type SearchParams = Record<string, string | string[] | undefined>;

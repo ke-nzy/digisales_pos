@@ -68,6 +68,7 @@ const fetchDailyTargetsReport =
   };
 const fetchPosTransactionsReport = async (
   params: DateParams,
+  cashier_id?: string,
 ): Promise<TransactionReportItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
 
@@ -78,6 +79,7 @@ const fetchPosTransactionsReport = async (
     site_url!,
     params.from,
     params.to,
+    cashier_id,
   );
 
   const list = sreport || [];
@@ -141,12 +143,15 @@ export const useGeneralSalesReport = (params: DateParams) => {
   };
 };
 
-export const usePosTransactionsReport = (params: DateParams) => {
+export const usePosTransactionsReport = (
+  params: DateParams,
+  cashier_id?: string,
+) => {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery<TransactionReportItem[], Error>({
     queryKey: ["posTransactionsReport", params],
-    queryFn: () => fetchPosTransactionsReport(params),
+    queryFn: () => fetchPosTransactionsReport(params, cashier_id),
     // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
