@@ -130,12 +130,6 @@ const TransactionsPage = () => {
               triggerClassName="ml-auto w-56 sm:w-60"
               align="end"
             />
-            <div className=" ml-auto w-56 sm:w-60">
-              <p className="text-right text-xs text-muted-foreground">
-                from <strong>{params.from}</strong> to{" "}
-                <strong>{params.to}</strong>
-              </p>
-            </div>
           </React.Suspense>
           <div className="flex items-center">
             <h1 className="text-lg font-semibold md:text-2xl"> Transactions</h1>
@@ -166,12 +160,6 @@ const TransactionsPage = () => {
             triggerClassName="ml-auto w-56 sm:w-60"
             align="end"
           />
-          <div className=" ml-auto w-56 sm:w-60">
-            <p className="text-right text-xs text-muted-foreground">
-              from <strong>{params.from}</strong> to{" "}
-              <strong>{params.to}</strong>
-            </p>
-          </div>
         </React.Suspense>
         <Tabs defaultValue="completed">
           <div className="flex flex-row items-center justify-between space-x-1">

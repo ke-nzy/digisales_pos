@@ -3,7 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { addDays, format } from "date-fns";
+import { addDays, format, isBefore } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
 import { cn } from "~/lib/utils";
@@ -14,51 +14,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { CalendarPlus, CalendarRangeIcon } from "lucide-react";
 
 interface DateRangePickerProps
   extends React.ComponentPropsWithoutRef<typeof PopoverContent> {
-  /**
-   * The selected date range.
-   * @default undefined
-   * @type DateRange
-   * @example { from: new Date(), to: new Date() }
-   */
   dateRange?: DateRange;
-
-  /**
-   * The number of days to display in the date range picker.
-   * @default undefined
-   * @type number
-   * @example 7
-   */
   dayCount?: number;
-
-  /**
-   * The placeholder text of the calendar trigger button.
-   * @default "Pick a date"
-   * @type string | undefined
-   */
   placeholder?: string;
-
-  /**
-   * The variant of the calendar trigger button.
-   * @default "outline"
-   * @type "default" | "outline" | "secondary" | "ghost"
-   */
   triggerVariant?: Exclude<ButtonProps["variant"], "destructive" | "link">;
-
-  /**
-   * The size of the calendar trigger button.
-   * @default "default"
-   * @type "default" | "sm" | "lg"
-   */
   triggerSize?: Exclude<ButtonProps["size"], "icon">;
-
-  /**
-   * The class name of the calendar trigger button.
-   * @default undefined
-   * @type string
-   */
   triggerClassName?: string;
 }
 
@@ -97,7 +61,6 @@ export function DateRangePicker({
     };
   });
 
-  // Update query string
   React.useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams);
     if (date?.from) {
@@ -120,7 +83,7 @@ export function DateRangePicker({
   }, [date?.from, date?.to]);
 
   return (
-    <div className="grid gap-2">
+    <div className="grid grid-cols-2 gap-2">
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -128,20 +91,13 @@ export function DateRangePicker({
             size={triggerSize}
             className={cn(
               "w-full justify-start truncate text-left font-normal",
-              !date && "text-muted-foreground",
+              !date?.from && "text-muted-foreground",
               triggerClassName,
             )}
           >
-            <CalendarIcon className="mr-2 size-4" />
+            <CalendarPlus className="mr-2 size-4" />
             {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
-                </>
-              ) : (
-                format(date.from, "LLL dd, y")
-              )
+              format(date.from, "LLL dd, y")
             ) : (
               <span>{placeholder}</span>
             )}
@@ -150,14 +106,73 @@ export function DateRangePicker({
         <PopoverContent className={cn("w-auto p-0", className)} {...props}>
           <Calendar
             initialFocus
-            mode="range"
+            mode="single"
             defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
-            numberOfMonths={2}
+            selected={date?.from}
+            onSelect={(fromDate) =>
+              setDate((prev) => {
+                const newRange: DateRange = {
+                  from: fromDate,
+                  to:
+                    prev?.to && isBefore(fromDate!, prev.to)
+                      ? fromDate
+                      : prev?.to,
+                };
+                return newRange;
+              })
+            }
           />
         </PopoverContent>
       </Popover>
+
+      {date?.from && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={triggerVariant}
+              size={triggerSize}
+              className={cn(
+                "w-full justify-start truncate text-left font-normal",
+                !date?.to && "text-muted-foreground",
+                triggerClassName,
+              )}
+            >
+              <CalendarRangeIcon className="mr-2 size-4" />
+              {date?.to ? format(date.to, "LLL dd, y") : <span>To date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className={cn("w-auto p-0", className)} {...props}>
+            {date?.to ? (
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.to || date?.from}
+                selected={date}
+                onSelect={(selectedRange) =>
+                  setDate({
+                    from: selectedRange!.from,
+                    to: selectedRange!.to,
+                  })
+                }
+                numberOfMonths={2}
+              />
+            ) : (
+              <Calendar
+                initialFocus
+                mode="single"
+                defaultMonth={date?.from}
+                selected={date?.to}
+                onSelect={(toDate) =>
+                  setDate((prev) => ({
+                    from: prev?.from || toDate,
+                    to: toDate,
+                  }))
+                }
+              />
+            )}
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }

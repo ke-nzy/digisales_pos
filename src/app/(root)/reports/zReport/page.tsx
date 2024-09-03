@@ -2,7 +2,9 @@
 import { PrinterIcon } from "lucide-react";
 import React, { useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
+import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import ZReportTable from "~/components/z-report-table";
 import {
   useItemizedSalesReport,
@@ -77,6 +79,13 @@ const zReport = () => {
   return (
     <DashboardLayout title={"ZReport"}>
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+          <DateRangePicker
+            triggerSize="sm"
+            triggerClassName="ml-auto w-56 sm:w-60"
+            align="end"
+          />
+        </React.Suspense>
         <div className="flex h-full flex-1 items-center justify-center ">
           <div className="h-full w-full flex-grow  flex-col items-center justify-center gap-1 ">
             <ZReportTable data={posTransactionsReport} sales={salesReport} />

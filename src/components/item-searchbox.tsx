@@ -56,48 +56,11 @@ const ItemSearchBox = () => {
 
   const dt = {
     paymentType: "MPESA",
-    payments: [
-      {
-        Auto: "101486",
-        name: "LUCY W KIRURI",
-        TransID: "QAA5E62PK3",
-        TransAmount: "600",
-        TransTime: "20240614094602",
-      },
-      {
-        Auto: "101482",
-        name: "LILIAN NJERI WACHIRA",
-        TransID: "QAA5E50E2Z",
-        TransAmount: "3300",
-        TransTime: "20220110092658",
-      },
-    ],
+    payments: [],
   };
   const at = {
     paymentType: "CASH",
-    payments: [
-      {
-        Auto: "101463",
-        name: "JOYCE WANGARI WARUGURU",
-        TransID: "QA97DL3MD5",
-        TransAmount: "600",
-        TransTime: "1718365989933",
-      },
-      {
-        Auto: "101462",
-        name: "HENNEDY FLORA K NGAI",
-        TransID: "QA94DC9PEG",
-        TransAmount: "15000",
-        TransTime: "20220109180425",
-      },
-      {
-        Auto: "101461",
-        name: "JACKSON MUREITHI ",
-        TransID: "QA97DC475V",
-        TransAmount: "7800",
-        TransTime: "20220109180214",
-      },
-    ],
+    payments: [],
   };
 
   const handleUpdateCart = (cart_id: string, newCart: Cart) => {
@@ -117,7 +80,12 @@ const ItemSearchBox = () => {
     }
   }, [currentCart]);
   useEffect(() => {
+    console.log(
+      "item",
+      inventory.find((invItem) => invItem.stock_id.startsWith("C")),
+    );
     if (item) {
+      console.log("item", item);
       if (details !== null && details !== undefined) {
         console.log("details", details);
         if (details.quantity_available <= 0) {
