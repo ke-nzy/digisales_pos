@@ -1,7 +1,13 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsDownUp, PlusCircle, PlusIcon } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import {
+  Check,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  PlusCircle,
+  PlusIcon,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -46,6 +52,8 @@ import { useAuthStore } from "~/store/auth-store";
 
 const Clearance = () => {
   const { site_company, account, site_url } = useAuthStore.getState();
+  const roles = localStorage.getItem("roles");
+  const router = useRouter();
   const getCurrentDate: any = () => new Date().toISOString().split("T")[0];
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState<string>(
@@ -88,33 +96,49 @@ const Clearance = () => {
   useEffect(() => {
     if (!selectedShift) return;
     const data = summarizeByTransType(posTransactionsReport);
+    console.log("summarizeByTransType", data);
     setPaymentSummary(data);
   }, [selectedShift, posTransactionsReport]);
+
+  useEffect(() => {
+    if (roles) {
+      if (!roles.includes("mBranchManager")) {
+        router.push("/dashboard");
+        return;
+      } else {
+        return;
+      }
+    } else {
+      router.push("/dashboard");
+      return;
+    }
+  }, [roles]);
   const summarizeByTransType = (
     data: TransactionReportItem[],
   ): TransTypeSummary[] => {
     const summary: Record<string, number> = {};
-
+    console.log("summarizeByTransTypeData", data);
+    console.log("selectedShift", selectedShift);
     if (!selectedShift) return [];
-    // data
-    //   .filter((x) => x.shift_no === selectedShift.id)
-    //   .forEach((transaction) => {
-    //     const payments: Payment[] = JSON.parse(transaction.payments);
-    //     payments.forEach((payment) => {
-    //       const { Transtype, TransAmount } = payment;
-    //       const amount =
-    //         typeof TransAmount === "string"
-    //           ? parseFloat(TransAmount)
-    //           : TransAmount;
-    //       const type = Transtype ?? "unknown_payment";
+    data
+      .filter((x) => x.shift_no === selectedShift.id)
+      .forEach((transaction) => {
+        const payments: Payment[] = JSON.parse(transaction.payments);
+        payments.forEach((payment) => {
+          const { Transtype, TransAmount } = payment;
+          const amount =
+            typeof TransAmount === "string"
+              ? parseFloat(TransAmount)
+              : TransAmount;
+          const type = Transtype ?? "unknown_payment";
 
-    //       if (!summary[type]) {
-    //         summary[type] = 0;
-    //       }
+          if (!summary[type]) {
+            summary[type] = 0;
+          }
 
-    //       summary[type] += amount;
-    //     });
-    //   });
+          summary[type] += amount;
+        });
+      });
 
     return Object.entries(summary).map(([TransType, TotalAmount]) => ({
       TransType,
@@ -210,7 +234,7 @@ const Clearance = () => {
                                           )?.user_name
                                         } - ${new Date(selectedShift.start_date).toLocaleTimeString()}`
                                       : "Select Shift Number"}
-                                    <ChevronsDownUp className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                   </Button>
                                 </FormControl>
                               </PopoverTrigger>
@@ -256,35 +280,34 @@ const Clearance = () => {
                           </FormItem>
                         )}
                       />
-                      {paymentSummary.length > 0 &&
-                        paymentSummary.map((paymentType) => (
-                          <div
-                            key={paymentType.TransType}
-                            className="flex-col space-y-2 "
-                          >
-                            <Label htmlFor="name" className="text-right">
-                              {paymentType.TransType}
-                            </Label>
-                            <Input
-                              id="recorded_value"
-                              defaultValue={paymentType.TotalAmount}
-                              value={`KES ${paymentType.TotalAmount}`}
-                              className="col-span-3"
-                              disabled={true}
-                            />
-                            <Input
-                              id="name"
-                              defaultValue="Pedro Duarte"
-                              className="col-span-3"
-                            />
-                          </div>
-                        ))}
+                      {paymentSummary.map((paymentType) => (
+                        <div
+                          key={paymentType.TransType}
+                          className="flex-col space-y-2 "
+                        >
+                          <Label htmlFor="name" className="text-right">
+                            {paymentType.TransType}
+                          </Label>
+                          <Input
+                            id="recorded_value"
+                            defaultValue={paymentType.TotalAmount}
+                            value={`KES ${paymentType.TotalAmount}`}
+                            className="col-span-3"
+                            disabled={true}
+                          />
+                          <Input
+                            id="name"
+                            defaultValue="Pedro Duarte"
+                            className="col-span-3"
+                          />
+                        </div>
+                      ))}
                     </form>
                   </Form>
                 </div>
 
                 <DialogFooter>
-                  <Button onClick={() => null}>Update Cart</Button>
+                  {/* <Button onClick={() => null}>Update Cart</Button> */}
                 </DialogFooter>
               </DialogContent>
             </Dialog>

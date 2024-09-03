@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CalendarIcon } from "@radix-ui/react-icons";
 import { addDays, format, isBefore } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
@@ -83,7 +82,7 @@ export function DateRangePicker({
   }, [date?.from, date?.to]);
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="flex flex-row items-center justify-end space-x-2">
       <Popover>
         <PopoverTrigger asChild>
           <Button

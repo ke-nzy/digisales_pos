@@ -514,7 +514,7 @@ export async function submit_end_shift(
   form_data.append("tp", "close_shift");
   form_data.append("cp", company_prefix);
   form_data.append("id", user_id);
-  form_data.append("shiftid", shift_id);
+  form_data.append("shift_id", shift_id);
   try {
     const response = await axios.postForm<CheckInResponse>(
       `${site_url}process.php`,
