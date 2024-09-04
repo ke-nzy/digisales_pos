@@ -113,13 +113,13 @@ export function getMenuList(
             icon: ArrowLeftRight,
             submenus: [],
           },
-          {
-            href: "/clearance",
-            label: "Cashier Clearance",
-            active: pathname.includes("/clearance"),
-            icon: UserCheck,
-            submenus: [],
-          },
+          // {
+          //   href: "/clearance",
+          //   label: "Cashier Clearance",
+          //   active: pathname.includes("/clearance"),
+          //   icon: UserCheck,
+          //   submenus: [],
+          // },
           // {
           //   href: "/reservations",
           //   label: "Reservations",

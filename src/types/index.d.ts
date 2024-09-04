@@ -305,6 +305,7 @@ declare type TransactionReportItem = {
   dispatch: string;
   salepersonId: string;
   salepersonName: string;
+  shift_no: string;
   unique_identifier: string;
   qrCode: string | null;
   qrDate: string | null;

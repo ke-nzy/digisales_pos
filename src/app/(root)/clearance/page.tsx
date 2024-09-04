@@ -47,6 +47,7 @@ import {
 import { Skeleton } from "~/components/ui/skeleton";
 import { usePosTransactionsReport } from "~/hooks/use-reports";
 import { useShiftCollections, useShifts } from "~/hooks/use-shifts";
+import { submit_shift_collection } from "~/lib/actions/user.actions";
 import { clearanceFormSchema, cn } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 
@@ -89,9 +90,20 @@ const Clearance = () => {
     from: params.from,
     to: params.to,
   });
+
   const [openPopover, setOpenPopover] = useState<boolean>(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [paymentSummary, setPaymentSummary] = useState<TransTypeSummary[]>([]);
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
+
+  const handleAmountChange = (transType: string | undefined, value: string) => {
+    if (transType) {
+      setAmounts((prevAmounts) => ({
+        ...prevAmounts,
+        [transType]: value,
+      }));
+    }
+  };
 
   useEffect(() => {
     if (!selectedShift) return;
@@ -146,8 +158,21 @@ const Clearance = () => {
     }));
   };
 
-  const onSubmit = () => {
-    console.log("Submitted");
+  const onSubmit = async () => {
+    console.log("submitting");
+    const dataToSubmit = paymentSummary.map((paymentType) => ({
+      TransType: paymentType.TransType!,
+      ActualValue: amounts[paymentType.TransType!]?.toString() || "0.00",
+    }));
+    console.log("Submitted", dataToSubmit);
+    const res = await submit_shift_collection(
+      site_url!,
+      site_company!.company_prefix,
+      account!.id,
+      selectedShift!.id,
+      dataToSubmit,
+    );
+    console.log("Submitted", res);
   };
 
   const formSchema = clearanceFormSchema();
@@ -159,6 +184,8 @@ const Clearance = () => {
       collections: [],
     },
   });
+
+  console.log("payment summaries", paymentSummary);
 
   if (isLoading || shiftsLoading) {
     return <p>Loading</p>;
@@ -296,9 +323,20 @@ const Clearance = () => {
                             disabled={true}
                           />
                           <Input
-                            id="name"
-                            defaultValue="Pedro Duarte"
+                            id={`actual_value_${paymentType.TransType}`}
+                            defaultValue="0.00"
                             className="col-span-3"
+                            value={
+                              paymentType.TransType !== undefined
+                                ? amounts[paymentType.TransType]
+                                : ""
+                            }
+                            onChange={(e) =>
+                              handleAmountChange(
+                                paymentType.TransType,
+                                e.target.value,
+                              )
+                            }
                           />
                         </div>
                       ))}
@@ -307,7 +345,9 @@ const Clearance = () => {
                 </div>
 
                 <DialogFooter>
-                  {/* <Button onClick={() => null}>Update Cart</Button> */}
+                  <Button onClick={onSubmit} className="w-full">
+                    Clear Cashier
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

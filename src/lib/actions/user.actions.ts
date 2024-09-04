@@ -607,6 +607,54 @@ export async function fetch_shift_collections(
   }
 }
 
+export async function submit_shift_collection(
+  site_url: string,
+  company_prefix: string,
+  user_id: string,
+  shift_no: string,
+  collections: {
+    TransType: string;
+    ActualValue: string;
+  }[],
+) {
+  const payment_desc = collections.map((collection) => {
+    return {
+      pay_mode: collection.TransType,
+      amount: collection.ActualValue,
+    };
+  });
+
+  console.log("payment_desc", payment_desc);
+  const form_data = new FormData();
+  form_data.append("tp", "save_shift_collections");
+  form_data.append("cp", company_prefix);
+  form_data.append("id", user_id);
+  form_data.append("shift_no", shift_no);
+  form_data.append("paymodesdesc", JSON.stringify(payment_desc));
+
+  try {
+    const response = await axios.postForm<CheckInResponse>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    console.log("Submission successful");
+    console.log("SAVE SHIFT COLLECTION RESPONSE", response.data);
+
+    if (typeof response.data === "string") {
+      // SEND STRING TO SENTRY
+      return null;
+    }
+    return response.data;
+  } catch (e) {
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      console.error(e);
+    }
+    console.error("Failed to submit shift collection data");
+    return null;
+  }
+}
+
 export async function fetch_shifts(
   site_url: string,
   company_prefix: string,
