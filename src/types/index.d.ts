@@ -277,6 +277,16 @@ declare type GeneralSalesReportItem = {
   location_name: string;
   trans_time: string;
 };
+
+declare type CollectionReportItem = {
+  id: string;
+  user_id: string;
+  shift_no: string;
+  trans_date: string;
+  pay_mode: string;
+  amount: string;
+  trans_time: string;
+};
 declare type SalesReportItem = {
   stock_id: string;
   description: string;
@@ -319,6 +329,11 @@ declare type CheckInResponse = {
   id: string;
   message: string;
   user_id: string;
+};
+
+declare type ClearanceResponse = {
+  status: "Success" | "Failed";
+  id?: string;
 };
 
 declare type DailyTargetReportSummary = {

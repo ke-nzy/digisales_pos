@@ -633,7 +633,7 @@ export async function submit_shift_collection(
   form_data.append("paymodesdesc", JSON.stringify(payment_desc));
 
   try {
-    const response = await axios.postForm<CheckInResponse>(
+    const response = await axios.postForm<ClearanceResponse>(
       `${site_url}process.php`,
       form_data,
     );

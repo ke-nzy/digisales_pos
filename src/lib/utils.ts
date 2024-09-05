@@ -338,6 +338,45 @@ export const generalSalesReportColumns: ColumnDef<GeneralSalesReportItem>[] = [
     },
   },
 ];
+export const CollectionsReportColumns: ColumnDef<CollectionReportItem>[] = [
+  {
+    id: "trans_time",
+    accessorKey: "trans_time",
+    header: "Date",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "collection_no",
+    accessorKey: "id",
+    header: "Collection No",
+    cell: (props) => props.getValue(),
+  },
+
+  {
+    id: "user_id",
+    accessorKey: "user_id",
+    header: "User",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "shift_no",
+    accessorKey: "shift_no",
+    header: "Shift",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "pay_mode",
+    accessorKey: "pay_mode",
+    header: "Payment Mode",
+    cell: (props) => props.getValue(),
+  },
+  {
+    id: "amount",
+    accessorKey: "amount",
+    header: "Amount",
+    cell: (props) => props.getValue(),
+  },
+];
 
 export const posTransactionColumns: ColumnDef<any>[] = [
   {

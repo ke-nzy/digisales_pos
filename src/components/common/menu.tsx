@@ -26,7 +26,9 @@ interface MenuProps {
 export default function Menu({ isOpen }: MenuProps) {
   const roles = localStorage.getItem("roles");
   const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
+  const isAdmin = roles ? roles?.includes("lOn Map") : false;
   const [bManager, setBManager] = useState<boolean>(isBranchManager);
+  const [admin, setAdmin] = useState<boolean>(isAdmin);
   const pathname = usePathname();
   const { clear_auth_session } = useAuthStore();
   const router = useRouter();
@@ -37,7 +39,14 @@ export default function Menu({ isOpen }: MenuProps) {
       setBManager(false);
     }
   }, [roles]);
-  const menuList = getMenuList(pathname, bManager);
+  useEffect(() => {
+    if (roles?.includes("lOn Map")) {
+      setAdmin(true);
+    } else {
+      setAdmin(false);
+    }
+  }, [roles]);
+  const menuList = getMenuList(pathname, bManager, admin);
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">

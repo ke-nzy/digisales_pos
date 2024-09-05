@@ -10,9 +10,11 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { DateRangePicker } from "~/components/common/date-range-picker";
+import CollectionsDataTable from "~/components/data-table/collections-table";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -48,7 +50,12 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { usePosTransactionsReport } from "~/hooks/use-reports";
 import { useShiftCollections, useShifts } from "~/hooks/use-shifts";
 import { submit_shift_collection } from "~/lib/actions/user.actions";
-import { clearanceFormSchema, cn } from "~/lib/utils";
+import {
+  clearanceFormSchema,
+  cn,
+  CollectionsReportColumns,
+  toDate,
+} from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
 
 const Clearance = () => {
@@ -82,8 +89,8 @@ const Clearance = () => {
   const { data: shifts, isLoading: shiftsLoading } = useShifts(
     site_url!,
     site_company!.company_prefix,
-    params.from,
-    params.to,
+    toDate(new Date()),
+    toDate(new Date()),
   );
 
   const { posTransactionsReport, loading } = usePosTransactionsReport({
@@ -172,7 +179,14 @@ const Clearance = () => {
       selectedShift!.id,
       dataToSubmit,
     );
-    console.log("Submitted", res);
+    if (!res || res.status === "Failed") {
+      toast.error("Something went wrong");
+    } else {
+      toast.success("Collections saved");
+      setDialogOpen(false);
+      setSelectedShift(null);
+      setAmounts({});
+    }
   };
 
   const formSchema = clearanceFormSchema();
@@ -390,7 +404,151 @@ const Clearance = () => {
           <h1 className="text-lg font-semibold md:text-2xl">
             Shift Collections
           </h1>
-          <Button title="Add new" />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size={"sm"} variant={"default"}>
+                <PlusCircle className="h-6 w-6" />
+                Add new
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>New Payment Collection</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="shift_no"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Shift Number</FormLabel>
+                          <Popover
+                            open={openPopover}
+                            onOpenChange={setOpenPopover}
+                          >
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    "w-full justify-between",
+                                    !field.value && "text-muted-foreground",
+                                  )}
+                                >
+                                  {selectedShift
+                                    ? `${
+                                        shifts.find(
+                                          (x: Shift) =>
+                                            x.id === selectedShift.id,
+                                        )?.user_name
+                                      } - ${new Date(selectedShift.start_date).toLocaleTimeString()}`
+                                    : "Select Shift Number"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search" />
+                                <CommandList>
+                                  <CommandEmpty>No results</CommandEmpty>
+                                  <CommandGroup>
+                                    {shifts.map((shift: Shift) => (
+                                      <CommandItem
+                                        key={shift.id}
+                                        value={shift.id}
+                                        onSelect={(value) => {
+                                          setSelectedShift(
+                                            (shifts as Shift[]).find(
+                                              (shift) => shift.id === value,
+                                            ) ?? null,
+                                          );
+                                          form.setValue("shift_no", value);
+                                          setOpenPopover(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            shift.id ===
+                                              (selectedShift
+                                                ? selectedShift.id
+                                                : field.value)
+                                              ? "opacity-100"
+                                              : "opacity-0",
+                                          )}
+                                        />
+                                        {`${shift.id} - ${shift.user_name} -  ${new Date(shift.start_date).toLocaleTimeString()} `}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </FormItem>
+                      )}
+                    />
+                    {paymentSummary.map((paymentType) => (
+                      <div
+                        key={paymentType.TransType}
+                        className="flex-col space-y-2 "
+                      >
+                        <Label htmlFor="name" className="text-right">
+                          {paymentType.TransType}
+                        </Label>
+                        <Input
+                          id="recorded_value"
+                          defaultValue={paymentType.TotalAmount}
+                          value={`KES ${paymentType.TotalAmount}`}
+                          className="col-span-3"
+                          disabled={true}
+                        />
+                        <Input
+                          id={`actual_value_${paymentType.TransType}`}
+                          defaultValue="0.00"
+                          className="col-span-3"
+                          value={
+                            paymentType.TransType !== undefined
+                              ? amounts[paymentType.TransType]
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleAmountChange(
+                              paymentType.TransType,
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </div>
+                    ))}
+                  </form>
+                </Form>
+              </div>
+
+              <DialogFooter>
+                <Button onClick={onSubmit} className="w-full">
+                  Clear Cashier
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        {/* <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm"> */}
+        <div className="flex flex-col gap-4">
+          <CollectionsDataTable
+            from={params.from}
+            to={params.to}
+            columns={CollectionsReportColumns}
+            data={shiftCollections}
+            onRowClick={(rowData) => console.log(rowData)}
+          />
         </div>
       </main>
     </DashboardLayout>
