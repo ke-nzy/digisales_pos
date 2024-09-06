@@ -160,6 +160,13 @@ const AmountInput = ({
           return total + parseFloat(payment.TransAmount as string);
         }, 0);
 
+        const otherpayments = cart.payments.filter((payment) =>
+          payment.Transtype?.includes("CASH"),
+        );
+        const totalOtherPayments = otherpayments.reduce((total, payment) => {
+          return total + parseFloat(payment.TransAmount as string);
+        }, 0);
+
         console.log("totalCashPayments", totalCashPayments);
 
         if (totalCashPayments > invoiceTotal) {
@@ -168,7 +175,7 @@ const AmountInput = ({
               Auto: generateRandomString(6),
               name: generateRandomString(6),
               TransID: ` CASH ${generateRandomString(4)}`,
-              TransAmount: invoiceTotal.toString(),
+              TransAmount: (invoiceTotal - totalOtherPayments).toString(),
               TransTime: new Date().toISOString(),
               Transtype: "CASH",
               balance: totalCashPayments - invoiceTotal,
