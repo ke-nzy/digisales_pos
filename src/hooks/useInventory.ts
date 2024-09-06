@@ -19,7 +19,8 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
   const lastUpdate = await getMetadata("metadata");
   const now = new Date();
-  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 60 * 0.5);
+  // 1min ago
+  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 60 * 0.0167);
   let list: InventoryItem[] = [];
   if (lastUpdate) {
     if (new Date(lastUpdate) >= thirtyAgo) {
