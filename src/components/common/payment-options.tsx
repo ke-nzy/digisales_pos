@@ -246,7 +246,7 @@ const PaymentOptions = ({
             </CardHeader>
             <CardContent className="no-scrollbar max-h-[400px] overflow-y-auto">
               <div className="flex flex-col justify-evenly space-y-4">
-                {paid?.ttp === "CASH" ? (
+                {paid?.ttp.includes("CASH") ? (
                   <></>
                 ) : (
                   <div className="flex flex-col justify-evenly space-y-4">
