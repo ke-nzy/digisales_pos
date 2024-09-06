@@ -245,7 +245,8 @@ declare type SalesReceiptInformation = {
   weight: string;
   delNo: string;
   invNo: string;
-  message: "Success" | object;
+  status: "Success" | "Failed";
+  message: string | object;
 };
 declare type OfflineSalesReceiptInformation = {
   offline: true;

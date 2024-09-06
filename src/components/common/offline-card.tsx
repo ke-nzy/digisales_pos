@@ -31,6 +31,7 @@ import { sync_invoice } from "~/lib/actions/pay.actions";
 import { useAuthStore } from "~/store/auth-store";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { updateInvoice } from "~/utils/indexeddb";
 
 const UnsynchedCard = ({
   data,
@@ -54,6 +55,14 @@ const UnsynchedCard = ({
 
     if (!response) {
       toast.error("Failed to sync invoice");
+      return;
+    } else if (response.status === "Failed") {
+      toast.error(response.message as string);
+
+      data.synced = true;
+      data.synced_at = new Date().toISOString();
+      data.offline = false;
+      await updateInvoice(data.uid, data);
       return;
     } else {
       toast.success("Invoice synced successfully");
