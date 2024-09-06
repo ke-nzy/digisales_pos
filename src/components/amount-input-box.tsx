@@ -224,6 +224,12 @@ const AmountInput = ({
         pin,
       );
       console.log("result", result);
+      if (!result) {
+        // sentry.captureException(result);
+        toast.error("Transaction failed");
+        setIsLoading(false);
+        return;
+      }
       if (result && (result as OfflineSalesReceiptInformation).offline) {
         await addInvoice(result as OfflineSalesReceiptInformation);
         toast.info("Transaction saved Offline");
@@ -233,41 +239,35 @@ const AmountInput = ({
         setPin("");
         setIsLoading(false);
         return;
-      }
-      if (!result) {
-        // sentry.captureException(result);
-        toast.error("Transaction failed");
-        setIsLoading(false);
-        return;
-      }
-
-      const transaction_history = await fetch_pos_transactions_report(
-        site_company!,
-        account!,
-        site_url!,
-        toDate(new Date()),
-        toDate(new Date()),
-      );
-      // process receipt
-
-      toast.success("Invoice processed successfully");
-
-      //   router.refresh();
-
-      if (transaction_history) {
-        await handlePrint(transaction_history[0]!);
-
-        localStorage.setItem(
-          "transaction_history",
-          JSON.stringify(transaction_history[0]!),
-        );
       } else {
-        toast.error("Failed to print Something went wrong");
-        setIsPrinted(false);
+        const transaction_history = await fetch_pos_transactions_report(
+          site_company!,
+          account!,
+          site_url!,
+          toDate(new Date()),
+          toDate(new Date()),
+        );
+        // process receipt
+
+        toast.success("Invoice processed successfully");
+
+        //   router.refresh();
+
+        if (transaction_history) {
+          await handlePrint(transaction_history[0]!);
+
+          localStorage.setItem(
+            "transaction_history",
+            JSON.stringify(transaction_history[0]!),
+          );
+        } else {
+          toast.error("Failed to print Something went wrong");
+          setIsPrinted(false);
+        }
+        setPin("");
       }
 
-      setPin("");
-      if (result && !(result as OfflineSalesReceiptInformation).offline) {
+      if (!(result as OfflineSalesReceiptInformation).offline && result) {
         clearCart();
         clearPaymentCarts();
         router.push("/payment/paid");
