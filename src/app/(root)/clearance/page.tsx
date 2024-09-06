@@ -495,6 +495,15 @@ const Clearance = () => {
                         </FormItem>
                       )}
                     />
+                    {paymentSummary.length === 0 && (
+                      <div className="flex flex-col items-center gap-1 text-center">
+                        <h3 className="text-2xl font-bold tracking-tight">
+                          No payments were made during this shift
+                        </h3>
+
+                        {/* Add a collection button */}
+                      </div>
+                    )}
                     {paymentSummary.map((paymentType) => (
                       <div
                         key={paymentType.TransType}
