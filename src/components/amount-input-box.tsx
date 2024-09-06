@@ -160,14 +160,20 @@ const AmountInput = ({
           return total + parseFloat(payment.TransAmount as string);
         }, 0);
 
-        const otherpayments = cart.payments.filter((payment) =>
-          payment.Transtype?.includes("CASH"),
+        console.log("totalCashPayments", totalCashPayments);
+        const otherpayments = paymentCart.filter(
+          (payment) => !payment.paymentType?.includes("CASH"),
         );
+
         const totalOtherPayments = otherpayments.reduce((total, payment) => {
-          return total + parseFloat(payment.TransAmount as string);
+          const totals = payment.payments.reduce((total, payment) => {
+            return total + parseFloat(payment.TransAmount as string);
+          }, 0);
+          return total + totals;
         }, 0);
 
-        console.log("totalCashPayments", totalCashPayments);
+        console.log("otherpayments", otherpayments);
+        console.log("totalOtherPayments", totalOtherPayments);
 
         if (totalCashPayments > invoiceTotal) {
           const updatedPayments: Payment[] = [
@@ -178,7 +184,7 @@ const AmountInput = ({
               TransAmount: (invoiceTotal - totalOtherPayments).toString(),
               TransTime: new Date().toISOString(),
               Transtype: "CASH",
-              balance: totalCashPayments - invoiceTotal,
+              balance: totalCashPayments + totalOtherPayments - invoiceTotal,
             },
           ];
 
