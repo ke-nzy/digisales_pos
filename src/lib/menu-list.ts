@@ -5,6 +5,7 @@ import {
   ScrollText,
   ArrowLeftRight,
   UserCheck,
+  CloudOff,
   // ShoppingBag,
 } from "lucide-react";
 
@@ -228,10 +229,11 @@ export function getMenuList(
           {
             href: "/transactions",
             label: "Transactions",
-            active: pathname.includes("/categories"),
+            active: pathname.includes("/transactions"),
             icon: ArrowLeftRight,
             submenus: [],
           },
+
           // {
           //   href: "/clearance",
           //   label: "Cashier Clearance",
@@ -291,6 +293,13 @@ export function getMenuList(
             label: "Transactions",
             active: pathname.includes("/categories"),
             icon: ArrowLeftRight,
+            submenus: [],
+          },
+          {
+            href: "/unsynced-invoices",
+            label: "Unsynced Invoices",
+            active: pathname.includes("/unsynced-invoices"),
+            icon: CloudOff,
             submenus: [],
           },
           // {
