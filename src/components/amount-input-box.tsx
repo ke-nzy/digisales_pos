@@ -155,7 +155,7 @@ const AmountInput = ({
     invoiceTotal: number,
   ): PaymentCart[] => {
     return paymentCart.map((cart) => {
-      if (cart.paymentType === "CASH") {
+      if (cart.paymentType?.includes("CASH")) {
         const totalCashPayments = cart.payments.reduce((total, payment) => {
           return total + parseFloat(payment.TransAmount as string);
         }, 0);

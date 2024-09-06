@@ -495,11 +495,11 @@ const Clearance = () => {
                         </FormItem>
                       )}
                     />
-                    {paymentSummary.length === 0 && (
+                    {paymentSummary.length === 0 && selectedShift && (
                       <div className="flex flex-col items-center gap-1 text-center">
-                        <h3 className="text-2xl font-bold tracking-tight">
+                        <p className="text-sm text-muted-foreground">
                           No payments were made during this shift
-                        </h3>
+                        </p>
 
                         {/* Add a collection button */}
                       </div>
