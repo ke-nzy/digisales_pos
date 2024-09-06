@@ -154,6 +154,8 @@ const AmountInput = ({
     paymentCart: PaymentCart[],
     invoiceTotal: number,
   ): PaymentCart[] => {
+    console.log("paymentCart", paymentCart);
+    console.log("invoiceTotal", invoiceTotal);
     return paymentCart.map((cart) => {
       if (cart.paymentType?.includes("CASH")) {
         const totalCashPayments = cart.payments.reduce((total, payment) => {
@@ -165,6 +167,21 @@ const AmountInput = ({
           (payment) => !payment.paymentType?.includes("CASH"),
         );
 
+        // export const tallyTotalAmountPaid = (
+        //   paymentCarts: PaymentCart[],
+        // ): number => {
+        //   return paymentCarts.reduce((total, cart) => {
+        //     const cartTotal = cart.payments.reduce((cartSum, payment) => {
+        //       const amount =
+        //         typeof payment.TransAmount === "string"
+        //           ? parseFloat(payment.TransAmount)
+        //           : payment.TransAmount;
+        //       return cartSum + (isNaN(amount) ? 0 : amount);
+        //     }, 0);
+        //     return total + cartTotal;
+        //   }, 0);
+        // };
+
         const totalOtherPayments = otherpayments.reduce((total, payment) => {
           const totals = payment.payments.reduce((total, payment) => {
             return total + parseFloat(payment.TransAmount as string);
@@ -174,6 +191,8 @@ const AmountInput = ({
 
         console.log("otherpayments", otherpayments);
         console.log("totalOtherPayments", totalOtherPayments);
+        console.log("newCash", invoiceTotal - totalOtherPayments);
+        console.log("cart", cart);
 
         if (totalCashPayments > invoiceTotal) {
           const updatedPayments: Payment[] = [
@@ -183,8 +202,8 @@ const AmountInput = ({
               TransID: ` CASH ${generateRandomString(4)}`,
               TransAmount: (invoiceTotal - totalOtherPayments).toString(),
               TransTime: new Date().toISOString(),
-              Transtype: "CASH",
-              balance: totalCashPayments + totalOtherPayments - invoiceTotal,
+              Transtype: cart.paymentType,
+              balance: totalCashPayments - invoiceTotal,
             },
           ];
 
@@ -194,6 +213,7 @@ const AmountInput = ({
           };
         }
       }
+
       return cart;
     });
   };

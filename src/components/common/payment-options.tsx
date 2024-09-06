@@ -24,6 +24,7 @@ import { Loader2, SearchCodeIcon } from "lucide-react";
 import { lookup_mpesa_payment } from "~/lib/actions/pay.actions";
 import { useAuthStore } from "~/store/auth-store";
 import { toast } from "sonner";
+import { removeSpecialCharacters } from "../../lib/utils";
 
 interface PaymentProps {
   item: Payment;
@@ -91,7 +92,7 @@ const PaymentOptions = ({
     const paid: PaymentProps = {
       item: {
         Auto: transactionNumber,
-        name: pName,
+        name: removeSpecialCharacters(pName),
         TransAmount: amnt,
         TransID: transactionNumber,
         TransTime: Date.now(),

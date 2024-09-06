@@ -96,6 +96,9 @@ export const tallyTotalAmountPaid = (paymentCarts: PaymentCart[]): number => {
   }, 0);
 };
 
+export function removeSpecialCharacters(input: string): string {
+  return input.replace(/[^\w\s]/g, " ");
+}
 export const paymentColumns: ColumnDef<Payment>[] = [
   {
     accessorKey: "TransID",

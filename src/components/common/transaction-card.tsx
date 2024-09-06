@@ -71,6 +71,8 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const searchParams = useSearchParams();
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
+
+  console.log("payments", data.payments);
   const payments: Payment[] =
     data.payments && data.payments.length > 0 ? JSON.parse(data.payments) : [];
   const handleReOpen = async () => {
