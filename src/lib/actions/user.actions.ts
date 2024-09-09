@@ -592,7 +592,7 @@ export async function fetch_shift_collections(
     form.append("id", user_id);
   }
   try {
-    const response = await axios.postForm<any[]>(
+    const response = await axios.postForm<CollectionReportItem[]>(
       `${site_url}process.php`,
       form,
     );

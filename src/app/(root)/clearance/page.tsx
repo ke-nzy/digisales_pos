@@ -102,6 +102,9 @@ const Clearance = () => {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [paymentSummary, setPaymentSummary] = useState<TransTypeSummary[]>([]);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [calculatedValues, setCalculatedValues] = useState<
+    Record<string, number>
+  >({});
 
   const handleAmountChange = (transType: string | undefined, value: string) => {
     if (transType) {
@@ -132,6 +135,34 @@ const Clearance = () => {
       return;
     }
   }, [roles]);
+
+  useEffect(() => {
+    console.log("paymentSummary", paymentSummary);
+    console.log("selectedShift", selectedShift);
+    console.log("shiftCollections", shiftCollections);
+    if (selectedShift && shiftCollections) {
+      const newCalculatedValues = paymentSummary.reduce((acc, paymentType) => {
+        const totalCollected = (shiftCollections as CollectionReportItem[])
+          .filter(
+            (item) =>
+              item.pay_mode === paymentType.TransType &&
+              item.shift_no === selectedShift?.id,
+          )
+          .reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+        const recordedValue = paymentType.TotalAmount - totalCollected;
+
+        return {
+          ...acc,
+          [paymentType.TransType ?? ""]: recordedValue,
+        };
+      }, {});
+
+      setCalculatedValues(newCalculatedValues);
+      console.log("newCalculatedValues", newCalculatedValues);
+    }
+  }, [selectedShift, shiftCollections, paymentSummary]);
+
   const summarizeByTransType = (
     data: TransactionReportItem[],
   ): TransTypeSummary[] => {
@@ -144,7 +175,9 @@ const Clearance = () => {
       .forEach((transaction) => {
         const payments: Payment[] = JSON.parse(transaction.payments);
         payments.forEach((payment) => {
+          console.log("payment-add", payment);
           const { Transtype, TransAmount } = payment;
+          console.log("payment-typess", Transtype);
           const amount =
             typeof TransAmount === "string"
               ? parseFloat(TransAmount)
@@ -158,7 +191,7 @@ const Clearance = () => {
           summary[type] += amount;
         });
       });
-
+    console.log("summary", summary);
     return Object.entries(summary).map(([TransType, TotalAmount]) => ({
       TransType,
       TotalAmount,
@@ -202,6 +235,7 @@ const Clearance = () => {
 
   console.log("payment summaries", paymentSummary);
 
+  console.log("recordedValue", calculatedValues);
   if (isLoading || shiftsLoading) {
     return <p>Loading</p>;
   }
@@ -505,39 +539,58 @@ const Clearance = () => {
                         {/* Add a collection button */}
                       </div>
                     )}
-                    {paymentSummary.map((paymentType) => (
-                      <div
-                        key={paymentType.TransType}
-                        className="flex-col space-y-2 "
-                      >
-                        <Label htmlFor="name" className="text-right">
-                          {paymentType.TransType}
-                        </Label>
-                        <Input
-                          id="recorded_value"
-                          defaultValue={paymentType.TotalAmount}
-                          value={`KES ${paymentType.TotalAmount}`}
-                          className="col-span-3"
-                          disabled={true}
-                        />
-                        <Input
-                          id={`actual_value_${paymentType.TransType}`}
-                          defaultValue="0.00"
-                          className="col-span-3"
-                          value={
-                            paymentType.TransType !== undefined
-                              ? amounts[paymentType.TransType]
-                              : ""
-                          }
-                          onChange={(e) =>
-                            handleAmountChange(
-                              paymentType.TransType,
-                              e.target.value,
-                            )
-                          }
-                        />
-                      </div>
-                    ))}
+                    {paymentSummary.map((paymentType) => {
+                      const recordedValue =
+                        calculatedValues[paymentType.TransType ?? ""] || 0;
+
+                      return (
+                        <div
+                          key={paymentType.TransType}
+                          className="flex-col space-y-2 "
+                        >
+                          <Label htmlFor="name" className="text-right">
+                            {paymentType.TransType}
+                          </Label>
+                          <Input
+                            id="recorded_value"
+                            defaultValue={recordedValue}
+                            value={`KES ${recordedValue}`}
+                            className="col-span-3"
+                            disabled={true}
+                          />
+                          <span className="text-right">
+                            collected{" "}
+                            {(shiftCollections as CollectionReportItem[])
+                              .filter(
+                                (collection) =>
+                                  collection.pay_mode ===
+                                    paymentType.TransType &&
+                                  collection.shift_no === selectedShift?.id,
+                              )
+                              .reduce(
+                                (sum, item) => sum + parseFloat(item.amount),
+                                0,
+                              )}
+                          </span>
+                          <Input
+                            id={`actual_value_${paymentType.TransType}`}
+                            defaultValue="0.00"
+                            className="col-span-3"
+                            value={
+                              paymentType.TransType !== undefined
+                                ? amounts[paymentType.TransType]
+                                : ""
+                            }
+                            onChange={(e) =>
+                              handleAmountChange(
+                                paymentType.TransType,
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                      );
+                    })}
                   </form>
                 </Form>
               </div>
@@ -550,7 +603,6 @@ const Clearance = () => {
             </DialogContent>
           </Dialog>
         </div>
-        {/* <div className="flex h-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm"> */}
         <div className="flex flex-col gap-4">
           <CollectionsDataTable
             from={params.from}
