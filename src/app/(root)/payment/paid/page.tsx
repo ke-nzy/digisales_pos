@@ -226,7 +226,7 @@ const Paid = () => {
               <span className="ml-2 flex flex-row text-lg  font-medium">
                 Change:
                 <p className="text-xl font-semibold text-green-700">
-                  KES {balance}
+                  KES {paid - parseFloat(trans?.ptotal || "0")}
                 </p>
               </span>
             </div>
