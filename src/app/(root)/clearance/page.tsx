@@ -183,6 +183,7 @@ const Clearance = () => {
       toast.error("Something went wrong");
     } else {
       toast.success("Collections saved");
+      await refetch();
       setDialogOpen(false);
       setSelectedShift(null);
       setAmounts({});

@@ -235,18 +235,21 @@ declare type PaymentCart = {
 };
 
 declare type SalesReceiptInformation = {
-  controlCode: string;
-  middlewareInvoiceNumber: string;
-  mpesaRef: string | null;
+  message: string | object;
+  invNo: string;
+  delNo: string;
+  vat: number;
+  ttpAuto: string | null;
+  weight: string;
   posSaleInsertId: number;
   qrCode: string;
   qrDate: string;
-  ttpAuto: string | null;
-  weight: string;
-  delNo: string;
-  invNo: string;
+  controlCode: string;
+  middlewareInvoiceNumber: string;
+
+  mpesaRef: string | null;
   status: "Success" | "Failed";
-  message: string | object;
+  "0": TransactionReportItem;
 };
 declare type OfflineSalesReceiptInformation = {
   offline: true;

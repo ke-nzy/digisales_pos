@@ -66,7 +66,17 @@ const Paid = () => {
       iframe.onload = () => {
         iframe.focus();
         iframe.contentWindow!.print();
+
+        const printTimeout = setTimeout(() => {
+          // Close the print preview window if it's still open after 2 minutes (120000ms)
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+            console.log("Print preview closed after 2 minutes");
+          }
+        }, 60000); // 2 minutes
         iframe.contentWindow!.onafterprint = () => {
+          clearTimeout(printTimeout);
           document.body.removeChild(iframe);
           URL.revokeObjectURL(url); // Revoke the URL to free up resources
         };

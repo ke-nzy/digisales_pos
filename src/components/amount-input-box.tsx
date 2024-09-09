@@ -273,28 +273,28 @@ const AmountInput = ({
         setIsLoading(false);
         return;
       } else {
-        const transaction_history = await fetch_pos_transactions_report(
-          site_company!,
-          account!,
-          site_url!,
-          toDate(new Date()),
-          toDate(new Date()),
-        );
+        // const transaction_history = await fetch_pos_transactions_report(
+        //   site_company!,
+        //   account!,
+        //   site_url!,
+        //   toDate(new Date()),
+        //   toDate(new Date()),
+        // );
         // process receipt
 
         toast.success("Invoice processed successfully");
 
         //   router.refresh();
 
-        if (transaction_history) {
-          await handlePrint(transaction_history[0]!);
+        if ((result as SalesReceiptInformation)[0]) {
+          await handlePrint((result as SalesReceiptInformation)[0]);
 
           localStorage.setItem(
             "transaction_history",
-            JSON.stringify(transaction_history[0]!),
+            JSON.stringify((result as SalesReceiptInformation)[0]),
           );
         } else {
-          toast.error("Failed to print Something went wrong");
+          toast.error("Failed to print - Could not find transaction");
           setIsPrinted(false);
         }
         setPin("");
