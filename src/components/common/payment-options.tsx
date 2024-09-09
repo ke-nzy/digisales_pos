@@ -41,7 +41,7 @@ const PaymentOptions = ({
   const { site_url, site_company, account } = useAuthStore();
   const { manualPayments } = useManualPayments();
   const { mpesaPayments } = useMpesaPayments();
-  const { addItemToPayments } = usePayStore();
+  const { addItemToPayments, paymentCarts } = usePayStore();
   const [paid, setPaid] = useState<ManualBankPaymentAccount | null>(null);
   const [pName, setPName] = useState<string>("");
   const [transactionNumber, setTransactionNumber] = useState<string>("");
@@ -89,6 +89,15 @@ const PaymentOptions = ({
   };
 
   const handleManualSubmit = (ttp: string) => {
+    if (parseFloat(amnt) <= 0) {
+      toast.error("Please enter an amount");
+      return;
+    }
+
+    if (!ttp.includes("CASH") && transactionNumber === "") {
+      toast.error("Please enter a transaction number");
+      return;
+    }
     const paid: PaymentProps = {
       item: {
         Auto: transactionNumber,
@@ -100,7 +109,10 @@ const PaymentOptions = ({
       paymentType: ttp,
     };
     addItemToPayments(paid.item, paid.paymentType);
+    setAmnt("");
     setAmount("");
+    setTransactionNumber("");
+    setPName("");
     setManualDialogOpen(false);
   };
 
