@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { cn, transformToDirectSales } from "~/lib/utils";
+import { cn, transformArrayToCart } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
 import { getCart } from "~/utils/indexeddb";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ import {
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
 import { set } from "date-fns";
+import { Checkbox } from "../ui/checkbox";
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
@@ -67,24 +68,15 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
   const [authorized, setAuthorized] = useState<boolean>(false);
-  const [selectedItems, setSelectedItems] = useState<TransactionInvItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  // Handle selection/deselection
-  const handleSelectItem = (item: TransactionInvItem) => {
-    setSelectedItems((prevSelectedItems) =>
-      prevSelectedItems.includes(item)
-        ? prevSelectedItems.filter((i) => i !== item)
-        : [...prevSelectedItems, item],
-    );
+  const toggleItemSelection = (itemId: string) => {
+    if (selectedItems.includes(itemId)) {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    } else {
+      setSelectedItems([...selectedItems, itemId]);
+    }
   };
-
-  // const toggleItemSelection = (itemId: string) => {
-  //   if (selectedItems.includes(itemId)) {
-  //     setSelectedItems(selectedItems.filter((id) => id !== itemId));
-  //   } else {
-  //     setSelectedItems([...selectedItems, itemId]);
-  //   }
-  // };
 
   const searchParams = useSearchParams();
   const items: TransactionInvItem[] =
@@ -99,6 +91,8 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
     const loadCart = await getCart(`${data.unique_identifier}`);
 
     console.log("loadCart", loadCart);
+    console.log("data", data);
+    console.log("currentCart", currentCart);
 
     try {
       // check if currentCart is null only then set it to the loaded cart
@@ -107,22 +101,40 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
         toast.error("Clear current cart instance");
       }
       if (!loadCart) {
-        toast.error("Cart Instance not stored");
-        return;
+        const newCart = transformArrayToCart(data);
+        const neededItems = newCart.items.filter(
+          (x) => !selectedItems.includes(x.item.stock_id),
+        );
+        if (neededItems.length > 0) {
+          const updatedCrt = {
+            cart_id: newCart.cart_id,
+            items: neededItems,
+          };
+          useCartStore.setState({ currentCart: updatedCrt });
+          router.push("/");
+        } else {
+          useCartStore.setState({ currentCart: newCart });
+          router.push("/");
+        }
+      } else {
+        const neededItems = loadCart.items.filter(
+          (x) => !selectedItems.includes(x.item.stock_id),
+        );
+        if (neededItems.length > 0) {
+          const updatedCrt = {
+            cart_id: loadCart.cart_id,
+            items: neededItems,
+          };
+          useCartStore.setState({ currentCart: updatedCrt });
+          router.push("/");
+        } else {
+          useCartStore.setState({ currentCart: loadCart });
+          router.push("/");
+        }
       }
-      // handleReopen to cart by setting currentCart to the loaded cart
-      useCartStore.setState({ currentCart: loadCart });
-
-      // useCartStore.setState({currentCart:{
-      //     cart_id: `cart_${data.unique_identifier}`,
-      //     items: items,
-
-      // }})
     } catch (error) {
       console.error("Failed to load cart:", error);
       toast.error("Failed to load cart");
-    } finally {
-      router.push("/");
     }
 
     // redirect to POS
@@ -230,7 +242,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   };
 
   return (
-    <Card>
+    <Card key={data.unique_identifier}>
       <CardHeader>
         <CardTitle className="  flex-col space-y-2">
           <div className="flex items-center gap-4">
@@ -298,6 +310,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
           <Table className="h-full">
             <TableHeader>
               <TableRow>
+                {data.status === "0" && <TableHead></TableHead>}
                 <TableHead>Item</TableHead>
                 <TableHead>Qty</TableHead>
                 <TableHead>Price</TableHead>
@@ -307,13 +320,46 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
               {items.length > 0 &&
                 items.map((x) => (
                   <TableRow key={x.item_option_id}>
-                    <TableCell className="w-[200px] text-xs">
+                    {data.status === "0" && (
+                      <TableCell className="w-[20px] text-xs">
+                        <Checkbox
+                          checked={selectedItems.includes(x.item_option_id)}
+                          onCheckedChange={() =>
+                            toggleItemSelection(x.item_option_id)
+                          }
+                        />
+                      </TableCell>
+                    )}
+                    <TableCell
+                      className={cn(
+                        selectedItems.includes(x.item_option_id)
+                          ? "line-through"
+                          : "",
+                        "w-[200px] text-xs",
+                      )}
+                    >
                       {x.item_option}
                     </TableCell>
-                    <TableCell className="w-[70px] text-xs">
+                    <TableCell
+                      className={cn(
+                        selectedItems.includes(x.item_option_id)
+                          ? "line-through"
+                          : "",
+                        "w-[60px] text-xs",
+                      )}
+                    >
                       {x.quantity}
                     </TableCell>
-                    <TableCell className="text-xs">KES {x.price}</TableCell>
+                    <TableCell
+                      className={cn(
+                        selectedItems.includes(x.item_option_id)
+                          ? "line-through"
+                          : "",
+                        "text-xs",
+                      )}
+                    >
+                      KES {x.price}
+                    </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
