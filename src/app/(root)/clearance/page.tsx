@@ -91,6 +91,7 @@ const Clearance = () => {
     site_company!.company_prefix,
     toDate(new Date()),
     toDate(new Date()),
+    account?.default_store,
   );
 
   const { posTransactionsReport, loading } = usePosTransactionsReport({

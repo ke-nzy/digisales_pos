@@ -10,10 +10,7 @@ import {
 } from "@react-pdf/renderer";
 import QrCode from "qrcode";
 
-import {
-  calculateSubtotalAndDiscount,
-  tallyTotalAmountPaid,
-} from "~/lib/utils";
+import { calculateSubtotalAndDiscount } from "~/lib/utils";
 Font.register({
   family: "Courier Prime",
   src: "http://fonts.gstatic.com/s/raleway/v11/bIcY3_3JNqUVRAQQRNVteQ.ttf",
@@ -40,7 +37,7 @@ const styles = StyleSheet.create({
     fontFamily: "Courier Prime",
   },
   text: {
-    fontSize: 3.0,
+    fontSize: 8,
   },
   table: {
     display: "flex",
@@ -98,7 +95,7 @@ const TransactionReceiptPDF = ({
     data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
   function get_printout_size(length: number): [number, number] {
-    return [80, 140 + length * 14];
+    return [200, 477 + length * 10];
   }
 
   function sumTransAmount(payments: Payment[]): number {
@@ -471,16 +468,16 @@ const TransactionReceiptPDF = ({
             justifyContent: "space-between",
           }}
         >
-          <View
+          {/* <View
             style={{
               width: "40%",
               padding: 2,
               justifyContent: "center",
               backgroundColor: "#fff",
             }}
-          >
-            <Image src={kra_code} style={{ height: 24, width: 24 }} />
-          </View>
+          > */}
+          <Image src={kra_code} style={{ maxHeight: 70, maxWidth: 70 }} />
+          {/* </View> */}
           <View
             style={{
               width: "60%",
@@ -521,13 +518,13 @@ const TransactionReceiptPDF = ({
             )}
           </View>
         </View>
-        <View style={{ flex: 0.8 }} />
-        <View style={{ alignItems: "center" }}>
+        <View style={{ flex: 0.2 }} />
+        <View style={{ alignItems: "center", marginBottom: 3 }}>
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
           <Text style={[styles.text, { fontWeight: "bold" }]}>
-            NO refund , No exchange
+            No refund , No exchange
           </Text>
         </View>
       </Page>
@@ -539,7 +536,7 @@ const TransactionReceiptPDF = ({
           <View>
             <View
               style={{
-                paddingVertical: 4,
+                paddingVertical: 2,
                 alignItems: "center",
               }}
             >
@@ -885,16 +882,16 @@ const TransactionReceiptPDF = ({
               justifyContent: "space-between",
             }}
           >
-            <View
+            {/* <View
               style={{
                 width: "40%",
                 padding: 2,
                 justifyContent: "center",
                 backgroundColor: "#fff",
               }}
-            >
-              <Image src={kra_code} style={{ height: 24, width: 24 }} />
-            </View>
+            > */}
+            <Image src={kra_code} style={{ maxHeight: 70, maxWidth: 70 }} />
+            {/* </View> */}
             <View
               style={{
                 width: "60%",
@@ -938,15 +935,14 @@ const TransactionReceiptPDF = ({
             </View>
           </View>
 
-          <View style={{ flex: 0.5 }} />
-          {/*NOTE: (teddy) THank you message*/}
-          <View style={{ paddingVertical: 1, alignItems: "center" }}>
-            <Text
-              style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}
-            >
+          <View style={{ flex: 0.2 }} />
+          <View style={{ alignItems: "center", marginBottom: 3 }}>
+            <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[styles.text]}></Text>
+            <Text style={[styles.text, { fontWeight: "extrabold" }]}>
+              No refund , No exchange
+            </Text>
           </View>
         </Page>
       )}

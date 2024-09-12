@@ -34,6 +34,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     lon: "",
     is_farmer: "0",
     sales_type: "1",
+    pin: "-",
   },
   addItemToCart: (item: DirectSales) => {
     const state = get();

@@ -106,6 +106,19 @@ const AmountInput = ({
           setIsPrinted(true);
         };
       };
+      const cleanup = () => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(url);
+        setIsPrinted(true);
+
+        // Force reload or redirection after printing to ensure no page residue
+        window.location.reload(); // or window.history.back(); if you want to return to the previous page
+      };
+
+      iframe.contentWindow!.onafterprint = cleanup;
+
+      // Fallback to force cleanup in case onafterprint fails
+      setTimeout(cleanup, 5000);
     } catch (error) {
       console.error("Failed to print document:", error);
       toast.error("Failed to print document");

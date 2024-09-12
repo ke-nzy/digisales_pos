@@ -660,6 +660,7 @@ export async function fetch_shifts(
   company_prefix: string,
   start_date: string | undefined,
   end_date: string | undefined,
+  branch_code?: string,
 ) {
   const sdate_ = start_date === undefined ? toDate(new Date()) : start_date;
   const edate_ = end_date === undefined ? toDate(new Date()) : end_date;
@@ -669,6 +670,9 @@ export async function fetch_shifts(
   form.append("cp", company_prefix);
   form.append("start_date", sdate_);
   form.append("end_date", edate_);
+  if (branch_code) {
+    form.append("branch_code", branch_code);
+  }
 
   try {
     const response = await axios.postForm<Shift[]>(

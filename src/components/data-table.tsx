@@ -23,6 +23,8 @@ import {
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { Label } from "./ui/label";
+import { Button } from "./ui/button";
+import { RotateCcw } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -30,6 +32,7 @@ interface DataTableProps<TData, TValue> {
   filCol: string;
   onRowClick: (rowData: TData) => void;
   searchKey?: string;
+  onRefetch?: () => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -38,6 +41,7 @@ export function DataTable<TData, TValue>({
   filCol,
   onRowClick,
   searchKey,
+  onRefetch,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -134,6 +138,13 @@ export function DataTable<TData, TValue>({
               // }
               className="max-w-sm"
             />
+            <Button
+              onClick={onRefetch}
+              className="flex-grow gap-2"
+              variant={"default"}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>

@@ -460,10 +460,7 @@ export const cartColumns: ColumnDef<DirectSales>[] = [
     accessorKey: "details.price",
     header: "Unit Price",
   },
-  {
-    accessorKey: "details.quantity_available",
-    header: "Stock Available",
-  },
+
   {
     id: "total",
     header: "Total",
@@ -573,3 +570,21 @@ export const toDBDate = (originalDate: string) => {
   const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   return formattedDate;
 };
+
+export function transformToDirectSales(
+  transactionItems: TransactionInvItem[],
+  user: string,
+  customer: Customer,
+  branches: CustomerBranch[],
+): DirectSalesType[] {
+  return transactionItems.map((item) => ({
+    __typename: "direct_sales",
+    customer: customer, // Assuming the customer details are passed as input
+    branches: branches, // Assuming branch details are passed as input
+    user: user,
+    bottles_issued: item.bottles_issued,
+    bottles_returned: item.bottles_returned,
+    max_quantity: parseInt(item.quantityAval, 10), // Convert to number
+    discount: item.discount,
+  }));
+}

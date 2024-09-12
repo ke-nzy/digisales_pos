@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { cn } from "~/lib/utils";
+import { cn, transformToDirectSales } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
 import { getCart } from "~/utils/indexeddb";
 import { toast } from "sonner";
@@ -67,6 +67,24 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const [authorizationDialogOpen, setAuthorizationDialogOpen] =
     useState<boolean>(false);
   const [authorized, setAuthorized] = useState<boolean>(false);
+  const [selectedItems, setSelectedItems] = useState<TransactionInvItem[]>([]);
+
+  // Handle selection/deselection
+  const handleSelectItem = (item: TransactionInvItem) => {
+    setSelectedItems((prevSelectedItems) =>
+      prevSelectedItems.includes(item)
+        ? prevSelectedItems.filter((i) => i !== item)
+        : [...prevSelectedItems, item],
+    );
+  };
+
+  // const toggleItemSelection = (itemId: string) => {
+  //   if (selectedItems.includes(itemId)) {
+  //     setSelectedItems(selectedItems.filter((id) => id !== itemId));
+  //   } else {
+  //     setSelectedItems([...selectedItems, itemId]);
+  //   }
+  // };
 
   const searchParams = useSearchParams();
   const items: TransactionInvItem[] =
@@ -85,7 +103,11 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
     try {
       // check if currentCart is null only then set it to the loaded cart
       if (currentCart !== null) {
+        console.log("current cart ", currentCart);
         toast.error("Clear current cart instance");
+      }
+      if (!loadCart) {
+        toast.error("Cart Instance not stored");
       }
       // handleReopen to cart by setting currentCart to the loaded cart
       useCartStore.setState({ currentCart: loadCart });

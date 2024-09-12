@@ -223,6 +223,16 @@ declare type TransactionInvItem = {
   tax: string;
   total: number;
 };
+declare type DirectSalesType = {
+  __typename: "direct_sales";
+  customer: Customer;
+  branches: CustomerBranch[];
+  user: string;
+  bottles_issued?: string;
+  bottles_returned?: string;
+  max_quantity: number;
+  discount?: string;
+};
 
 declare type ManualBankPaymentAccount = {
   bank_account_name: string;

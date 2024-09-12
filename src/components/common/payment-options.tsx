@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getPaymentList } from "~/lib/payment-list";
 import { Card, CardContent, CardDescription, CardHeader } from "../ui/card";
 import { useManualPayments, useMpesaPayments } from "~/hooks/use-payments";
@@ -25,6 +25,7 @@ import { lookup_mpesa_payment } from "~/lib/actions/pay.actions";
 import { useAuthStore } from "~/store/auth-store";
 import { toast } from "sonner";
 import { removeSpecialCharacters } from "../../lib/utils";
+import { Skeleton } from "../ui/skeleton";
 
 interface PaymentProps {
   item: Payment;
@@ -40,7 +41,11 @@ const PaymentOptions = ({
 }) => {
   const { site_url, site_company, account } = useAuthStore();
   const { manualPayments } = useManualPayments();
-  const { mpesaPayments } = useMpesaPayments();
+  const {
+    mpesaPayments,
+    loading: loadingMpesaPayments,
+    refetch: refetchMpesaPayments,
+  } = useMpesaPayments();
   const { addItemToPayments, paymentCarts } = usePayStore();
   const [paid, setPaid] = useState<ManualBankPaymentAccount | null>(null);
   const [pName, setPName] = useState<string>("");
@@ -56,6 +61,12 @@ const PaymentOptions = ({
     null,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (loadingMpesaPayments) {
+      setIsLoading(true);
+    }
+  }, [loadingMpesaPayments]);
 
   const handleMpesaRowClick = (rowData: Payment) => {
     const paymentType = "MPESA"; // Extract the payment type from the data table
@@ -127,11 +138,14 @@ const PaymentOptions = ({
     <div className="mx-auto grid w-full max-w-md grid-cols-1 gap-4">
       {getPaymentList().map((paymentOption) => (
         <Dialog
-          open={mpesaDialogOpen || isLoading}
+          open={mpesaDialogOpen}
           onOpenChange={
             paymentOption.id === "mpesa"
               ? setMpesaDialogOpen
-              : () => setMpesaDialogOpen(false)
+              : () => {
+                  setMpesaDialogOpen(false);
+                  setLookupRef("");
+                }
           }
           key={paymentOption.id}
         >
@@ -168,13 +182,24 @@ const PaymentOptions = ({
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="no-scrollbar max-h-[200px] overflow-y-auto">
-                    <DataTable
-                      columns={paymentColumns}
-                      filCol="TransAmount"
-                      data={mpesaPayments}
-                      onRowClick={handleMpesaRowClick}
-                      searchKey={amount}
-                    />
+                    {isLoading ? (
+                      <div className="flex flex-col space-y-3">
+                        <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[250px]" />
+                          <Skeleton className="h-4 w-[200px]" />
+                        </div>
+                      </div>
+                    ) : (
+                      <DataTable
+                        columns={paymentColumns}
+                        filCol="TransAmount"
+                        data={mpesaPayments}
+                        onRowClick={handleMpesaRowClick}
+                        searchKey={amount}
+                        onRefetch={refetchMpesaPayments}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
