@@ -65,6 +65,8 @@ const PaymentOptions = ({
   useEffect(() => {
     if (loadingMpesaPayments) {
       setIsLoading(true);
+    } else {
+      setIsLoading(false);
     }
   }, [loadingMpesaPayments]);
 

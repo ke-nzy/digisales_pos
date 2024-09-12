@@ -523,7 +523,7 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.text, { fontWeight: "bold" }]}>
+          <Text style={[styles.text, { fontWeight: "extrabold" }]}>
             No refund , No exchange
           </Text>
         </View>

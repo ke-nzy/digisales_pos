@@ -108,6 +108,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
       }
       if (!loadCart) {
         toast.error("Cart Instance not stored");
+        return;
       }
       // handleReopen to cart by setting currentCart to the loaded cart
       useCartStore.setState({ currentCart: loadCart });
