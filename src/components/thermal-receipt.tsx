@@ -39,6 +39,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 8,
   },
+  textImportant: {
+    fontSize: 8,
+    fontWeight: 700,
+  },
   table: {
     display: "flex",
     flexDirection: "column",
@@ -127,7 +131,9 @@ const TransactionReceiptPDF = ({
   console.log("sub_total", totalDiscount);
 
   const kra_code = async () =>
-    await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
+    await QrCode.toDataURL(
+      data.qrCode === "" || !data.qrCode ? "Digisales No KRA" : data.qrCode,
+    );
   return (
     <Document>
       <Page
@@ -223,7 +229,6 @@ const TransactionReceiptPDF = ({
                   }}
                 >
                   <Text style={[styles.text, {}]}>Branch ID</Text>
-                  {/* TODO: Add branch name */}
                   <Text style={[styles.text, {}]}>
                     {account.default_store_name}
                   </Text>
@@ -523,7 +528,7 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.text, { fontWeight: "extrabold" }]}>
+          <Text style={[styles.textImportant, { fontWeight: "extrabold" }]}>
             No refund , No exchange
           </Text>
         </View>
@@ -890,7 +895,7 @@ const TransactionReceiptPDF = ({
                 backgroundColor: "#fff",
               }}
             > */}
-            <Image src={kra_code} style={{ maxHeight: 70, maxWidth: 70 }} />
+            <Image src={kra_code} style={{ height: 70, width: 70 }} />
             {/* </View> */}
             <View
               style={{

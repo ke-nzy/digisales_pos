@@ -41,7 +41,11 @@ const styles = StyleSheet.create({
     fontFamily: "Courier Prime",
   },
   text: {
-    fontSize: 3.0,
+    fontSize: 8,
+  },
+  textImportant: {
+    fontSize: 8,
+    fontWeight: 700,
   },
   table: {
     display: "flex",
@@ -99,7 +103,7 @@ const OfflineTransactionReceiptPDF = ({
     data.pos_payments.length > 0 ? JSON.parse(data.pos_payments) : [];
 
   function get_printout_size(length: number): [number, number] {
-    return [80, 140 + length * 14];
+    return [200, 477 + length * 10];
   }
 
   function sumTransAmount(payments: Payment[]): number {
@@ -226,7 +230,6 @@ const OfflineTransactionReceiptPDF = ({
                   }}
                 >
                   <Text style={[styles.text, {}]}>Branch ID</Text>
-                  {/* TODO: Add branch name */}
                   <Text style={[styles.text, {}]}>
                     {account.default_store_name}
                   </Text>
@@ -479,7 +482,7 @@ const OfflineTransactionReceiptPDF = ({
               backgroundColor: "#fff",
             }}
           >
-            <Image src={kra_code} style={{ height: 24, width: 24 }} />
+            <Image src={kra_code} style={{ height: 70, width: 70 }} />
           </View>
           <View
             style={{
@@ -490,12 +493,12 @@ const OfflineTransactionReceiptPDF = ({
             }}
           ></View>
         </View>
-        <View style={{ flex: 0.8 }} />
+        <View style={{ flex: 0.2 }} />
         <View style={{ alignItems: "center" }}>
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.text, { fontWeight: "bold" }]}>
+          <Text style={[styles.textImportant, { fontWeight: "bold" }]}>
             NO refund , No exchange
           </Text>
         </View>
@@ -859,7 +862,7 @@ const OfflineTransactionReceiptPDF = ({
                 backgroundColor: "#fff",
               }}
             >
-              <Image src={kra_code} style={{ height: 24, width: 24 }} />
+              <Image src={kra_code} style={{ height: 70, width: 70 }} />
             </View>
             <View
               style={{
@@ -871,15 +874,14 @@ const OfflineTransactionReceiptPDF = ({
             ></View>
           </View>
 
-          <View style={{ flex: 0.5 }} />
-          {/*NOTE: (teddy) THank you message*/}
-          <View style={{ paddingVertical: 1, alignItems: "center" }}>
-            <Text
-              style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}
-            >
+          <View style={{ flex: 0.2 }} />
+          <View style={{ alignItems: "center", marginBottom: 3 }}>
+            <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[styles.text]}></Text>
+            <Text style={[styles.text, { fontWeight: "extrabold" }]}>
+              No refund , No exchange
+            </Text>
           </View>
         </Page>
       )}
