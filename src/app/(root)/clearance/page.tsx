@@ -559,8 +559,8 @@ const Clearance = () => {
                             className="col-span-3"
                             disabled={true}
                           />
-                          <span className="text-right">
-                            collected{" "}
+                          <span className="text-right text-xs text-green-800">
+                            previously collected{" "}
                             {(shiftCollections as CollectionReportItem[])
                               .filter(
                                 (collection) =>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Document,
   Page,
@@ -8,99 +8,48 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
-import QrCode from "qrcode";
-
-import {
-  calculateOfflineSubtotalAndDiscount,
-  calculateSubtotalAndDiscount,
-  tallyTotalAmountPaid,
-} from "~/lib/utils";
+import QRCode from "qrcode";
+import { calculateSubtotalAndDiscount } from "~/lib/utils";
 Font.register({
   family: "Courier Prime",
   src: "http://fonts.gstatic.com/s/raleway/v11/bIcY3_3JNqUVRAQQRNVteQ.ttf",
 });
-const styles = StyleSheet.create({
-  page: {
-    paddingHorizontal: 4,
-  },
 
-  company_section: {
-    marginBottom: 5,
-    marginTop: 10,
-    textAlign: "left",
-    fontFamily: "Courier Prime",
-  },
-  customer_section: {
-    marginBottom: 5,
-    textAlign: "left",
-    fontFamily: "Courier Prime",
-  },
-  header: {
-    fontSize: 8,
-    marginBottom: 5,
-    fontFamily: "Courier Prime",
-  },
-  text: {
-    fontSize: 8,
-  },
-  textImportant: {
-    fontSize: 8,
-    fontWeight: 700,
-  },
-  table: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  tableRow: {
-    flexDirection: "row",
-  },
-  tableColHeader: {
-    width: "35rem",
-  },
-  tableCol: {
-    width: "40rem",
-    borderStyle: "solid",
-  },
-  tableCell: {
-    margin: 5,
-    fontSize: 7,
-    fontFamily: "Courier Prime",
-  },
-  table_col: {
-    paddingHorizontal: 1,
-    borderTopColor: "#000",
-    borderTopWidth: 0.5,
-    padding: 1,
-    borderRightWidth: 0.5,
-    borderRightColor: "#000",
-  },
-  table_row_last: {
-    paddingHorizontal: 1,
-    padding: 1,
-    borderRightWidth: 0.5,
-    borderRightColor: "#000",
-  },
-  table_col_last_row: {
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#000",
-  },
-});
-
-const OfflineTransactionReceiptPDF = ({
+const TransactionReceiptPDF = ({
   data,
   receipt_info,
   account,
   duplicate,
 }: {
-  data: UnsynchedInvoice;
+  data: SalesReceiptInformation;
   receipt_info: CompanyReceiptInfo;
   account: UserAccountInfo;
   duplicate: boolean;
 }) => {
+  const [qrCodeUrl, setQrCodeUrl] = useState(data.qrCode || "");
+  const salesInfo = data[0];
+
+  useEffect(() => {
+    console.log("QR Code", data.qrCode);
+    const generateKraCode = async () => {
+      if (data.qrCode && data.qrCode.length > 0) {
+        try {
+          const code = await QRCode.toDataURL(data.qrCode);
+          setQrCodeUrl(code);
+        } catch (error) {
+          console.error("Failed to generate QR code:", error);
+        }
+      }
+    };
+    generateKraCode().catch((error) => {
+      console.error("Failed to generate QR code:", error);
+    });
+  }, [data.qrCode]);
+
   const items: TransactionInvItem[] =
-    data.pos_items.length > 0 ? JSON.parse(data.pos_items) : [];
+    salesInfo.pitems.length > 0 ? JSON.parse(salesInfo.pitems) : [];
   const payments: Payment[] =
-    data.pos_payments.length > 0 ? JSON.parse(data.pos_payments) : [];
+    salesInfo.payments.length > 0 ? JSON.parse(salesInfo.payments) : [];
 
   function get_printout_size(length: number): [number, number] {
     return [200, 477 + length * 10];
@@ -128,13 +77,16 @@ const OfflineTransactionReceiptPDF = ({
   const calculateTotalQuantity = (items: TransactionInvItem[]): number => {
     return items.reduce((total, item) => total + parseFloat(item.quantity), 0);
   };
-  const totalDiscount = calculateOfflineSubtotalAndDiscount(data);
+  const totalDiscount = calculateSubtotalAndDiscount(salesInfo);
   const totalQuantity = calculateTotalQuantity(items);
   const totalPaid = sumTransAmount(payments);
 
-  //   console.log("sub_total", totalDiscount);
+  console.log("sub_total", totalDiscount);
 
-  const kra_code = async () => await QrCode.toDataURL("Digisales No KRA");
+  const kra_code = async () =>
+    await QRCode.toDataURL(
+      data.qrCode && data.qrCode?.length > 0 ? data.qrCode : "Digisales No KRA",
+    );
   return (
     <Document>
       <Page
@@ -187,7 +139,7 @@ const OfflineTransactionReceiptPDF = ({
                 >
                   <Text style={[styles.text, {}]}>Customer:</Text>
                   <Text style={[styles.text, {}]}>
-                    {` ${data.customer.br_name ?? "N/A"}`}
+                    {` ${salesInfo.customername ?? "N/A"}`}
                   </Text>
                 </View>
                 <View
@@ -198,7 +150,9 @@ const OfflineTransactionReceiptPDF = ({
                   }}
                 >
                   <Text style={[styles.text]}>Customer Pin: </Text>
-                  <Text style={[styles.text]}>{` ${data.pin ?? "N/A"}`}</Text>
+                  <Text
+                    style={[styles.text]}
+                  >{` ${salesInfo.pin ?? "N/A"}`}</Text>
                 </View>
                 <View
                   style={{
@@ -248,7 +202,7 @@ const OfflineTransactionReceiptPDF = ({
             }}
           >
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {`Trans ID: ${data.uid}`}
+              {`Trans ID: ${salesInfo.id}`}
             </Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
               {duplicate
@@ -446,10 +400,10 @@ const OfflineTransactionReceiptPDF = ({
             label={"Total"}
             value={`KES ${totalDiscount.subtotal}`}
           />
-          {/* <TotalRowItem
+          <TotalRowItem
             label={"Tax 16%"}
-            value={`KES ${data. ? data.vat_amount : 0}`}
-          /> */}
+            value={`KES ${salesInfo.vat_amount ? salesInfo.vat_amount : 0}`}
+          />
           <TotalRowItem
             label={"Discount"}
             value={`KES ${totalDiscount.totalDiscount}`}
@@ -474,16 +428,17 @@ const OfflineTransactionReceiptPDF = ({
             justifyContent: "space-between",
           }}
         >
-          <View
+          {/* <View
             style={{
               width: "40%",
               padding: 2,
               justifyContent: "center",
               backgroundColor: "#fff",
             }}
-          >
-            <Image src={kra_code} style={{ height: 70, width: 70 }} />
-          </View>
+          > */}
+
+          <Image src={qrCodeUrl} style={{ maxHeight: 70, maxWidth: 70 }} />
+          {/* </View> */}
           <View
             style={{
               width: "60%",
@@ -491,15 +446,46 @@ const OfflineTransactionReceiptPDF = ({
               justifyContent: "center",
               flexDirection: "column",
             }}
-          ></View>
+          >
+            {data.middlewareInvoiceNumber ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>{`Middleware Invoice Number`}</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {`${data.middlewareInvoiceNumber}`}
+                </Text>
+              </View>
+            ) : null}
+
+            {data.qrDate !== "" ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>{`QR Date`}</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {`${data.qrDate}`}
+                </Text>
+              </View>
+            ) : (
+              <></>
+            )}
+
+            {data.controlCode !== "" ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>{`Control Code`}</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {`${data.controlCode}`}
+                </Text>
+              </View>
+            ) : (
+              <></>
+            )}
+          </View>
         </View>
         <View style={{ flex: 0.2 }} />
-        <View style={{ alignItems: "center" }}>
+        <View style={{ alignItems: "center", marginBottom: 3 }}>
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.textImportant, { fontWeight: "bold" }]}>
-            NO refund , No exchange
+          <Text style={[styles.textImportant, { fontWeight: "extrabold" }]}>
+            No refund , No exchange
           </Text>
         </View>
       </Page>
@@ -511,7 +497,7 @@ const OfflineTransactionReceiptPDF = ({
           <View>
             <View
               style={{
-                paddingVertical: 4,
+                paddingVertical: 2,
                 alignItems: "center",
               }}
             >
@@ -554,7 +540,7 @@ const OfflineTransactionReceiptPDF = ({
                   >
                     <Text style={[styles.text, {}]}>Customer:</Text>
                     <Text style={[styles.text, {}]}>
-                      {` ${data.customer.br_name ?? "N/A"}`}
+                      {` ${salesInfo.customername ?? "N/A"}`}
                     </Text>
                   </View>
                   <View
@@ -565,7 +551,9 @@ const OfflineTransactionReceiptPDF = ({
                     }}
                   >
                     <Text style={[styles.text]}>Customer Pin: </Text>
-                    <Text style={[styles.text]}>{` ${data.pin ?? "N/A"}`}</Text>
+                    <Text
+                      style={[styles.text]}
+                    >{` ${salesInfo.pin ?? "N/A"}`}</Text>
                   </View>
                   <View
                     style={{
@@ -616,7 +604,7 @@ const OfflineTransactionReceiptPDF = ({
               }}
             >
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {`Sales Code: ${data.id}`}
+                {`Sales Code: ${salesInfo.id}`}
               </Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
                 {"Transaction Receipt - Copy"}
@@ -829,7 +817,10 @@ const OfflineTransactionReceiptPDF = ({
               label={"Total"}
               value={`KES ${totalDiscount.subtotal}`}
             />
-
+            <TotalRowItem
+              label={"Tax"}
+              value={`KES ${salesInfo.vat_amount ? salesInfo.vat_amount : 0}`}
+            />
             <TotalRowItem
               label={"Discount"}
               value={`KES ${totalDiscount.totalDiscount}`}
@@ -854,16 +845,16 @@ const OfflineTransactionReceiptPDF = ({
               justifyContent: "space-between",
             }}
           >
-            <View
+            {/* <View
               style={{
                 width: "40%",
                 padding: 2,
                 justifyContent: "center",
                 backgroundColor: "#fff",
               }}
-            >
-              <Image src={kra_code} style={{ height: 70, width: 70 }} />
-            </View>
+            > */}
+            <Image src={qrCodeUrl} style={{ maxHeight: 70, maxWidth: 70 }} />
+
             <View
               style={{
                 width: "60%",
@@ -871,7 +862,40 @@ const OfflineTransactionReceiptPDF = ({
                 justifyContent: "center",
                 flexDirection: "column",
               }}
-            ></View>
+            >
+              {data.middlewareInvoiceNumber ? (
+                <View style={{ paddingVertical: 1 }}>
+                  <Text
+                    style={[styles.text]}
+                  >{`Middleware Invoice Number`}</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>
+                    {`${data.middlewareInvoiceNumber}`}
+                  </Text>
+                </View>
+              ) : null}
+
+              {data.qrDate !== "" ? (
+                <View style={{ paddingVertical: 1 }}>
+                  <Text style={[styles.text]}>{`QR Date`}</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>
+                    {`${data.qrDate}`}
+                  </Text>
+                </View>
+              ) : (
+                <></>
+              )}
+
+              {data.controlCode !== "" ? (
+                <View style={{ paddingVertical: 1 }}>
+                  <Text style={[styles.text]}>{`Control Code`}</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>
+                    {`${data.controlCode}`}
+                  </Text>
+                </View>
+              ) : (
+                <></>
+              )}
+            </View>
           </View>
 
           <View style={{ flex: 0.2 }} />
@@ -889,7 +913,73 @@ const OfflineTransactionReceiptPDF = ({
   );
 };
 
-export default OfflineTransactionReceiptPDF;
+export default TransactionReceiptPDF;
+const styles = StyleSheet.create({
+  page: {
+    paddingHorizontal: 4,
+  },
+
+  company_section: {
+    marginBottom: 5,
+    marginTop: 10,
+    textAlign: "left",
+    fontFamily: "Courier Prime",
+  },
+  customer_section: {
+    marginBottom: 5,
+    textAlign: "left",
+    fontFamily: "Courier Prime",
+  },
+  header: {
+    fontSize: 8,
+    marginBottom: 5,
+    fontFamily: "Courier Prime",
+  },
+  text: {
+    fontSize: 8,
+  },
+  textImportant: {
+    fontSize: 8,
+    fontWeight: 700,
+  },
+  table: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  tableRow: {
+    flexDirection: "row",
+  },
+  tableColHeader: {
+    width: "35rem",
+  },
+  tableCol: {
+    width: "40rem",
+    borderStyle: "solid",
+  },
+  tableCell: {
+    margin: 5,
+    fontSize: 7,
+    fontFamily: "Courier Prime",
+  },
+  table_col: {
+    paddingHorizontal: 1,
+    borderTopColor: "#000",
+    borderTopWidth: 0.5,
+    padding: 1,
+    borderRightWidth: 0.5,
+    borderRightColor: "#000",
+  },
+  table_row_last: {
+    paddingHorizontal: 1,
+    padding: 1,
+    borderRightWidth: 0.5,
+    borderRightColor: "#000",
+  },
+  table_col_last_row: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#000",
+  },
+});
 
 type TotalRowItemProps = {
   is_last?: boolean;

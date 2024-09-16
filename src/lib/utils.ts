@@ -571,20 +571,41 @@ export const toDBDate = (originalDate: string) => {
   return formattedDate;
 };
 
-export function transformToDirectSales(
-  transactionItems: TransactionInvItem[],
-  user: string,
-  customer: Customer,
-  branches: CustomerBranch[],
-): DirectSalesType[] {
-  return transactionItems.map((item) => ({
-    __typename: "direct_sales",
-    customer: customer, // Assuming the customer details are passed as input
-    branches: branches, // Assuming branch details are passed as input
-    user: user,
-    bottles_issued: item.bottles_issued,
-    bottles_returned: item.bottles_returned,
-    max_quantity: parseInt(item.quantityAval, 10), // Convert to number
-    discount: item.discount,
-  }));
+export function transformArrayToCart(input: TransactionReportItem): Cart {
+  // Parse the items (which are stored as a string)
+  const parsedItems: TransactionInvItem[] = JSON.parse(input.pitems);
+
+  // Convert each item in pitems to DirectSales type
+  const directSalesItems: DirectSales[] = parsedItems.map(
+    (item: TransactionInvItem) => ({
+      __typename: "direct_sales",
+      user: input.uname,
+      bottles_issued: item.bottles_issued || "",
+      bottles_returned: item.bottles_returned || "",
+      max_quantity: parseFloat(item.quantityAval),
+      discount: item.discount,
+      item: {
+        stock_id: item.item_option_id,
+        description: item.item_option,
+        rate: item.rate,
+        kit: item.kit,
+        units: "",
+        mb_flag: "",
+      },
+      details: {
+        price: parseFloat(item.price),
+        total: item.total,
+        tax: parseFloat(item.tax),
+        quantity_available: parseFloat(item.quantityAval),
+        tax_mode: 0,
+      },
+      quantity: parseFloat(item.quantity),
+    }),
+  );
+
+  // Create the Cart object
+  return {
+    cart_id: input.unique_identifier,
+    items: directSalesItems,
+  };
 }

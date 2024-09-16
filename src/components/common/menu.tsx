@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Ellipsis, LogOut } from "lucide-react";
+import { Ellipsis, Headset, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "~/lib/utils";
@@ -18,6 +18,19 @@ import { CollapseMenuButton } from "./collapse-menu-button";
 import { useAuthStore } from "~/store/auth-store";
 import { deleteMetadata } from "~/utils/indexeddb";
 import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -127,6 +140,7 @@ export default function Menu({ isOpen }: MenuProps) {
               )}
             </li>
           ))}
+
           <li className="flex w-full grow items-end">
             <TooltipProvider disableHoverableContent>
               <Tooltip delayDuration={100}>
@@ -159,6 +173,63 @@ export default function Menu({ isOpen }: MenuProps) {
               </Tooltip>
             </TooltipProvider>
           </li>
+          {/* <li className="flex w-full  items-end">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  className=" h-10 w-full justify-center"
+                  variant="secondary"
+                >
+                  <span className={cn(isOpen === false ? "" : "mr-4")}>
+                    <Headset size={18} />
+                  </span>
+                  Contact Support
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Contact Support</DialogTitle>
+                  <DialogDescription>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex  flex-col items-center space-x-2 space-y-1">
+                  <div className="grid w-full flex-1 gap-2">
+                    <Label htmlFor="customer-name">Name</Label>
+                    <Input id="customer-name" type="text" />
+                  </div>
+                  <div className="grid w-full flex-1 gap-2">
+                    <Label htmlFor="customer-tel">Phone</Label>
+                    <Input type="tel" id="customer-tel" />
+                  </div>
+                  <div className="grid w-full flex-1 gap-2">
+                    <Label htmlFor="customer-email">Email</Label>
+                    <Input type="email" id="customer-email" />
+                  </div>
+
+                  <div className="grid w-full flex-1 gap-2">
+                    <Label htmlFor="customer-subject">Subject</Label>
+                    <Input type="text" id="customer-subject" />
+                  </div>
+                  <div className="grid w-full flex-1 gap-2">
+                    <Label htmlFor="customer-issue">Description</Label>
+                    <Textarea
+                      placeholder="Type your message here."
+                      id="customer-issue"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your message will be copied to the support team.
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter className="flex w-full flex-row justify-center">
+                  <DialogClose asChild>
+                    <Button variant="secondary">Close</Button>
+                  </DialogClose>
+                  <Button>Send message</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </li> */}
         </ul>
       </nav>
     </ScrollArea>

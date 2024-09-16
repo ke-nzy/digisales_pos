@@ -21,7 +21,7 @@ import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
 import { useRouter } from "next/navigation";
 import { Loader2, Trash2Icon } from "lucide-react";
 import { Button } from "./ui/button";
-import TransactionReceiptPDF from "./thermal-receipt";
+import TransactionReceiptPDF from "./sales-themal-receipt";
 import { pdf } from "@react-pdf/renderer";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 import { addInvoice } from "~/utils/indexeddb";
@@ -74,95 +74,7 @@ const AmountInput = ({
   const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
   const balance = total - discount - paid;
-  const handlePrint = async (data: TransactionReportItem) => {
-    try {
-      console.log("handlePrint", data);
-      setPaidStatus(true);
 
-      const pdfBlob = await pdf(
-        <TransactionReceiptPDF
-          data={data}
-          receipt_info={receipt_info!}
-          account={account!}
-          duplicate={true}
-        />,
-      ).toBlob();
-
-      const url = URL.createObjectURL(pdfBlob);
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.zIndex = "1000";
-      iframe.src = url;
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        iframe.focus();
-        iframe.contentWindow!.print();
-        iframe.contentWindow!.onafterprint = () => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url); // Revoke the URL to free up resources
-          setIsPrinted(true);
-        };
-      };
-      const cleanup = () => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(url);
-        setIsPrinted(true);
-
-        // Force reload or redirection after printing to ensure no page residue
-        window.location.reload(); // or window.history.back(); if you want to return to the previous page
-      };
-
-      iframe.contentWindow!.onafterprint = cleanup;
-
-      // Fallback to force cleanup in case onafterprint fails
-      setTimeout(cleanup, 5000);
-    } catch (error) {
-      console.error("Failed to print document:", error);
-      toast.error("Failed to print document");
-      setIsPrinted(false);
-    }
-  };
-
-  const handleOfflinePrint = async (data: UnsynchedInvoice) => {
-    try {
-      console.log("handlePrint", data);
-      setPaidStatus(true);
-
-      const pdfBlob = await pdf(
-        <OfflineTransactionReceiptPDF
-          data={data}
-          receipt_info={receipt_info!}
-          account={account!}
-          duplicate={true}
-        />,
-      ).toBlob();
-      const url = URL.createObjectURL(pdfBlob);
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.zIndex = "1000";
-      iframe.src = url;
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        iframe.focus();
-        iframe.contentWindow!.print();
-        iframe.contentWindow!.onafterprint = () => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url); // Revoke the URL to free up resources
-          setIsPrinted(true);
-        };
-      };
-    } catch (error) {
-      console.error("Failed to print document:", error);
-      toast.error("Failed to print document");
-      setIsPrinted(false);
-    }
-  };
   const updateCashPayments = (
     paymentCart: PaymentCart[],
     invoiceTotal: number,
@@ -275,8 +187,7 @@ const AmountInput = ({
         toast.error("Transaction failed");
         setIsLoading(false);
         return;
-      }
-      if (result && (result as OfflineSalesReceiptInformation).offline) {
+      } else if (result && (result as OfflineSalesReceiptInformation).offline) {
         await addInvoice(result as OfflineSalesReceiptInformation);
         toast.info("Transaction saved Offline");
         await handleOfflinePrint(result as UnsynchedInvoice);
@@ -296,16 +207,22 @@ const AmountInput = ({
         // process receipt
 
         toast.success("Invoice processed successfully");
+        console.log("result", result);
 
         //   router.refresh();
 
-        if ((result as SalesReceiptInformation)[0]) {
-          await handlePrint((result as SalesReceiptInformation)[0]);
+        if (result as SalesReceiptInformation) {
+          await handlePrint(result as SalesReceiptInformation);
 
           localStorage.setItem(
             "transaction_history",
-            JSON.stringify((result as SalesReceiptInformation)[0]),
+            JSON.stringify(result as SalesReceiptInformation),
           );
+          clearCart();
+          clearPaymentCarts();
+          setPaidStatus(true);
+
+          // router.push("/payment/paid");
         } else {
           toast.error("Failed to print - Could not find transaction");
           setIsPrinted(false);
@@ -316,7 +233,8 @@ const AmountInput = ({
       if (!(result as OfflineSalesReceiptInformation).offline && result) {
         clearCart();
         clearPaymentCarts();
-        router.push("/payment/paid");
+        setPaidStatus(true);
+        // router.push("/payment/paid");
       }
       // if (isPrinted) {
       // }
@@ -328,6 +246,94 @@ const AmountInput = ({
     }
 
     // clearCart();
+  };
+  const handlePrint = async (data: SalesReceiptInformation) => {
+    try {
+      console.log("handlePrint", data);
+      setPaidStatus(true);
+
+      const pdfBlob = await pdf(
+        <TransactionReceiptPDF
+          data={data}
+          receipt_info={receipt_info!}
+          account={account!}
+          duplicate={true}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(pdfBlob);
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.zIndex = "1000";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.focus();
+        iframe.contentWindow!.print();
+        iframe.contentWindow!.onafterprint = () => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+          setIsPrinted(true);
+        };
+      };
+      const cleanup = () => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(url);
+        setIsPrinted(true);
+
+        // Force reload or redirection after printing to ensure no page residue
+        window.location.reload(); // or window.history.back(); if you want to return to the previous page
+      };
+
+      iframe.contentWindow!.onafterprint = cleanup;
+
+      // Fallback to force cleanup in case onafterprint fails
+      setTimeout(cleanup, 15000);
+    } catch (error) {
+      console.error("Failed to print document:", error);
+      toast.error("Failed to print document");
+      setIsPrinted(false);
+    }
+  };
+  const handleOfflinePrint = async (data: UnsynchedInvoice) => {
+    try {
+      console.log("handlePrint", data);
+      setPaidStatus(true);
+
+      const pdfBlob = await pdf(
+        <OfflineTransactionReceiptPDF
+          data={data}
+          receipt_info={receipt_info!}
+          account={account!}
+          duplicate={true}
+        />,
+      ).toBlob();
+      const url = URL.createObjectURL(pdfBlob);
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.zIndex = "1000";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.focus();
+        iframe.contentWindow!.print();
+        iframe.contentWindow!.onafterprint = () => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+          setIsPrinted(true);
+        };
+      };
+    } catch (error) {
+      console.error("Failed to print document:", error);
+      toast.error("Failed to print document");
+      setIsPrinted(false);
+    }
   };
   return (
     <div className="flex h-full w-full flex-col space-y-6">

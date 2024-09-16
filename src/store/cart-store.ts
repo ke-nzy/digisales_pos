@@ -8,6 +8,7 @@ interface CartState {
   selectedCartItem: DirectSales | null;
   currentCart: Cart | null;
   currentCustomer: Customer | null;
+  copiedCartItems: DirectSales[] | null;
   addItemToCart: (item: DirectSales) => void;
   deleteItemFromCart: (item: DirectSales) => void;
   update_cart_item: (item: DirectSales) => void;
@@ -17,6 +18,7 @@ interface CartState {
   holdCart: () => void;
   setCurrentCustomer: (customer: Customer | null) => void;
   setSelectedCartItem: (item: DirectSales | null) => void;
+  setCopiedCartItems: (items: DirectSales[] | null) => void;
 }
 
 const LOCAL_STORAGE_KEY = "currentCart";
@@ -36,6 +38,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     sales_type: "1",
     pin: "-",
   },
+  copiedCartItems: null,
   addItemToCart: (item: DirectSales) => {
     const state = get();
     if (!state.currentCart) {
@@ -180,6 +183,9 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
   setCurrentCustomer: (customer: Customer | null) => {
     set({ currentCustomer: customer });
+  },
+  setCopiedCartItems: (items: DirectSales[] | null) => {
+    set({ copiedCartItems: items });
   },
 }));
 
