@@ -98,6 +98,7 @@ export async function submit_direct_sale_request(
         // SEND STRING TO SENTRY
         return null;
       }
+      console.log("SALES RESPONSE", response.data);
       return response.data;
     }
     // else {
