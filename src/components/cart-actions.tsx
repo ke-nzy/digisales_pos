@@ -8,6 +8,8 @@ import {
 } from "~/components/ui/card";
 import {
   CaptionsOffIcon,
+  Clapperboard,
+  ClipboardPaste,
   EllipsisIcon,
   Loader2,
   LogOutIcon,
@@ -72,11 +74,14 @@ const CartActions = () => {
     currentCart,
     currentCustomer,
     holdCart,
+    addItemToCart,
+    copiedCartItems,
     selectedCartItem,
     update_cart_item,
     setSelectedCartItem,
     setCurrentCustomer,
     deleteItemFromCart,
+    setCopiedCartItems,
   } = useCartStore((state) => state);
   const { mutate: updateCartMutate } = useUpdateCart();
   const router = useRouter();
@@ -159,6 +164,18 @@ const CartActions = () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   });
+
+  useEffect(() => {
+    const cCartItems = localStorage.getItem("cart");
+    const copiedItems: { items: DirectSales[] } = cCartItems
+      ? JSON.parse(cCartItems)
+      : [];
+    if (copiedItems.items.length > 0) {
+      setCopiedCartItems(copiedItems.items);
+    } else {
+      setCopiedCartItems(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (discountPercentage !== "") {
@@ -285,6 +302,18 @@ const CartActions = () => {
         console.log("failedIndexes", failedIndexes);
         setAutoSyncStatus(false);
       }
+    }
+  };
+
+  const handlePaste = () => {
+    if (copiedCartItems && currentCart) {
+      toast.error("Please clear current cart before pasting");
+    } else if (copiedCartItems && !currentCart) {
+      copiedCartItems.forEach((item) => {
+        addItemToCart(item);
+      });
+      setCopiedCartItems(null);
+      localStorage.setItem("cart", JSON.stringify({ items: [] }));
     }
   };
 
@@ -543,32 +572,36 @@ const CartActions = () => {
   return (
     <div className="hidden min-h-[88vh] flex-col justify-between py-2 md:flex">
       <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-        {/* <Card
+        <Card
           className={cn(
             "rounded-none py-6",
-            selectedCartItem
-              ? "cursor-pointer bg-red-500"
+            copiedCartItems && copiedCartItems?.length > 0
+              ? "cursor-pointer bg-blue-500"
               : "cursor-pointer hover:bg-accent focus:bg-accent",
           )}
-          onClick={handleDeleteItem}
+          onClick={handlePaste}
         >
           <CardHeader className="flex-col items-center justify-center p-0 text-sm">
-            <Trash2Icon
+            <ClipboardPaste
               className={cn(
                 "h-8 w-8",
-                selectedCartItem ? "text-white" : "text-zinc-400",
+                copiedCartItems && copiedCartItems?.length > 0
+                  ? "text-white"
+                  : "text-zinc-400",
               )}
             />
             <h4
               className={cn(
                 "text-center text-sm font-normal",
-                selectedCartItem ? "text-white" : "text-zinc-400",
+                copiedCartItems && copiedCartItems?.length > 0
+                  ? "text-white"
+                  : "text-zinc-400",
               )}
             >
-              Delete
+              Paste
             </h4>
           </CardHeader>
-        </Card> */}
+        </Card>
         <Card className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent">
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">

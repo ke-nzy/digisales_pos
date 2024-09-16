@@ -11,6 +11,7 @@ import {
 import { Button } from "~/components/ui/button";
 import {
   CheckCheckIcon,
+  CopyIcon,
   InfoIcon,
   PrinterIcon,
   ShoppingBasketIcon,
@@ -99,21 +100,22 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
       if (currentCart !== null) {
         console.log("current cart ", currentCart);
         toast.error("Clear current cart instance");
-      }
-      if (!loadCart) {
+        router.push("/");
+      } else if (!loadCart) {
         const newCart = transformArrayToCart(data);
         const neededItems = newCart.items.filter(
           (x) => !selectedItems.includes(x.item.stock_id),
         );
         if (neededItems.length > 0) {
           const updatedCrt = {
-            cart_id: newCart.cart_id,
             items: neededItems,
           };
-          useCartStore.setState({ currentCart: updatedCrt });
+          localStorage.setItem("cart", JSON.stringify(updatedCrt));
+          // useCartStore.setState({ currentCart: updatedCrt });
           router.push("/");
         } else {
-          useCartStore.setState({ currentCart: newCart });
+          localStorage.setItem("cart", JSON.stringify(newCart));
+          // useCartStore.setState({ currentCart: newCart });
           router.push("/");
         }
       } else {
@@ -122,13 +124,15 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
         );
         if (neededItems.length > 0) {
           const updatedCrt = {
-            cart_id: loadCart.cart_id,
+            // cart_id: loadCart.cart_id,
             items: neededItems,
           };
-          useCartStore.setState({ currentCart: updatedCrt });
+          localStorage.setItem("cart", JSON.stringify(updatedCrt));
+          // useCartStore.setState({ currentCart: updatedCrt });
           router.push("/");
         } else {
-          useCartStore.setState({ currentCart: loadCart });
+          localStorage.setItem("cart", JSON.stringify(loadCart));
+          // useCartStore.setState({ currentCart: loadCart });
           router.push("/");
         }
       }
@@ -495,8 +499,8 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
             variant="default"
             className="flex-grow gap-2"
           >
-            <ShoppingBasketIcon className="h-3.5 w-3.5" />
-            Open
+            <CopyIcon className="h-3.5 w-3.5" />
+            Copy
           </Button>
         </CardFooter>
       )}

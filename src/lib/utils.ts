@@ -586,7 +586,7 @@ export function transformArrayToCart(input: TransactionReportItem): Cart {
       discount: item.discount,
       item: {
         stock_id: item.item_option_id,
-        description: item.item_option_id,
+        description: item.item_option,
         rate: item.rate,
         kit: item.kit,
         units: "",

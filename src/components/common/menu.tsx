@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Ellipsis, LogOut } from "lucide-react";
+import { Ellipsis, Headset, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "~/lib/utils";
@@ -18,6 +18,18 @@ import { CollapseMenuButton } from "./collapse-menu-button";
 import { useAuthStore } from "~/store/auth-store";
 import { deleteMetadata } from "~/utils/indexeddb";
 import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -127,6 +139,7 @@ export default function Menu({ isOpen }: MenuProps) {
               )}
             </li>
           ))}
+
           <li className="flex w-full grow items-end">
             <TooltipProvider disableHoverableContent>
               <Tooltip delayDuration={100}>
