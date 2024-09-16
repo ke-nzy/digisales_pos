@@ -167,10 +167,12 @@ const CartActions = () => {
 
   useEffect(() => {
     const cCartItems = localStorage.getItem("cart");
+    console.log("cCartItems", cCartItems);
+
     const copiedItems: { items: DirectSales[] } = cCartItems
       ? JSON.parse(cCartItems)
       : [];
-    if (copiedItems.items.length > 0) {
+    if (copiedItems.items && copiedItems.items.length > 0) {
       setCopiedCartItems(copiedItems.items);
     } else {
       setCopiedCartItems(null);
