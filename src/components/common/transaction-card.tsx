@@ -86,7 +86,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   console.log("payments", data.payments);
   const payments: Payment[] =
     data.payments && data.payments.length > 0 ? JSON.parse(data.payments) : [];
-  const handleReOpen = async () => {
+  const handleCopy = async () => {
     console.log(`cart_${data.unique_identifier}`);
 
     const loadCart = await getCart(`${data.unique_identifier}`);
@@ -139,6 +139,40 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
     } catch (error) {
       console.error("Failed to load cart:", error);
       toast.error("Failed to load cart");
+    }
+
+    // redirect to POS
+  };
+  const handleReOpen = async () => {
+    console.log(`cart_${data.unique_identifier}`);
+
+    const loadCart = await getCart(`${data.unique_identifier}`);
+
+    console.log("loadCart", loadCart);
+
+    try {
+      // check if currentCart is null only then set it to the loaded cart
+      if (currentCart !== null) {
+        console.log("current cart ", currentCart);
+        toast.error("Clear current cart instance");
+      }
+      if (!loadCart) {
+        toast.error("Cart Instance not stored");
+        return;
+      }
+      // handleReopen to cart by setting currentCart to the loaded cart
+      useCartStore.setState({ currentCart: loadCart });
+
+      // useCartStore.setState({currentCart:{
+      //     cart_id: `cart_${data.unique_identifier}`,
+      //     items: items,
+
+      // }})
+    } catch (error) {
+      console.error("Failed to load cart:", error);
+      toast.error("Failed to load cart");
+    } finally {
+      router.push("/");
     }
 
     // redirect to POS
@@ -314,7 +348,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
           <Table className="h-full">
             <TableHeader>
               <TableRow>
-                {data.status === "0" && <TableHead></TableHead>}
+                {/* {data.status === "0" && <TableHead></TableHead>} */}
                 <TableHead>Item</TableHead>
                 <TableHead>Qty</TableHead>
                 <TableHead>Price</TableHead>
@@ -324,7 +358,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
               {items.length > 0 &&
                 items.map((x) => (
                   <TableRow key={x.item_option_id}>
-                    {data.status === "0" && (
+                    {/* {data.status === "0" && (
                       <TableCell className="w-[20px] text-xs">
                         <Checkbox
                           checked={selectedItems.includes(x.item_option_id)}
@@ -333,7 +367,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
                           }
                         />
                       </TableCell>
-                    )}
+                    )} */}
                     <TableCell
                       className={cn(
                         selectedItems.includes(x.item_option_id)

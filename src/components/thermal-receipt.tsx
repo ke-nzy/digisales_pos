@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   Document,
   Page,
@@ -8,8 +8,7 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
-import QrCode from "qrcode";
-
+import QRCode from "qrcode";
 import { calculateSubtotalAndDiscount } from "~/lib/utils";
 Font.register({
   family: "Courier Prime",
@@ -93,6 +92,8 @@ const TransactionReceiptPDF = ({
   account: UserAccountInfo;
   duplicate: boolean;
 }) => {
+  const kra_stamp = useRef<string | null>(null);
+
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
   const payments: Payment[] =
@@ -131,8 +132,9 @@ const TransactionReceiptPDF = ({
   console.log("sub_total", totalDiscount);
 
   const kra_code = async () =>
-    await QrCode.toDataURL(
-      data.qrCode === "" || !data.qrCode ? "Digisales No KRA" : data.qrCode,
+    await QRCode.toDataURL(
+      data.qrCode && data.qrCode?.length > 0 ? data.qrCode : "Digisales No KRA",
+      // data.qrCode === "" || !data.qrCode ? "Digisales No KRA" : data.qrCode,
     );
   return (
     <Document>
@@ -481,6 +483,7 @@ const TransactionReceiptPDF = ({
               backgroundColor: "#fff",
             }}
           > */}
+
           <Image src={kra_code} style={{ maxHeight: 70, maxWidth: 70 }} />
           {/* </View> */}
           <View
@@ -895,8 +898,8 @@ const TransactionReceiptPDF = ({
                 backgroundColor: "#fff",
               }}
             > */}
-            <Image src={kra_code} style={{ height: 70, width: 70 }} />
-            {/* </View> */}
+            <Image src={kra_code} style={{ maxHeight: 70, maxWidth: 70 }} />
+
             <View
               style={{
                 width: "60%",

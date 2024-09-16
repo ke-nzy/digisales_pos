@@ -275,8 +275,7 @@ const AmountInput = ({
         toast.error("Transaction failed");
         setIsLoading(false);
         return;
-      }
-      if (result && (result as OfflineSalesReceiptInformation).offline) {
+      } else if (result && (result as OfflineSalesReceiptInformation).offline) {
         await addInvoice(result as OfflineSalesReceiptInformation);
         toast.info("Transaction saved Offline");
         await handleOfflinePrint(result as UnsynchedInvoice);
@@ -296,6 +295,7 @@ const AmountInput = ({
         // process receipt
 
         toast.success("Invoice processed successfully");
+        console.log("result", result);
 
         //   router.refresh();
 
@@ -306,6 +306,10 @@ const AmountInput = ({
             "transaction_history",
             JSON.stringify((result as SalesReceiptInformation)[0]),
           );
+          clearCart();
+          clearPaymentCarts();
+          setIsLoading(false);
+          router.push("/payment/paid");
         } else {
           toast.error("Failed to print - Could not find transaction");
           setIsPrinted(false);
@@ -316,6 +320,7 @@ const AmountInput = ({
       if (!(result as OfflineSalesReceiptInformation).offline && result) {
         clearCart();
         clearPaymentCarts();
+        setIsLoading(false);
         router.push("/payment/paid");
       }
       // if (isPrinted) {
