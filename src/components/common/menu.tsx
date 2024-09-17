@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState, useRef, type FormEvent } from "react";
 import { Ellipsis, Headset, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import emailjs from "@emailjs/browser";
 
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
@@ -17,7 +19,6 @@ import { getMenuList } from "~/lib/menu-list";
 import { CollapseMenuButton } from "./collapse-menu-button";
 import { useAuthStore } from "~/store/auth-store";
 import { deleteMetadata } from "~/utils/indexeddb";
-import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogClose,
@@ -31,6 +32,7 @@ import {
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { toast } from "sonner";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -38,6 +40,7 @@ interface MenuProps {
 
 export default function Menu({ isOpen }: MenuProps) {
   const roles = localStorage.getItem("roles");
+  const form = useRef<HTMLFormElement>(null);
   const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
   const isAdmin = roles ? roles?.includes("lOn Map") : false;
   const [bManager, setBManager] = useState<boolean>(isBranchManager);
@@ -59,6 +62,27 @@ export default function Menu({ isOpen }: MenuProps) {
       setAdmin(false);
     }
   }, [roles]);
+
+  const sendEmail = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (form.current) {
+      emailjs
+        .sendForm("service_n8bus2f", "template_mpbzpp2", form.current, {
+          publicKey: "oyEoc45SGXJFxQWX3",
+        })
+        .then(
+          () => {
+            console.log("SUCCESS!");
+            toast.success("Email sent successfully");
+          },
+          (error) => {
+            console.log("FAILED...", error);
+            toast.error("Failed to send email: " + error);
+          },
+        );
+      form.current.reset();
+    }
+  };
   const menuList = getMenuList(pathname, bManager, admin);
 
   return (
@@ -173,7 +197,7 @@ export default function Menu({ isOpen }: MenuProps) {
               </Tooltip>
             </TooltipProvider>
           </li>
-          {/* <li className="flex w-full  items-end">
+          <li className="flex w-full  items-end">
             <Dialog>
               <DialogTrigger asChild>
                 <Button
@@ -189,47 +213,69 @@ export default function Menu({ isOpen }: MenuProps) {
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Contact Support</DialogTitle>
-                  <DialogDescription>
-                  </DialogDescription>
+                  <DialogDescription></DialogDescription>
                 </DialogHeader>
-                <div className="flex  flex-col items-center space-x-2 space-y-1">
-                  <div className="grid w-full flex-1 gap-2">
-                    <Label htmlFor="customer-name">Name</Label>
-                    <Input id="customer-name" type="text" />
-                  </div>
-                  <div className="grid w-full flex-1 gap-2">
-                    <Label htmlFor="customer-tel">Phone</Label>
-                    <Input type="tel" id="customer-tel" />
-                  </div>
-                  <div className="grid w-full flex-1 gap-2">
-                    <Label htmlFor="customer-email">Email</Label>
-                    <Input type="email" id="customer-email" />
-                  </div>
+                <form ref={form} onSubmit={sendEmail}>
+                  <div className="flex  flex-col items-center space-x-2 space-y-1">
+                    <div className="grid w-full flex-1 gap-2">
+                      <Label htmlFor="from_name">Name</Label>
+                      <Input id="from_name" name={"from_name"} type="text" />
+                    </div>
+                    <div className="hidden">
+                      <Label htmlFor="to_name">Phone</Label>
+                      <Input
+                        type="text"
+                        id="to_name"
+                        name={"to_name"}
+                        readOnly
+                        value={"Digisoft Support"}
+                      />
+                    </div>
+                    <div className="grid w-full flex-1 gap-2">
+                      <Label htmlFor="from_phone">Phone</Label>
+                      <Input type="tel" id="from_phone" name={"from_phone"} />
+                    </div>
 
-                  <div className="grid w-full flex-1 gap-2">
-                    <Label htmlFor="customer-subject">Subject</Label>
-                    <Input type="text" id="customer-subject" />
+                    <div className="grid w-full flex-1 gap-2">
+                      <Label htmlFor="from_email">Email</Label>
+                      <Input type="email" id="from_email" name={"from_email"} />
+                    </div>
+                    <div className="grid w-full flex-1 gap-2">
+                      <Label htmlFor="ticket_number">Ticket Number</Label>
+                      <Input
+                        type="text"
+                        id="ticket_number"
+                        name={"ticket_number"}
+                        value={`#${new Date().toJSON()}`}
+                        readOnly
+                      />
+                    </div>
+                    <div className="grid w-full flex-1 gap-2">
+                      <Label htmlFor="subject">Subject</Label>
+                      <Input type="text" id="subject" name={"subject"} />
+                    </div>
+                    <div className="grid w-full flex-1 gap-2">
+                      <Label htmlFor="message">Description</Label>
+                      <Textarea
+                        placeholder="Type your message here."
+                        id="message"
+                        name={"message"}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your message will be copied to the support team.
+                      </p>
+                    </div>
                   </div>
-                  <div className="grid w-full flex-1 gap-2">
-                    <Label htmlFor="customer-issue">Description</Label>
-                    <Textarea
-                      placeholder="Type your message here."
-                      id="customer-issue"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your message will be copied to the support team.
-                    </p>
-                  </div>
-                </div>
-                <DialogFooter className="flex w-full flex-row justify-center">
-                  <DialogClose asChild>
-                    <Button variant="secondary">Close</Button>
-                  </DialogClose>
-                  <Button>Send message</Button>
-                </DialogFooter>
+                  <DialogFooter className="flex w-full flex-row justify-center">
+                    <DialogClose asChild>
+                      <Button variant="secondary">Close</Button>
+                    </DialogClose>
+                    <Button type="submit">Send message</Button>
+                  </DialogFooter>
+                </form>
               </DialogContent>
             </Dialog>
-          </li> */}
+          </li>
         </ul>
       </nav>
     </ScrollArea>

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.7",
+    "@emailjs/browser": "^4.4.1",
     "@fontsource/courier-prime": "^5.0.20",
     "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-avatar": "^1.0.4",
