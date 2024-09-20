@@ -39,6 +39,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 8,
   },
+  textBold: {
+    fontSize: 8.3,
+    fontWeight: 700,
+  },
   table: {
     display: "flex",
     flexDirection: "column",
@@ -523,9 +527,7 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.text, { fontWeight: "extrabold" }]}>
-            No refund , No exchange
-          </Text>
+          <Text style={[styles.textBold]}>No refund , No exchange</Text>
         </View>
       </Page>
       {duplicate && (
@@ -940,9 +942,7 @@ const TransactionReceiptPDF = ({
             <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[styles.text, { fontWeight: "extrabold" }]}>
-              No refund , No exchange
-            </Text>
+            <Text style={[styles.textBold]}>No refund , No exchange</Text>
           </View>
         </Page>
       )}

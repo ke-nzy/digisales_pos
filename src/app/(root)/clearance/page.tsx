@@ -57,9 +57,12 @@ import {
   toDate,
 } from "~/lib/utils";
 import { useAuthStore } from "~/store/auth-store";
+import { pdf } from "@react-pdf/renderer";
+import ClearancePrintPDF from "~/components/pdfs/clearancePrint";
 
 const Clearance = () => {
-  const { site_company, account, site_url } = useAuthStore.getState();
+  const { site_company, account, site_url, receipt_info } =
+    useAuthStore.getState();
   const roles = localStorage.getItem("roles");
   const router = useRouter();
   const getCurrentDate: any = () => new Date().toISOString().split("T")[0];
@@ -114,6 +117,49 @@ const Clearance = () => {
         [transType]: value,
       }));
     }
+  };
+
+  const handleClearancePrint = async () => {
+    console.log("printing");
+    const pdfBlob = await pdf(
+      <ClearancePrintPDF
+        selectedShift={selectedShift}
+        amounts={amounts}
+        paymentSummary={paymentSummary}
+        receipt_info={receipt_info!}
+        account={account!}
+      />,
+    ).toBlob();
+
+    const url = URL.createObjectURL(pdfBlob);
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.zIndex = "1000";
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      iframe.focus();
+      iframe.contentWindow!.print();
+      iframe.contentWindow!.onafterprint = () => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(url); // Revoke the URL to free up resources
+      };
+    };
+    const cleanup = () => {
+      document.body.removeChild(iframe);
+      URL.revokeObjectURL(url);
+
+      // Force reload or redirection after printing to ensure no page residue
+      window.location.reload(); // or window.history.back(); if you want to return to the previous page
+    };
+
+    iframe.contentWindow!.onafterprint = cleanup;
+
+    // Fallback to force cleanup in case onafterprint fails
+    setTimeout(cleanup, 15000);
   };
 
   useEffect(() => {
@@ -217,6 +263,7 @@ const Clearance = () => {
       toast.error("Something went wrong");
     } else {
       toast.success("Collections saved");
+      await handleClearancePrint();
       await refetch();
       setDialogOpen(false);
       setSelectedShift(null);
@@ -540,64 +587,73 @@ const Clearance = () => {
                         {/* Add a collection button */}
                       </div>
                     )}
-                    {paymentSummary.map((paymentType) => {
-                      const recordedValue =
-                        calculatedValues[paymentType.TransType ?? ""] || 0;
+                    {selectedShift &&
+                      paymentSummary.map((paymentType) => {
+                        const recordedValue =
+                          calculatedValues[paymentType.TransType ?? ""] || 0;
 
-                      return (
-                        <div
-                          key={paymentType.TransType}
-                          className="flex-col space-y-2 "
-                        >
-                          <Label htmlFor="name" className="text-right">
-                            {paymentType.TransType}
-                          </Label>
-                          <Input
-                            id="recorded_value"
-                            defaultValue={recordedValue}
-                            value={`KES ${recordedValue}`}
-                            className="col-span-3"
-                            disabled={true}
-                          />
-                          <span className="text-right text-xs text-green-800">
-                            previously collected{" "}
-                            {(shiftCollections as CollectionReportItem[])
-                              .filter(
-                                (collection) =>
-                                  collection.pay_mode ===
-                                    paymentType.TransType &&
-                                  collection.shift_no === selectedShift?.id,
-                              )
-                              .reduce(
-                                (sum, item) => sum + parseFloat(item.amount),
-                                0,
-                              )}
-                          </span>
-                          <Input
-                            id={`actual_value_${paymentType.TransType}`}
-                            defaultValue="0.00"
-                            className="col-span-3"
-                            value={
-                              paymentType.TransType !== undefined
-                                ? amounts[paymentType.TransType]
-                                : ""
-                            }
-                            onChange={(e) =>
-                              handleAmountChange(
-                                paymentType.TransType,
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </div>
-                      );
-                    })}
+                        return (
+                          <div
+                            key={paymentType.TransType}
+                            className="flex-col space-y-2 "
+                          >
+                            <Label htmlFor="name" className="text-right">
+                              {paymentType.TransType}
+                            </Label>
+                            <Input
+                              id="recorded_value"
+                              defaultValue={recordedValue}
+                              value={`KES ${recordedValue}`}
+                              className="col-span-3"
+                              disabled={true}
+                            />
+                            <span className="text-right text-xs text-green-800">
+                              previously collected{" "}
+                              {(shiftCollections as CollectionReportItem[])
+                                .filter(
+                                  (collection) =>
+                                    collection.pay_mode ===
+                                      paymentType.TransType &&
+                                    collection.shift_no === selectedShift?.id,
+                                )
+                                .reduce(
+                                  (sum, item) => sum + parseFloat(item.amount),
+                                  0,
+                                )}
+                            </span>
+                            <Input
+                              id={`actual_value_${paymentType.TransType}`}
+                              defaultValue="0.00"
+                              className="col-span-3"
+                              value={
+                                paymentType.TransType !== undefined
+                                  ? amounts[paymentType.TransType]
+                                  : ""
+                              }
+                              disabled={recordedValue === 0}
+                              onChange={(e) =>
+                                handleAmountChange(
+                                  paymentType.TransType,
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                        );
+                      })}
                   </form>
                 </Form>
               </div>
 
               <DialogFooter>
-                <Button onClick={onSubmit} className="w-full">
+                <Button
+                  onClick={onSubmit}
+                  disabled={
+                    (paymentSummary.length === 0 && selectedShift !== null) ||
+                    !selectedShift
+                  }
+                  className="w-full"
+                >
                   Clear Cashier
                 </Button>
               </DialogFooter>
