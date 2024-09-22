@@ -33,6 +33,8 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
+import { useCartStore } from "~/store/cart-store";
+import { submit_hold_direct_sale_request } from "~/lib/actions/user.actions";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -46,7 +48,13 @@ export default function Menu({ isOpen }: MenuProps) {
   const [bManager, setBManager] = useState<boolean>(isBranchManager);
   const [admin, setAdmin] = useState<boolean>(isAdmin);
   const pathname = usePathname();
-  const { clear_auth_session } = useAuthStore();
+  const { clear_auth_session, site_url, site_company, account } =
+    useAuthStore();
+  const [isLoading, setIsLoading] = useState<boolean | null>(null);
+  const { currentCart, currentCustomer, holdCart } = useCartStore(
+    (state) => state,
+  );
+
   const router = useRouter();
   useEffect(() => {
     if (roles?.includes("mBranchManager")) {
@@ -84,6 +92,71 @@ export default function Menu({ isOpen }: MenuProps) {
     }
   };
   const menuList = getMenuList(pathname, bManager, admin);
+  const handleHoldCart = async () => {
+    if (!currentCart) {
+      toast.error("Please add items to cart");
+      // setIsLoading(false);
+      return;
+    }
+    if (!currentCustomer) {
+      toast.error("Please select a customer");
+      // setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await submit_hold_direct_sale_request(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        account!.user_id,
+        currentCart.items,
+        currentCustomer,
+        null,
+        currentCustomer.br_name,
+        currentCart.cart_id,
+      );
+      console.log("result", result);
+      if (!result) {
+        // sentry.captureException(result);
+        toast.error("Hold  Action failed");
+        setIsLoading(false);
+        return false;
+      }
+
+      holdCart();
+
+      toast.success("Cart held successfully");
+      return true;
+    } catch (error) {
+      toast.error("Something went wrong");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleLogout = async () => {
+    if (currentCart) {
+      if (!isBranchManager) {
+        const res = await handleHoldCart();
+        if (res) {
+          clear_auth_session();
+          router.push("/sign-in");
+        } else {
+          toast.error("Unable to hold cart");
+        }
+      } else {
+        toast.error("You are not authorized to hold cart");
+      }
+    } else {
+      await deleteMetadata();
+      clear_auth_session();
+      router.push("/sign-in");
+    }
+    await deleteMetadata();
+    clear_auth_session();
+  };
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -170,11 +243,7 @@ export default function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={async () => {
-                      await deleteMetadata();
-                      clear_auth_session();
-                      router.push("/sign-in");
-                    }}
+                    onClick={handleLogout}
                     variant="outline"
                     className="mt-5 h-10 w-full justify-center"
                   >
