@@ -50,6 +50,7 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
         branch_name: transaction.branch_name,
         ptotal: transaction.ptotal,
         pdate: transaction.pdate,
+        status: transaction.status,
       }));
     });
   }

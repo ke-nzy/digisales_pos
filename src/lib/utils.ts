@@ -443,6 +443,18 @@ export const posTransactionColumns: ColumnDef<any>[] = [
     accessorKey: "pdate",
     header: "TRANSACTION_DATE",
   },
+  {
+    id: "status",
+    accessorKey: "status",
+    header: "STATUS",
+    cell: ({ row }) => {
+      return row.original.status === "1"
+        ? "Completed"
+        : row.original.status === "2"
+          ? "Cancelled"
+          : "Held";
+    },
+  },
 ];
 
 export const cartColumns: ColumnDef<DirectSales>[] = [
