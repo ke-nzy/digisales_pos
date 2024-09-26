@@ -157,22 +157,17 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
         toast.error("Clear current cart instance");
       }
       if (!loadCart) {
-        toast.error("Cart Instance not stored");
-        return;
+        const newCart = transformArrayToCart(data);
+        console.log("newCart", newCart);
+        useCartStore.setState({ currentCart: newCart });
+        router.push("/");
+      } else {
+        useCartStore.setState({ currentCart: loadCart });
+        router.push("/");
       }
-      // handleReopen to cart by setting currentCart to the loaded cart
-      useCartStore.setState({ currentCart: loadCart });
-
-      // useCartStore.setState({currentCart:{
-      //     cart_id: `cart_${data.unique_identifier}`,
-      //     items: items,
-
-      // }})
     } catch (error) {
       console.error("Failed to load cart:", error);
       toast.error("Failed to load cart");
-    } finally {
-      router.push("/");
     }
 
     // redirect to POS
