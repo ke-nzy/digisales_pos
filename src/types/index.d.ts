@@ -28,6 +28,7 @@ declare type UserAccountInfo = {
   real_name: string;
   default_store: string;
   default_store_name: string;
+  default_till: string;
   date_format: string;
   date_spec: string;
   dec_spec: string;

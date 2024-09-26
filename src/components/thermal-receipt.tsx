@@ -166,6 +166,11 @@ const TransactionReceiptPDF = ({
             >
               {`KRA Pin: ${receipt_info.receipt}`}
             </Text>
+            <Text
+              style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
+            >
+              {`Till Number: ${account.default_till}`}
+            </Text>
           </View>
           <View>
             <View
@@ -564,6 +569,11 @@ const TransactionReceiptPDF = ({
                 style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
               >
                 {`KRA Pin: ${receipt_info.receipt}`}
+              </Text>
+              <Text
+                style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
+              >
+                {`Till Number: ${account.default_till}`}
               </Text>
             </View>
             <View>
