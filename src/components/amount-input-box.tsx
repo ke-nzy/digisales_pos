@@ -291,7 +291,7 @@ const AmountInput = ({
       iframe.contentWindow!.onafterprint = cleanup;
 
       // Fallback to force cleanup in case onafterprint fails
-      setTimeout(cleanup, 15000);
+      setTimeout(cleanup, 50000);
     } catch (error) {
       console.error("Failed to print document:", error);
       toast.error("Failed to print document");

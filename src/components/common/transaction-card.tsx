@@ -534,7 +534,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
             className="flex-grow gap-2"
           >
             <CopyIcon className="h-3.5 w-3.5" />
-            Copy
+            Open
           </Button>
         </CardFooter>
       )}
