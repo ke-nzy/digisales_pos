@@ -23,10 +23,89 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { useAuthStore } from "~/store/auth-store";
 import { useRouter } from "next/navigation";
+import { useCartStore } from "~/store/cart-store";
+import { toast } from "sonner";
+import { useState } from "react";
+import { submit_hold_direct_sale_request } from "~/lib/actions/user.actions";
 
 export default function UserNav() {
-  const { account, clear_auth_session } = useAuthStore();
+  const { account, clear_auth_session, site_url, site_company } =
+    useAuthStore();
+  const [isLoading, setIsLoading] = useState<boolean | null>(null);
+  const { currentCart, currentCustomer, holdCart } = useCartStore(
+    (state) => state,
+  );
+  const roles = localStorage.getItem("roles");
+  const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
   const router = useRouter();
+
+  const handleHoldCart = async () => {
+    if (!currentCart) {
+      toast.error("Please add items to cart");
+      // setIsLoading(false);
+      return;
+    }
+    if (!currentCustomer) {
+      toast.error("Please select a customer");
+      // setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await submit_hold_direct_sale_request(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        account!.user_id,
+        currentCart.items,
+        currentCustomer,
+        null,
+        currentCustomer.br_name,
+        currentCart.cart_id,
+      );
+      console.log("result", result);
+      if (!result) {
+        // sentry.captureException(result);
+        toast.error("Hold  Action failed");
+        setIsLoading(false);
+        return false;
+      }
+
+      holdCart();
+
+      toast.success("Cart held successfully");
+      return true;
+    } catch (error) {
+      toast.error("Something went wrong");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (currentCart) {
+      if (!isBranchManager) {
+        const res = await handleHoldCart();
+        if (res) {
+          clear_auth_session();
+          router.push("/sign-in");
+        } else {
+          toast.error("Unable to hold cart");
+        }
+      } else {
+        toast.error("You are not authorized to hold cart");
+      }
+    } else {
+      await deleteMetadata();
+      clear_auth_session();
+      router.push("/sign-in");
+    }
+    await deleteMetadata();
+    clear_auth_session();
+  };
+
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -79,11 +158,7 @@ export default function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="hover:cursor-pointer"
-          onClick={async () => {
-            await deleteMetadata();
-            clear_auth_session();
-            router.push("/sign-in");
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="mr-3 h-4 w-4 text-muted-foreground" />
           Sign out

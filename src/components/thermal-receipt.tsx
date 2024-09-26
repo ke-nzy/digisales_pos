@@ -38,6 +38,11 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 8,
+    fontWeight: "normal",
+  },
+  textBold: {
+    fontFamily: "Helvetica",
+    fontSize: 8.3,
   },
   table: {
     display: "flex",
@@ -523,8 +528,8 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.text, { fontWeight: "extrabold" }]}>
-            No refund , No exchange
+          <Text style={[{ fontWeight: "heavy", fontSize: 9 }]}>
+            NO REFUND, NO EXCHANGE
           </Text>
         </View>
       </Page>
@@ -940,8 +945,8 @@ const TransactionReceiptPDF = ({
             <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[styles.text, { fontWeight: "extrabold" }]}>
-              No refund , No exchange
+            <Text style={[{ fontWeight: "heavy", fontSize: 9 }]}>
+              NO REFUND, NO EXCHANGE
             </Text>
           </View>
         </Page>
