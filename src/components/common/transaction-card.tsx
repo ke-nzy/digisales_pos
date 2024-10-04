@@ -160,6 +160,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
         const newCart = transformArrayToCart(data);
         console.log("newCart", newCart);
         useCartStore.setState({ currentCart: newCart });
+        localStorage.setItem("currentCart", JSON.stringify(newCart));
         router.push("/");
       } else {
         useCartStore.setState({ currentCart: loadCart });
