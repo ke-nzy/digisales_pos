@@ -304,7 +304,12 @@ const PaymentOptions = ({
                 )}
 
                 <Label>Amount</Label>
-                <Input value={amnt} onChange={(e) => setAmnt(e.target.value)} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={amnt}
+                  onChange={(e) => setAmnt(e.target.value)}
+                />
               </div>
               <div className="flex flex-row items-center justify-end gap-2 p-4">
                 <Button
