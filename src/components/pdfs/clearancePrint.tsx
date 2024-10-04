@@ -21,10 +21,10 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 8,
     marginBottom: 5,
-    fontFamily: "Courier Prime",
+    fontFamily: "Courier",
   },
   text: {
-    fontSize: 3.0,
+    fontSize: 5.0,
   },
   table: {
     display: "flex",
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   tableCell: {
     margin: 5,
     fontSize: 7,
-    fontFamily: "Courier Prime",
+    fontFamily: "Courier-Bold",
   },
   table_col: {
     paddingHorizontal: 1,
@@ -77,7 +77,7 @@ const ClearancePrintPDF = ({
   account,
 }: ClearancePrintPDFProps) => {
   function get_printout_size(length: number): [number, number] {
-    return [200, 477 + length * 10];
+    return [200, 800 + length * 10];
   }
   const dataToSubmit = paymentSummary.map((paymentType) => ({
     TransType: paymentType.TransType!,

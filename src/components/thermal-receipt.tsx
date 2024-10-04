@@ -11,10 +11,7 @@ import {
 import QrCode from "qrcode";
 
 import { calculateSubtotalAndDiscount } from "~/lib/utils";
-Font.register({
-  family: "Courier Prime",
-  src: "http://fonts.gstatic.com/s/raleway/v11/bIcY3_3JNqUVRAQQRNVteQ.ttf",
-});
+
 const styles = StyleSheet.create({
   page: {
     paddingHorizontal: 4,
@@ -24,21 +21,23 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginTop: 10,
     textAlign: "left",
-    fontFamily: "Courier Prime",
+    fontFamily: "Helvetica",
   },
   customer_section: {
     marginBottom: 5,
     textAlign: "left",
-    fontFamily: "Courier Prime",
+    fontFamily: "Helvetica",
   },
   header: {
     fontSize: 8,
     marginBottom: 5,
-    fontFamily: "Courier Prime",
+    fontFamily: "Helvetica",
+    fontWeight: "bold",
   },
   text: {
     fontSize: 8,
-    fontWeight: "normal",
+    fontWeight: "bold",
+    fontFamily: "Helvetica",
   },
   textBold: {
     fontFamily: "Helvetica",
@@ -169,7 +168,7 @@ const TransactionReceiptPDF = ({
             <Text
               style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
             >
-              <strong> {`Till Number: ${account.default_till}`}</strong>
+              {`Till Number: ${account.default_till}`}
             </Text>
           </View>
           <View>
@@ -533,7 +532,7 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[{ fontWeight: "heavy", fontSize: 9 }]}>
+          <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
             NO REFUND, NO EXCHANGE
           </Text>
         </View>
@@ -955,7 +954,7 @@ const TransactionReceiptPDF = ({
             <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[{ fontWeight: "heavy", fontSize: 9 }]}>
+            <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
               NO REFUND, NO EXCHANGE
             </Text>
           </View>
