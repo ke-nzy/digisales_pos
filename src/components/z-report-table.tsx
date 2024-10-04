@@ -114,7 +114,7 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
         // Check if transaction type includes the word 'cash' (case-insensitive)
         if (type.toLowerCase().includes("cash")) {
           // Subtract the balance if 'cash' is part of the type
-          summary[type] += amount - balanceValue;
+          summary[type] += amount;
         } else {
           // Otherwise, just add the amount
           summary[type] += amount;
