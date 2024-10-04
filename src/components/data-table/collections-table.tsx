@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 import {
   type ColumnDef,
@@ -20,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -185,7 +185,7 @@ export function CollectionsDataTable<TData extends CollectionReportItem>({
   const transformedData = transformDataForCSV(filteredData);
 
   return (
-    <>
+    <div>
       <div className="flex items-center space-x-4 py-4">
         {/* <Popover>
           <PopoverTrigger asChild>
@@ -329,7 +329,7 @@ export function CollectionsDataTable<TData extends CollectionReportItem>({
           </TableFooter>
         </Table>
       </div>
-    </>
+    </div>
   );
 }
 

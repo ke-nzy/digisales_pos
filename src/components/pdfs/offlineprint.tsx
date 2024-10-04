@@ -616,7 +616,7 @@ const OfflineTransactionReceiptPDF = ({
               }}
             >
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {`Sales Code: ${data.id}`}
+                {`Trans ID: ${data.id}`}
               </Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
                 {"Transaction Receipt - Copy"}

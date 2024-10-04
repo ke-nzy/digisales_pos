@@ -6,7 +6,6 @@ import {
   Image,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import QrCode from "qrcode";
 
@@ -60,7 +59,7 @@ const styles = StyleSheet.create({
   tableCell: {
     margin: 5,
     fontSize: 7,
-    fontFamily: "Courier Prime",
+    fontFamily: "Helvetica",
   },
   table_col: {
     paddingHorizontal: 1,
@@ -131,7 +130,9 @@ const TransactionReceiptPDF = ({
   console.log("sub_total", totalDiscount);
 
   const kra_code = async () =>
-    await QrCode.toDataURL(data.qrCode ?? "Digisales No KRA");
+    await QrCode.toDataURL(
+      data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Digisales No KRA",
+    );
   return (
     <Document>
       <Page
@@ -232,7 +233,6 @@ const TransactionReceiptPDF = ({
                   }}
                 >
                   <Text style={[styles.text, {}]}>Branch ID</Text>
-                  {/* TODO: Add branch name */}
                   <Text style={[styles.text, {}]}>
                     {account.default_store_name}
                   </Text>
@@ -655,7 +655,7 @@ const TransactionReceiptPDF = ({
               }}
             >
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {`Sales Code: ${data.id}`}
+                {`Trans ID: ${data.id}`}
               </Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
                 {"Transaction Receipt - Copy"}

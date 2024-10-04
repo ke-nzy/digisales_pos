@@ -98,18 +98,27 @@ const ZReportTable = ({ data, sales }: ZReportTableProps) => {
     data.forEach((transaction) => {
       const payments: Payment[] = JSON.parse(transaction.payments);
       payments.forEach((payment) => {
-        const { Transtype, TransAmount } = payment;
+        const { Transtype, TransAmount, balance } = payment;
         const amount =
           typeof TransAmount === "string"
             ? parseFloat(TransAmount)
             : TransAmount;
         const type = Transtype ?? "unknown_payment";
+        const balanceValue =
+          typeof balance === "string" ? parseFloat(balance) : balance || 0;
 
         if (!summary[type]) {
           summary[type] = 0;
         }
 
-        summary[type] += amount;
+        // Check if transaction type includes the word 'cash' (case-insensitive)
+        if (type.toLowerCase().includes("cash")) {
+          // Subtract the balance if 'cash' is part of the type
+          summary[type] += amount - balanceValue;
+        } else {
+          // Otherwise, just add the amount
+          summary[type] += amount;
+        }
       });
     });
 
