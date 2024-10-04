@@ -75,64 +75,140 @@ const AmountInput = ({
   const discount = calculateDiscount(currentCart!);
   const balance = total - discount - paid;
 
+  // const updateCashPayments = (
+  //   paymentCart: PaymentCart[],
+  //   invoiceTotal: number,
+  // ): PaymentCart[] => {
+  //   console.log("paymentCart", paymentCart);
+  //   console.log("invoiceTotal", invoiceTotal);
+  //   return paymentCart.map((cart) => {
+  //     if (cart.paymentType?.includes("CASH")) {
+  //       const totalCashPayments = cart.payments.reduce((total, payment) => {
+  //         return total + typeof payment.TransAmount === "string"
+  //           ? parseFloat(payment.TransAmount as string)
+  //           : parseFloat(payment.TransAmount.toString());
+  //       }, 0);
+
+  //       console.log("totalCashPayments", totalCashPayments);
+  //       const otherpayments = paymentCart.filter(
+  //         (payment) => !payment.paymentType?.includes("CASH"),
+  //       );
+
+  //       // export const tallyTotalAmountPaid = (
+  //       //   paymentCarts: PaymentCart[],
+  //       // ): number => {
+  //       //   return paymentCarts.reduce((total, cart) => {
+  //       //     const cartTotal = cart.payments.reduce((cartSum, payment) => {
+  //       //       const amount =
+  //       //         typeof payment.TransAmount === "string"
+  //       //           ? parseFloat(payment.TransAmount)
+  //       //           : payment.TransAmount;
+  //       //       return cartSum + (isNaN(amount) ? 0 : amount);
+  //       //     }, 0);
+  //       //     return total + cartTotal;
+  //       //   }, 0);
+  //       // };
+
+  //       const totalOtherPayments = otherpayments.reduce((total, payment) => {
+  //         const totals = payment.payments.reduce((total, payment) => {
+  //           return total + typeof payment.TransAmount === "string"
+  //             ? parseFloat(payment.TransAmount as string)
+  //             : parseFloat(payment.TransAmount.toString());
+  //         }, 0);
+  //         return total + totals;
+  //       }, 0);
+
+  //       console.log("otherpayments", otherpayments);
+  //       console.log("totalOtherPayments", totalOtherPayments);
+  //       console.log("newCash", invoiceTotal - totalOtherPayments);
+  //       console.log("cart", cart);
+
+  //       if (totalCashPayments > invoiceTotal) {
+  //         const updatedPayments: Payment[] = [
+  //           {
+  //             Auto: generateRandomString(6),
+  //             name: generateRandomString(6),
+  //             TransID: ` CASH ${generateRandomString(4)}`,
+  //             TransAmount: (invoiceTotal - totalOtherPayments).toString(),
+  //             TransTime: new Date().toISOString(),
+  //             Transtype: cart.paymentType,
+  //             balance: totalCashPayments - invoiceTotal,
+  //           },
+  //         ];
+
+  //         return {
+  //           ...cart,
+  //           payments: updatedPayments,
+  //         };
+  //       }
+  //     }
+
+  //     return cart;
+  //   });
+  // };
   const updateCashPayments = (
     paymentCart: PaymentCart[],
     invoiceTotal: number,
   ): PaymentCart[] => {
     console.log("paymentCart", paymentCart);
     console.log("invoiceTotal", invoiceTotal);
+
     return paymentCart.map((cart) => {
       if (cart.paymentType?.includes("CASH")) {
         const totalCashPayments = cart.payments.reduce((total, payment) => {
-          return total + typeof payment.TransAmount === "string"
-            ? parseFloat(payment.TransAmount as string)
-            : parseFloat(payment.TransAmount.toString());
+          const amount =
+            typeof payment.TransAmount === "string"
+              ? parseFloat(payment.TransAmount)
+              : parseFloat(payment.TransAmount.toString());
+          return total + (isNaN(amount) ? 0 : amount);
         }, 0);
 
         console.log("totalCashPayments", totalCashPayments);
-        const otherpayments = paymentCart.filter(
+
+        // Filter out other payment types that are not 'CASH'
+        const otherPayments = paymentCart.filter(
           (payment) => !payment.paymentType?.includes("CASH"),
         );
 
-        // export const tallyTotalAmountPaid = (
-        //   paymentCarts: PaymentCart[],
-        // ): number => {
-        //   return paymentCarts.reduce((total, cart) => {
-        //     const cartTotal = cart.payments.reduce((cartSum, payment) => {
-        //       const amount =
-        //         typeof payment.TransAmount === "string"
-        //           ? parseFloat(payment.TransAmount)
-        //           : payment.TransAmount;
-        //       return cartSum + (isNaN(amount) ? 0 : amount);
-        //     }, 0);
-        //     return total + cartTotal;
-        //   }, 0);
-        // };
-
-        const totalOtherPayments = otherpayments.reduce((total, payment) => {
+        // Calculate the total for non-cash payments
+        const totalOtherPayments = otherPayments.reduce((total, payment) => {
           const totals = payment.payments.reduce((total, payment) => {
-            return total + typeof payment.TransAmount === "string"
-              ? parseFloat(payment.TransAmount as string)
-              : parseFloat(payment.TransAmount.toString());
+            const amount =
+              typeof payment.TransAmount === "string"
+                ? parseFloat(payment.TransAmount)
+                : parseFloat(payment.TransAmount.toString());
+            return total + (isNaN(amount) ? 0 : amount);
           }, 0);
           return total + totals;
         }, 0);
 
-        console.log("otherpayments", otherpayments);
+        console.log("otherPayments", otherPayments);
         console.log("totalOtherPayments", totalOtherPayments);
-        console.log("newCash", invoiceTotal - totalOtherPayments);
+
+        // Calculate the new cash payment value based on invoice total
+        const newCashAmount = invoiceTotal - totalOtherPayments;
+
+        console.log("newCashAmount", newCashAmount);
         console.log("cart", cart);
 
-        if (totalCashPayments > invoiceTotal) {
+        if (totalCashPayments + totalOtherPayments > invoiceTotal) {
+          // If total payments exceed invoice total, calculate the balance
+          const totalPaid = totalCashPayments + totalOtherPayments;
+          const overPayment = totalPaid - invoiceTotal;
+          const adjustedCashAmount = newCashAmount > 0 ? newCashAmount : 0;
+
+          console.log("overPayment", overPayment);
+          console.log("adjustedCashAmount", adjustedCashAmount);
+
           const updatedPayments: Payment[] = [
             {
               Auto: generateRandomString(6),
               name: generateRandomString(6),
               TransID: ` CASH ${generateRandomString(4)}`,
-              TransAmount: (invoiceTotal - totalOtherPayments).toString(),
+              TransAmount: adjustedCashAmount.toString(),
               TransTime: new Date().toISOString(),
               Transtype: cart.paymentType,
-              balance: totalCashPayments - invoiceTotal,
+              balance: overPayment, // The balance should reflect the overpayment
             },
           ];
 
@@ -146,6 +222,7 @@ const AmountInput = ({
       return cart;
     });
   };
+
   const handleProcessInvoice = async () => {
     if (isLoading) {
       return;
