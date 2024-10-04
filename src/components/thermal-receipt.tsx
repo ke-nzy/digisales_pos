@@ -169,7 +169,7 @@ const TransactionReceiptPDF = ({
             <Text
               style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
             >
-              {`Till Number: ${account.default_till}`}
+              <strong> {`Till Number: ${account.default_till}`}</strong>
             </Text>
           </View>
           <View>

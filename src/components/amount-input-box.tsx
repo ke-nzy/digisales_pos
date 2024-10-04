@@ -84,7 +84,9 @@ const AmountInput = ({
     return paymentCart.map((cart) => {
       if (cart.paymentType?.includes("CASH")) {
         const totalCashPayments = cart.payments.reduce((total, payment) => {
-          return total + parseFloat(payment.TransAmount as string);
+          return total + typeof payment.TransAmount === "string"
+            ? parseFloat(payment.TransAmount as string)
+            : parseFloat(payment.TransAmount.toString());
         }, 0);
 
         console.log("totalCashPayments", totalCashPayments);
@@ -109,7 +111,9 @@ const AmountInput = ({
 
         const totalOtherPayments = otherpayments.reduce((total, payment) => {
           const totals = payment.payments.reduce((total, payment) => {
-            return total + parseFloat(payment.TransAmount as string);
+            return total + typeof payment.TransAmount === "string"
+              ? parseFloat(payment.TransAmount as string)
+              : parseFloat(payment.TransAmount.toString());
           }, 0);
           return total + totals;
         }, 0);
