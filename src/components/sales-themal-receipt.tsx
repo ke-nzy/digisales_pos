@@ -25,6 +25,8 @@ const TransactionReceiptPDF = ({
   const [qrCodeUrl, setQrCodeUrl] = useState(data.qrCode || "");
   const salesInfo = data[0];
 
+  console.log("Sales Info", salesInfo);
+
   useEffect(() => {
     console.log("QR Code", data.qrCode);
     const generateKraCode = async () => {

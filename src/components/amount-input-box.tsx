@@ -26,6 +26,8 @@ import { pdf } from "@react-pdf/renderer";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 import { addInvoice } from "~/utils/indexeddb";
 import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
+import { checkItemQuantities, highlightProblematicItems } from "./temporaryFixes";
+import { useInventory, useItemDetails } from "~/hooks/useInventory";
 
 interface AmountInputProps {
   value: string;
@@ -57,6 +59,39 @@ const AmountInput = ({
     useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
+
+
+  type ItemDetails = {
+    stock_id: string;
+    price: number;
+    quantity_available: number;
+    tax_mode: number;
+  };
+
+
+  const { inventory } = useInventory();  // Fetch the entire inventory
+  const allDetails: ItemDetails[] = [];
+
+  inventory.forEach(item => {
+    const { data: details } = useItemDetails(
+      site_url!,
+      site_company!,
+      account!,
+      item.stock_id,
+      item.kit ?? ""
+    );
+
+    if (details) {
+      allDetails.push({
+        stock_id: item.stock_id,
+        price: details.price,
+        quantity_available: details.quantity_available,
+        tax_mode: details.tax_mode
+      });
+    }
+  });
+
+  console.log("All details", allDetails);
 
   const router = useRouter();
   useEffect(() => {
@@ -146,6 +181,7 @@ const AmountInput = ({
   //     return cart;
   //   });
   // };
+
   const updateCashPayments = (
     paymentCart: PaymentCart[],
     invoiceTotal: number,
@@ -227,20 +263,39 @@ const AmountInput = ({
     if (isLoading) {
       return;
     }
+
     if (!currentCart) {
       toast.error("Please add items to cart");
-      // setIsLoading(false);
       return;
     }
+
     if (!currentCustomer) {
       toast.error("Please select a customer");
-      // setIsLoading(false);
       return;
     }
 
     if (totalPaid < total - discount || !totalPaid) {
       toast.error("Insufficient funds");
       return;
+    }
+
+    // Check item quantities in the cart based on available inventory
+    const { isValid, invalidItems = [] } = await checkItemQuantities(currentCart.items, allDetails);
+    console.log("quantitiesAreValid:", isValid);
+    console.log("currentCart.items:", currentCart.items);
+
+    if (!isValid) {
+      // Highlight problematic items in the cart
+      highlightProblematicItems(currentCart.items, allDetails);
+
+      // Create an error message listing the problematic items
+      const invalidItemsMessage = invalidItems
+        .map(item => `${item.item.description} (Requested: ${item.quantity})`)
+        .join(", ");
+
+      // Show a toast error with the problematic items
+      toast.error(`Error! Quantities are insufficient for the following items: ${invalidItemsMessage}`);
+      return; // Stop the process if quantities are invalid
     }
 
     const pmnts = updateCashPayments(paymentCarts, total);
@@ -263,8 +318,8 @@ const AmountInput = ({
         pin,
       );
       console.log("result", result);
+
       if (!result) {
-        // sentry.captureException(result);
         toast.error("Transaction failed");
         setIsLoading(false);
         return;
@@ -278,19 +333,8 @@ const AmountInput = ({
         setIsLoading(false);
         return;
       } else {
-        // const transaction_history = await fetch_pos_transactions_report(
-        //   site_company!,
-        //   account!,
-        //   site_url!,
-        //   toDate(new Date()),
-        //   toDate(new Date()),
-        // );
-        // process receipt
-
         toast.success("Invoice processed successfully");
         console.log("result", result);
-
-        //   router.refresh();
 
         if (result as SalesReceiptInformation) {
           await handlePrint(result as SalesReceiptInformation);
@@ -302,8 +346,6 @@ const AmountInput = ({
           clearCart();
           clearPaymentCarts();
           setPaidStatus(true);
-
-          // router.push("/payment/paid");
         } else {
           toast.error("Failed to print - Could not find transaction");
           setIsPrinted(false);
@@ -315,19 +357,16 @@ const AmountInput = ({
         clearCart();
         clearPaymentCarts();
         setPaidStatus(true);
-        // router.push("/payment/paid");
       }
-      // if (isPrinted) {
-      // }
     } catch (error) {
       console.error("Something went wrong", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
-
-    // clearCart();
   };
+
+
   const handlePrint = async (data: SalesReceiptInformation) => {
     try {
       console.log("handlePrint", data);
@@ -341,6 +380,8 @@ const AmountInput = ({
           duplicate={true}
         />,
       ).toBlob();
+
+      console.log("pdfBlob", pdfBlob);
 
       const url = URL.createObjectURL(pdfBlob);
       const iframe = document.createElement("iframe");
@@ -379,6 +420,7 @@ const AmountInput = ({
       setIsPrinted(false);
     }
   };
+
   const handleOfflinePrint = async (data: UnsynchedInvoice) => {
     try {
       console.log("handlePrint", data);
@@ -416,6 +458,7 @@ const AmountInput = ({
       setIsPrinted(false);
     }
   };
+
   return (
     <div className="flex h-full w-full flex-col space-y-6">
       <div className="flex-grow">
