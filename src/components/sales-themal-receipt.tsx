@@ -6,14 +6,10 @@ import {
   Image,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import { calculateSubtotalAndDiscount } from "~/lib/utils";
-Font.register({
-  family: "Courier Prime",
-  src: "http://fonts.gstatic.com/s/raleway/v11/bIcY3_3JNqUVRAQQRNVteQ.ttf",
-});
+import { toast } from "sonner";
 
 const TransactionReceiptPDF = ({
   data,
@@ -29,12 +25,21 @@ const TransactionReceiptPDF = ({
   const [qrCodeUrl, setQrCodeUrl] = useState(data.qrCode || "");
   const salesInfo = data[0];
 
+  console.log("Sales Info", salesInfo);
+
   useEffect(() => {
     console.log("QR Code", data.qrCode);
     const generateKraCode = async () => {
       if (data.qrCode && data.qrCode.length > 0) {
         try {
           const code = await QRCode.toDataURL(data.qrCode);
+          setQrCodeUrl(code);
+        } catch (error) {
+          console.error("Failed to generate QR code:", error);
+        }
+      } else {
+        try {
+          const code = await QRCode.toDataURL("Digisales No KRA");
           setQrCodeUrl(code);
         } catch (error) {
           console.error("Failed to generate QR code:", error);
@@ -83,10 +88,6 @@ const TransactionReceiptPDF = ({
 
   console.log("sub_total", totalDiscount);
 
-  const kra_code = async () =>
-    await QRCode.toDataURL(
-      data.qrCode && data.qrCode?.length > 0 ? data.qrCode : "Digisales No KRA",
-    );
   return (
     <Document>
       <Page
@@ -119,6 +120,11 @@ const TransactionReceiptPDF = ({
               style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
             >
               {`KRA Pin: ${receipt_info.receipt}`}
+            </Text>
+            <Text
+              style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}
+            >
+              {`Till Number: ${account.default_till}`}
             </Text>
           </View>
           <View>
@@ -438,6 +444,7 @@ const TransactionReceiptPDF = ({
           > */}
 
           <Image src={qrCodeUrl} style={{ maxHeight: 70, maxWidth: 70 }} />
+
           {/* </View> */}
           <View
             style={{
@@ -484,8 +491,8 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[styles.textImportant, { fontWeight: "extrabold" }]}>
-            No refund , No exchange
+          <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
+            NO REFUND, NO EXCHANGE
           </Text>
         </View>
       </Page>
@@ -604,7 +611,7 @@ const TransactionReceiptPDF = ({
               }}
             >
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {`Sales Code: ${salesInfo.id}`}
+                {`Trans ID: ${salesInfo.id}`}
               </Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
                 {"Transaction Receipt - Copy"}
@@ -903,8 +910,8 @@ const TransactionReceiptPDF = ({
             <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[styles.text, { fontWeight: "extrabold" }]}>
-              No refund , No exchange
+            <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
+              NO REFUND, NO EXCHANGE
             </Text>
           </View>
         </Page>

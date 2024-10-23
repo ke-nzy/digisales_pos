@@ -2,6 +2,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetch_all_item_inventory,
+  fetch_branch_inventory,
   fetch_all_sellable_items,
   fetch_item_details,
 } from "~/lib/actions/inventory.actions";
@@ -19,102 +20,62 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
   const lastUpdate = await getMetadata("metadata");
   const now = new Date();
-  // 1min ago
-  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 60 * 0.0167);
+  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 30); // 30 minutes ago
   let list: InventoryItem[] = [];
-  if (lastUpdate) {
-    if (new Date(lastUpdate) >= thirtyAgo) {
-      // Fetch from Endpoint
-      const sellable = await fetch_all_sellable_items(
-        site_company!,
-        account!,
-        site_url!,
-      );
 
-      const item_inventory = await fetch_all_item_inventory(
-        site_company!,
-        account!,
-        site_url!,
-      );
+  console.log("Last Update Timestamp:", lastUpdate);
+  console.log("Current Time:", now);
+  console.log("Thirty Minutes Ago:", thirtyAgo);
 
-      await setInventory("inventory", sellable || []);
-      await setPriceList("priceList", item_inventory || []);
-      await setMetadata("metadata", now.toISOString());
-      list = sellable || [];
-      return list;
-    } else {
-      // Fetch from IndexedDB
-      const inventory = await getInventory("inventory", "");
-      if (inventory) {
-        list = inventory;
-        return list;
-      }
-    }
-  } else {
-    const sellable = await fetch_all_sellable_items(
-      site_company!,
-      account!,
-      site_url!,
-    );
-
-    const item_inventory = await fetch_all_item_inventory(
-      site_company!,
-      account!,
-      site_url!,
-    );
-
-    await setInventory("inventory", sellable || []);
-    await setPriceList("priceList", item_inventory || []);
-    await setMetadata("metadata", now.toISOString());
-    list = sellable || [];
-    return list;
-  }
-
-  // if (lastUpdate && new Date(lastUpdate) >= aDayAgo) {
-  //   // Fetch from IndexedDB
-  //   const inventory = await getInventory("inventory", "");
-  //   if (inventory) {
-  //     return inventory;
+  // if (lastUpdate) {
+  //   if (new Date(lastUpdate) >= thirtyAgo) {
+  //     console.log("Fetching inventory from IndexedDB");
+  //     const inventory = await getInventory("inventory", "");
+  //     if (inventory) {
+  //       list = inventory;
+  //       return list;
+  //     }
   //   }
   // }
 
-  // Fetch from API
-  // const sellable = await fetch_all_sellable_items(
-  //   site_company!,
-  //   account!,
-  //   site_url!,
-  // );
+  console.log("Forcing fetch from API for testing.");
+  const sellable = await fetch_all_sellable_items(
+    site_company!,
+    account!,
+    site_url!,
+  );
+  const branchInventory = await fetch_branch_inventory(
+    site_company!,
+    account!,
+    site_url!,
+  );
+  const item_inventory = await fetch_all_item_inventory(
+    site_company!,
+    account!,
+    site_url!,
+  );
 
-  // const item_inventory = await fetch_all_item_inventory(
-  //   site_company!,
-  //   account!,
-  //   site_url!,
-  // );
+  await setInventory("inventory", sellable || []);
+  await setPriceList("priceList", item_inventory || []);
+  await setMetadata("metadata", now.toISOString());
+  list = sellable || [];
 
-  // console.log("item_inventory", item_inventory);
-
-  // const list = sellable || [];
-  // const pl = item_inventory || [];
-  // await setMetadata("metadata", now.toISOString());
-  // await setInventory("inventory", list);
-  // await setPriceList("priceList", pl);
   return list;
 };
 
-const fetchItemDetails = async (
-  stock_id?: string,
-  kit?: string,
-): Promise<any> => {
+const fetchItemDetails = async (stock_id?: string, kit?: string, forceRefresh = true): Promise<any> => {
   const { site_company, account, site_url } = useAuthStore.getState();
   const lastUpdate = await getMetadata("metadata");
   const now = new Date();
-  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 60 * 0.5);
+  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 30); // 30 minutes ago
   let details;
-  if (lastUpdate) {
-    if (new Date(lastUpdate) <= thirtyAgo) {
-      // Fetch from Endpoint
-      console.log("fetch_item_details from Endpoint (30 minutes ago)");
 
+  // Snippet determines whether to fetch from API or IndexedDB
+  if (forceRefresh || !lastUpdate || new Date(lastUpdate) <= thirtyAgo) {
+    // Fetch from Endpoint if forced or data is older than 30 minutes
+    console.log("Fetching item details from Endpoint");
+
+    try {
       const item_details = await fetch_item_details(
         site_url!,
         site_company!.company_prefix,
@@ -124,70 +85,41 @@ const fetchItemDetails = async (
         undefined,
       );
 
-      console.log("item_details", item_details);
-
-      const sellable = await fetch_all_sellable_items(
-        site_company!,
-        account!,
-        site_url!,
-      );
-
-      const item_inventory = await fetch_all_item_inventory(
-        site_company!,
-        account!,
-        site_url!,
-      );
+      // Handle response and store it in IndexedDB
+      const sellable = await fetch_all_sellable_items(site_company!, account!, site_url!);
+      const item_inventory = await fetch_all_item_inventory(site_company!, account!, site_url!);
 
       await setInventory("inventory", sellable || []);
       await setPriceList("priceList", item_inventory || []);
       await setMetadata("metadata", now.toISOString());
+
       details = item_details;
-      return details;
-    } else {
-      // Fetch from IndexedDB
-      console.log("fetch_item_details from IndexedDB");
-      console.log("stock_id", stock_id);
-      const itemDetails = await getItemPriceDetails(stock_id!);
-      console.log("itemDetails", itemDetails);
-      if (itemDetails) {
-        details = itemDetails;
-      } else {
-        details = {
-          price: "0",
-          quantity_available: "0",
-          tax_mode: "0",
-        };
-      }
+    } catch (error) {
+      console.error("Error fetching item details from API:", error);
+      details = await getItemPriceDetails(stock_id!); // Fallback to IndexedDB on error
     }
+
+    return details;
   } else {
-    console.log("fetch_item_details no lastUpdate");
-    const item_details = await fetch_item_details(
-      site_url!,
-      site_company!.company_prefix,
-      account!.id,
-      stock_id!,
-      kit!,
-      undefined,
-    );
-    const sellable = await fetch_all_sellable_items(
-      site_company!,
-      account!,
-      site_url!,
-    );
+    // Fetch from IndexedDB if data is within the last 30 minutes
+    console.log("Fetching item details from IndexedDB");
+    console.log("stock_id:", stock_id);
+    const itemDetails = await getItemPriceDetails(stock_id!);
 
-    const item_inventory = await fetch_all_item_inventory(
-      site_company!,
-      account!,
-      site_url!,
-    );
-
-    await setInventory("inventory", sellable || []);
-    await setPriceList("priceList", item_inventory || []);
-    await setMetadata("metadata", now.toISOString());
-    details = item_details;
+    if (itemDetails) {
+      details = itemDetails;
+    } else {
+      details = {
+        price: "0",
+        quantity_available: "0",
+        tax_mode: "0",
+      };
+    }
+    return details;
   }
-  return details;
 };
+
+
 
 export const useInventory = () => {
   const queryClient = useQueryClient();
@@ -195,8 +127,12 @@ export const useInventory = () => {
   const { data, error, isLoading } = useQuery<InventoryItem[], Error>({
     queryKey: ["inventory"],
     queryFn: fetchInventoryData,
-    // staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
+
+  // Log the final inventory data, loading state, and any errors
+  console.log("Inventory Data:", data);
+  console.log("Is Loading:", isLoading);
+  console.log("Error:", error);
 
   return {
     inventory: data || [],

@@ -155,8 +155,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
       if (currentCart !== null) {
         console.log("current cart ", currentCart);
         toast.error("Clear current cart instance");
-      }
-      if (!loadCart) {
+      } else if (!loadCart) {
         const newCart = transformArrayToCart(data);
         console.log("newCart", newCart);
         useCartStore.setState({ currentCart: newCart });

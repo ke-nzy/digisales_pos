@@ -23,12 +23,27 @@ import {
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 
+interface CartItem {
+  item: {
+      stock_id: string;
+      description: string;
+      rate: string;
+      kit: string;
+      units: string;
+      mb_flag: string;
+  };
+  quantity: number;
+  discount?: string | undefined;
+  max_quantity: number;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filCol: string;
   onRowClick: (rowData: TData) => void;
   searchKey?: string;
+  invalidItems?: CartItem[];
 }
 
 export function CartTable<TData, TValue>({
@@ -37,6 +52,7 @@ export function CartTable<TData, TValue>({
   filCol,
   onRowClick,
   searchKey,
+  invalidItems = [],
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -91,6 +107,13 @@ export function CartTable<TData, TValue>({
     }
   }, [searchKey]);
 
+  const isRowInvalid = (row: TData) => {
+    return invalidItems?.some(
+      (invalidItem) =>
+        (row as unknown as CartItem).item.stock_id === invalidItem.item.stock_id
+    );
+  };
+
   return (
     <>
       <div className="rounded-md border" ref={tableRef}>
@@ -125,7 +148,10 @@ export function CartTable<TData, TValue>({
                     handleKeyDown(event, rowIndex, row.original)
                   }
                   onFocus={() => setFocusedRowIndex(rowIndex)}
-                  className={focusedRowIndex === rowIndex ? "bg-gray-100" : ""}
+                  className={`
+                    ${focusedRowIndex === rowIndex ? "bg-gray-100" : ""}
+                    ${isRowInvalid(row.original) ? "bg-red-100" : ""} // Highlight invalid rows
+                  `}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
