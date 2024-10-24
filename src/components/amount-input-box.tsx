@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
+import axios from "axios"; // Ensure axios is imported
 
 import { useCartStore } from "~/store/cart-store";
 import {
@@ -27,7 +28,7 @@ import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 import { addInvoice } from "~/utils/indexeddb";
 import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
 import { checkItemQuantities, highlightProblematicItems } from "./temporaryFixes";
-import { useInventory, useItemDetails } from "~/hooks/useInventory";
+import { fetchItemDetails, useInventory, useItemDetails } from "~/hooks/useInventory";
 
 interface AmountInputProps {
   value: string;
@@ -37,6 +38,7 @@ interface AmountInputProps {
   pin: string;
   setPin: (pin: string) => void;
 }
+
 const AmountInput = ({
   value,
   onChange,
@@ -68,30 +70,101 @@ const AmountInput = ({
     tax_mode: number;
   };
 
+  const { inventory, loading: inventoryLoading, error: inventoryError } = useInventory(); // Fetch inventory
 
-  const { inventory } = useInventory();  // Fetch the entire inventory
-  const allDetails: ItemDetails[] = [];
+  const [allDetails, setAllDetails] = useState<ItemDetails[]>([]);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
 
-  inventory.forEach(item => {
-    const { data: details } = useItemDetails(
-      site_url!,
-      site_company!,
-      account!,
-      item.stock_id,
-      item.kit ?? ""
-    );
+  // Function to fetch item details
+  const fetchItemDetails = async (
+    site_url: string,
+    company_prefix: string,
+    user_id: string,
+    stock_id: string,
+    kit: string,
+    ) => {
+    const form_data = new FormData();
+    form_data.append("tp", "getItemPriceQtyTaxWithId");
+    form_data.append("it", stock_id);
+    form_data.append("cp", company_prefix);
+    form_data.append("kit", kit);
+    form_data.append("id", user_id);
 
-    if (details) {
-      allDetails.push({
-        stock_id: item.stock_id,
-        price: details.price,
-        quantity_available: details.quantity_available,
-        tax_mode: details.tax_mode
-      });
+    try {
+      const response = await axios.post(`${site_url}process.php`, form_data);
+      if (response.data === "") {
+        console.error(`No data returned for stock ID: ${stock_id}`);
+        return null;
+      }
+
+      // Assuming the response is formatted like your `fetch_item_details`
+      const args = response.data.split("|");
+      return {
+        stock_id,
+        price: parseFloat(args[0] ?? "0"),
+        quantity_available: parseFloat(args[1] ?? "0"),
+        tax_mode: parseInt(args[2] ?? "0"),
+      };
+    } catch (error) {
+      console.error(`Error fetching details for stock ID ${stock_id}:`, error);
+      return null;
     }
-  });
+  };
 
-  console.log("All details", allDetails);
+  // Use in your component
+  useEffect(() => {
+    const fetchAllItemDetails = async () => {
+      if (!inventory || inventory.length === 0) return;
+
+      setIsLoading(true);
+
+      try {
+        const detailPromises = inventory.map(item => {
+          return fetchItemDetails(site_url!, site_company!.company_prefix, account!.id, item.stock_id, item.kit ?? "");
+        });
+
+        const resolvedDetails = await Promise.all(detailPromises);
+        // Filter out null values and set state
+        const validDetails = resolvedDetails.filter(detail => detail !== null);
+        setAllDetails(validDetails);
+
+        console.log("Fetched item details:", validDetails);
+      } catch (error) {
+        console.error("Error fetching item details", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (inventory.length > 0) {
+      void fetchAllItemDetails();
+    }
+  }, [inventory, site_url, site_company!.company_prefix, account!.id]);
+
+
+  // const { inventory } = useInventory();  
+  // const allDetails: ItemDetails[] = [];
+
+  // inventory.forEach(item => {
+  //   const { data: details } = useItemDetails(
+  //     site_url!,
+  //     site_company!,
+  //     account!,
+  //     item.stock_id,
+  //     item.kit ?? ""
+  //   );
+
+  //   if (details) {
+  //     allDetails.push({
+  //       stock_id: item.stock_id,
+  //       price: details.price,
+  //       quantity_available: details.quantity_available,
+  //       tax_mode: details.tax_mode
+  //     });
+  //   }
+  // });
+
+  // console.log("All details", allDetails);
 
   const router = useRouter();
   useEffect(() => {
