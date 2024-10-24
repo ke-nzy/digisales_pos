@@ -141,6 +141,15 @@ type ItemDetails = {
   };
 
 
+  export const saveCartToLocalStorage = (cart: any) => {
+    try {
+      const serializedCart = JSON.stringify(cart);
+      localStorage.setItem("heldCart", serializedCart);
+    } catch (error) {
+      console.error("Could not save cart to localStorage:", error);
+    }
+  };
+
 
 
 //   const handleProcessInvoice = async () => {
