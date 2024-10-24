@@ -63,7 +63,7 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   return list;
 };
 
-const fetchItemDetails = async (stock_id?: string, kit?: string, forceRefresh = true): Promise<any> => {
+export const fetchItemDetails = async (stock_id?: string, kit?: string, forceRefresh = true): Promise<any> => {
   const { site_company, account, site_url } = useAuthStore.getState();
   const lastUpdate = await getMetadata("metadata");
   const now = new Date();
@@ -153,6 +153,7 @@ export const useItemDetails = (
     queryKey: ["itemDetails", stock_id],
     queryFn: () => fetchItemDetails(stock_id, kit),
     enabled: !(stock_id?.length === 0),
+    retry: 2
     // fetch_item_details(
     //   site_url,
     //   site_company.company_prefix,

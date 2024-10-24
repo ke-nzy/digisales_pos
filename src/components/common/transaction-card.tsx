@@ -143,35 +143,76 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
 
     // redirect to POS
   };
+  // const handleReOpen = async () => {
+  //   console.log(`cart_${data.unique_identifier}`);
+
+  //   const loadCart = await getCart(`${data.unique_identifier}`);
+
+  //   console.log("loadCart", loadCart);
+
+  //   try {
+  //     // check if currentCart is null only then set it to the loaded cart
+  //     if (currentCart !== null) {
+  //       console.log("current cart ", currentCart);
+  //       toast.error("Please clear the current cart before reopening another one.");
+  //     } else if (!loadCart) {
+  //       const newCart = transformArrayToCart(data);
+  //       console.log("newCart", newCart);
+  //       useCartStore.setState({ currentCart: newCart });
+  //       router.push("/");
+  //     } else {
+  //       useCartStore.setState({ currentCart: loadCart });
+  //       router.push("/");
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to load cart:", error);
+  //     toast.error("Failed to load cart");
+  //   }
+
+  //   // redirect to POS
+  // };
+
   const handleReOpen = async () => {
     console.log(`cart_${data.unique_identifier}`);
 
+    // Load the held cart from storage
     const loadCart = await getCart(`${data.unique_identifier}`);
-
-    console.log("loadCart", loadCart);
+    console.log("Loaded Held Cart:", loadCart);
 
     try {
-      // check if currentCart is null only then set it to the loaded cart
       if (currentCart !== null) {
-        console.log("current cart ", currentCart);
-        toast.error("Clear current cart instance");
+        console.log("Existing currentCart: ", currentCart);
+        toast.error("Please clear the current cart before reopening another one!");
       } else if (!loadCart) {
         const newCart = transformArrayToCart(data);
-        console.log("newCart", newCart);
+        console.log("Transforming data into new cart:", newCart);
+
+        // Set the new cart as currentCart and save it to localStorage
         useCartStore.setState({ currentCart: newCart });
         localStorage.setItem("currentCart", JSON.stringify(newCart));
+
+        console.log("New Cart Set in currentCart:", useCartStore.getState().currentCart);
+        toast.success("New Cart created and set.");
         router.push("/");
       } else {
+        // Held cart is found, so set it as currentCart and save to localStorage
         useCartStore.setState({ currentCart: loadCart });
+        localStorage.setItem("currentCart", JSON.stringify(loadCart));
+
+        // Confirm the state update after a delay
+        setTimeout(() => {
+          console.log("Confirmed Cart in currentCart after setState:", useCartStore.getState().currentCart);
+        }, 100);
+
+        toast.success("Held Cart reopened and set in currentCart.");
         router.push("/");
       }
     } catch (error) {
       console.error("Failed to load cart:", error);
-      toast.error("Failed to load cart");
+      toast.error("Failed to load cart.");
     }
-
-    // redirect to POS
   };
+
 
   const handlePrint = async (data: TransactionReportItem) => {
     try {
