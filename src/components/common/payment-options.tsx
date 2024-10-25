@@ -79,25 +79,41 @@ const PaymentOptions = ({
 
   const handleMpesaLookup = async () => {
     setIsLoading(true);
-    const res = await lookup_mpesa_payment(
-      lookupRef,
-      site_url!,
-      site_company!.company_prefix,
-      account!.id,
-      "7451193",
-    );
-    if (res) {
-      if ((res as LookUpResponse).result === "Failed") {
-        toast.error((res as LookUpResponse).message);
+    let found = false; // Flag to determine if the transaction was found within the time limit
+
+    // Timeout function to stop the process after 5 seconds
+    const timeout = setTimeout(() => {
+      if (!found) {
+        toast.error("Transaction not found. Please try again.");
         setIsLoading(false);
-        return;
-      } else {
-        console.log("We have found ", res);
-        setFoundTransaction(res as Payment);
-        setTransactionFoundDialog(true);
-        setIsLoading(false);
-        return;
       }
+    }, 5000);
+
+    try {
+      const res = await lookup_mpesa_payment(
+        lookupRef,
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        "7451193",
+      );
+
+      if (res) {
+        if ((res as LookUpResponse).result === "Failed") {
+          toast.error((res as LookUpResponse).message);
+        } else {
+          console.log("We have found ", res);
+          setFoundTransaction(res as Payment);
+          setTransactionFoundDialog(true);
+          found = true; // Mark transaction as found
+        }
+      }
+    } catch (error) {
+      console.error("Error looking up M-Pesa transaction:", error);
+      toast.error("An error occurred during the lookup. Please try again.");
+    } finally {
+      clearTimeout(timeout); // Clear the timeout if the process completes within 5 seconds
+      setIsLoading(false);
     }
   };
 
@@ -145,9 +161,9 @@ const PaymentOptions = ({
             paymentOption.id === "mpesa"
               ? setMpesaDialogOpen
               : () => {
-                  setMpesaDialogOpen(false);
-                  setLookupRef("");
-                }
+                setMpesaDialogOpen(false);
+                setLookupRef("");
+              }
           }
           key={paymentOption.id}
         >
@@ -304,7 +320,12 @@ const PaymentOptions = ({
                 )}
 
                 <Label>Amount</Label>
-                <Input value={amnt} onChange={(e) => setAmnt(e.target.value)} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={amnt}
+                  onChange={(e) => setAmnt(e.target.value)}
+                />
               </div>
               <div className="flex flex-row items-center justify-end gap-2 p-4">
                 <Button
