@@ -28,7 +28,7 @@ import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 import { addInvoice } from "~/utils/indexeddb";
 import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
 import { checkItemQuantities, highlightProblematicItems } from "./temporaryFixes";
-import { fetchItemDetails, useInventory, useItemDetails } from "~/hooks/useInventory";
+import { useInventory, useItemDetails } from "~/hooks/useInventory";
 
 interface AmountInputProps {
   value: string;
@@ -60,6 +60,7 @@ const AmountInput = ({
   const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
     useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false); 
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
 
@@ -71,9 +72,8 @@ const AmountInput = ({
   };
 
   const { inventory, loading: inventoryLoading, error: inventoryError } = useInventory(); // Fetch inventory
-
   const [allDetails, setAllDetails] = useState<ItemDetails[]>([]);
-  const [detailsError, setDetailsError] = useState<string | null>(null);
+  // const [detailsError, setDetailsError] = useState<string | null>(null);
 
   // Function to fetch item details
   const fetchItemDetails = async (
@@ -82,7 +82,7 @@ const AmountInput = ({
     user_id: string,
     stock_id: string,
     kit: string,
-    ) => {
+  ) => {
     const form_data = new FormData();
     form_data.append("tp", "getItemPriceQtyTaxWithId");
     form_data.append("it", stock_id);
@@ -97,26 +97,25 @@ const AmountInput = ({
         return null;
       }
 
-      // Assuming the response is formatted like your `fetch_item_details`
-      const args = response.data.split("|");
+      const args = (typeof response.data === 'string' ? response.data : "").split("|");
       return {
         stock_id,
         price: parseFloat(args[0] ?? "0"),
         quantity_available: parseFloat(args[1] ?? "0"),
-        tax_mode: parseInt(args[2] ?? "0"),
+        tax_mode: parseInt(args[2] ?? "0", 10),
       };
+
     } catch (error) {
       console.error(`Error fetching details for stock ID ${stock_id}:`, error);
       return null;
     }
   };
 
-  // Use in your component
   useEffect(() => {
     const fetchAllItemDetails = async () => {
       if (!inventory || inventory.length === 0) return;
 
-      setIsLoading(true);
+      setIsFetchingDetails(true);
 
       try {
         const detailPromises = inventory.map(item => {
@@ -132,7 +131,7 @@ const AmountInput = ({
       } catch (error) {
         console.error("Error fetching item details", error);
       } finally {
-        setIsLoading(false);
+        setIsFetchingDetails(false);
       }
     };
 
