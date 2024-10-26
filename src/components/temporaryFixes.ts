@@ -2,153 +2,152 @@ import { useEffect, useState } from "react";
 import { useItemDetails } from "~/hooks/useInventory";
 
 interface InventoryItem {
-    stock_id: string;
-    price: number;
-    quantity_available: number;
-    tax_mode: number;
-    kit?: string | undefined;
+  stock_id: string;
+  price: number;
+  quantity_available: number;
+  tax_mode: number;
+  kit?: string | undefined;
 }
 
 interface CartItem {
-    item: {
-        stock_id: string;
-        description: string;
-        rate: string;
-        kit: string;
-        units: string;
-        mb_flag: string;
-    };
-    quantity: number;
-    discount?: string | undefined;
-    max_quantity: number;
+  item: {
+    stock_id: string;
+    description: string;
+    rate: string;
+    kit: string;
+    units: string;
+    mb_flag: string;
+  };
+  quantity: number;
+  discount?: string | undefined;
+  max_quantity: number;
 }
 
 // Check item quantities function with types
 export const checkItemQuantities = async (
-    items: CartItem[],
-    inventory: InventoryItem[])
-    : Promise<{
-        isValid: boolean;
-        invalidItems: CartItem[]
-    }> => {
-    // Initialize an array to store invalid items
-    const invalidItems: CartItem[] = [];
+  items: CartItem[],
+  inventory: InventoryItem[]
+): Promise<{
+  isValid: boolean;
+  invalidItems: CartItem[];
+}> => {
+  const invalidItems: CartItem[] = [];
 
-    // Check if inventory is a valid array
-    if (!Array.isArray(inventory)) {
-        console.error("Inventory is not a valid array:", inventory);
-        return { isValid: false, invalidItems };
+  if (!Array.isArray(inventory)) {
+    console.error("Inventory is not a valid array:", inventory);
+    return { isValid: false, invalidItems };
+  }
+
+  console.log("Inventory Structure:", inventory);
+  console.log("Items being checked:", items);
+
+  for (const item of items) {
+    console.log("Checking stock_id:", item.item.stock_id);
+
+    // Search the updated inventory for the item stock_id
+    const product = inventory.find(
+      (invItem) => invItem.stock_id === item.item.stock_id
+    );
+
+    console.log("Found product:", product);
+
+    if (!product || item.quantity > product.quantity_available) {
+      console.error(`Invalid quantity for item ${item.item.stock_id}: `, product);
+      invalidItems.push(item);
     }
-
-    console.log('Inventory Structure:', inventory);
-    console.log('Items being checked:', items);
-
-    for (const item of items) {
-        console.log('Checking stock_id:', item.item.stock_id); // Access stock_id from item.item
-
-        // Check if the stock_id exists in the inventory array
-        const product = inventory.find(invItem => invItem.stock_id === item.item.stock_id);
-
-        console.log('Found product:', product);
-
-        // If no matching product is found or quantity exceeds available balance
-        if (!product || item.quantity > product.quantity_available) {
-            console.error(`Invalid quantity for item ${item.item.stock_id}: `, product);
-            invalidItems.push(item); // Add invalid items to invalidItems array
-        }
-    }
-    return { isValid: invalidItems.length === 0, invalidItems };
+  }
+  return { isValid: invalidItems.length === 0, invalidItems };
 };
 
 // Utility function to highlight problematic items in the cart with types
 export const highlightProblematicItems = (
-    items: CartItem[],
-    inventory: InventoryItem[]
+  items: CartItem[],
+  inventory: InventoryItem[]
 ): CartItem[] => {
-    if (!Array.isArray(inventory)) {
-        console.error("Inventory is not a valid array:", inventory);
-        return [];
-    }
+  if (!Array.isArray(inventory)) {
+    console.error("Inventory is not a valid array:", inventory);
+    return [];
+  }
 
-    // Find problematic items
-    const invalidItems = items.filter(item => {
-        const product = inventory.find(invItem => invItem.stock_id === item.item.stock_id);
-        return !product || item.quantity > product.quantity_available;
-    });
+  // Find problematic items
+  const invalidItems = items.filter(item => {
+    const product = inventory.find(invItem => invItem.stock_id === item.item.stock_id);
+    return !product || item.quantity > product.quantity_available;
+  });
 
-    return invalidItems; // Return the list of problematic items
+  return invalidItems; // Return the list of problematic items
 };
 
 
 type ItemDetails = {
-    stock_id: string;
-    price: number;
-    quantity_available: number;
-    tax_mode: number;
-  };
-  
-  export const useFetchAllDetails = (
-    inventory: InventoryItem[], 
-    site_url: string,
-    site_company: SiteCompany,
-    account: UserAccountInfo,
-  ) => {
-    const [allDetails, setAllDetails] = useState<ItemDetails[]>([]);
-    const [error, setError] = useState<string | null>(null);
-  
-    useEffect(() => {
-      const fetchAllDetails = async () => {
-        const detailsArray: ItemDetails[] = [];
-  
-        // Fetch details for each item in inventory
-        for (const item of inventory) {
-          try {
-            const { data: details } = useItemDetails(
-              site_url,
-              site_company,
-              account,
-              item.stock_id,
-              item.kit ?? ""
-            );
-  
-            if (details) {
-              detailsArray.push({
-                stock_id: item.stock_id,
-                price: details.price,
-                quantity_available: details.quantity_available,
-                tax_mode: details.tax_mode,
-              });
-            }
-          } catch (err) {
-            console.error(`Error fetching details for ${item.stock_id}:`, err);
-            setError(`Error fetching details for ${item.stock_id}`);
+  stock_id: string;
+  price: number;
+  quantity_available: number;
+  tax_mode: number;
+};
+
+export const useFetchAllDetails = (
+  inventory: InventoryItem[],
+  site_url: string,
+  site_company: SiteCompany,
+  account: UserAccountInfo,
+) => {
+  const [allDetails, setAllDetails] = useState<ItemDetails[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAllDetails = async () => {
+      const detailsArray: ItemDetails[] = [];
+
+      // Fetch details for each item in inventory
+      for (const item of inventory) {
+        try {
+          const { data: details } = useItemDetails(
+            site_url,
+            site_company,
+            account,
+            item.stock_id,
+            item.kit ?? ""
+          );
+
+          if (details) {
+            detailsArray.push({
+              stock_id: item.stock_id,
+              price: details.price,
+              quantity_available: details.quantity_available,
+              tax_mode: details.tax_mode,
+            });
           }
+        } catch (err) {
+          console.error(`Error fetching details for ${item.stock_id}:`, err);
+          setError(`Error fetching details for ${item.stock_id}`);
         }
-  
-        // Update state with fetched details
-        setAllDetails(detailsArray);
-      };
-  
-      if (inventory.length > 0) {
-        fetchAllDetails().catch((err) => {
-          setError("Error fetching all details.");
-          console.error("Error fetching all details:", err);
-        });
       }
-    }, [inventory, site_url, site_company, account]);
-  
-    return { allDetails, error };
-  };
 
+      // Update state with fetched details
+      setAllDetails(detailsArray);
+    };
 
-  export const saveCartToLocalStorage = (cart: any) => {
-    try {
-      const serializedCart = JSON.stringify(cart);
-      localStorage.setItem("heldCart", serializedCart);
-    } catch (error) {
-      console.error("Could not save cart to localStorage:", error);
+    if (inventory.length > 0) {
+      fetchAllDetails().catch((err) => {
+        setError("Error fetching all details.");
+        console.error("Error fetching all details:", err);
+      });
     }
-  };
+  }, [inventory, site_url, site_company, account]);
+
+  return { allDetails, error };
+};
+
+
+export const saveCartToLocalStorage = (cart: any) => {
+  try {
+    const serializedCart = JSON.stringify(cart);
+    localStorage.setItem("heldCart", serializedCart);
+  } catch (error) {
+    console.error("Could not save cart to localStorage:", error);
+  }
+};
 
 
 

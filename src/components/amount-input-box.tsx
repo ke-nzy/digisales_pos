@@ -60,9 +60,23 @@ const AmountInput = ({
   const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
     useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isFetchingDetails, setIsFetchingDetails] = useState(false); 
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
+
+  interface CartItem {
+    item: {
+      stock_id: string;
+      description: string;
+      rate: string;
+      kit: string;
+      units: string;
+      mb_flag: string;
+    };
+    quantity: number;
+    discount?: string | undefined;
+    max_quantity: number;
+  }
 
   type ItemDetails = {
     stock_id: string;
@@ -91,13 +105,16 @@ const AmountInput = ({
     form_data.append("id", user_id);
 
     try {
-      const response = await axios.post(`${site_url}process.php`, form_data);
+      const response = await axios.postForm(`${site_url}process.php`, form_data);
+      console.log("Updated Fetched item details for stock ID:", stock_id, ":", response.data);
+
       if (response.data === "") {
         console.error(`No data returned for stock ID: ${stock_id}`);
         return null;
       }
 
       const args = (typeof response.data === 'string' ? response.data : "").split("|");
+      console.log("Fetched item details for stock ID args:", stock_id, ":", args); 
       return {
         stock_id,
         price: parseFloat(args[0] ?? "0"),
@@ -139,6 +156,42 @@ const AmountInput = ({
       void fetchAllItemDetails();
     }
   }, [inventory, site_url, site_company!.company_prefix, account!.id]);
+
+
+  const checkInventoryForCartItems = async (
+    site_url: string,
+    company_prefix: string,
+    user_id: string,
+    items: CartItem[]
+  ) => {
+    items.forEach((item, index) => {
+      console.log(`Checking item: ${item.item.description}, Requested Quantity: ${item.quantity}`);
+  });   
+    // Map through cart items and fetch details in parallel
+    const itemDetailsPromises = items.map(item =>
+      fetchItemDetails(site_url, company_prefix, user_id, item.item.stock_id, item.item.kit)
+    );
+    console.log("Items in cart:", itemDetailsPromises);
+
+    // Await all fetch requests and filter out any invalid entries
+    const itemDetails = await Promise.all(itemDetailsPromises);
+    console.log("Item details fetched:", itemDetails);
+    const invalidItems: CartItem[] = [];
+
+    // Check for each item in cart if quantity is sufficient
+    items.forEach((item, index) => {
+      const details = itemDetails[index];
+      if (details && item.quantity > details.quantity_available) {
+        invalidItems.push(item);
+      }
+    });
+
+    return {
+      isValid: invalidItems.length === 0,
+      invalidItems
+    };
+  };
+
 
 
   // const { inventory } = useInventory();  
@@ -335,39 +388,20 @@ const AmountInput = ({
     if (isLoading) {
       return;
     }
-
     if (!currentCart) {
       toast.error("Please add items to cart");
+      // setIsLoading(false);
       return;
     }
-
     if (!currentCustomer) {
       toast.error("Please select a customer");
+      // setIsLoading(false);
       return;
     }
 
     if (totalPaid < total - discount || !totalPaid) {
       toast.error("Insufficient funds");
       return;
-    }
-
-    // Check item quantities in the cart based on available inventory
-    const { isValid, invalidItems = [] } = await checkItemQuantities(currentCart.items, allDetails);
-    console.log("quantitiesAreValid:", isValid);
-    console.log("currentCart.items:", currentCart.items);
-
-    if (!isValid) {
-      // Highlight problematic items in the cart
-      highlightProblematicItems(currentCart.items, allDetails);
-
-      // Create an error message listing the problematic items
-      const invalidItemsMessage = invalidItems
-        .map(item => `${item.item.description} (Requested: ${item.quantity})`)
-        .join(", ");
-
-      // Show a toast error with the problematic items
-      toast.error(`Error! Quantities are insufficient for the following items: ${invalidItemsMessage}`);
-      return; // Stop the process if quantities are invalid
     }
 
     const pmnts = updateCashPayments(paymentCarts, total);
@@ -390,8 +424,8 @@ const AmountInput = ({
         pin,
       );
       console.log("result", result);
-
       if (!result) {
+        // sentry.captureException(result);
         toast.error("Transaction failed");
         setIsLoading(false);
         return;
@@ -405,8 +439,19 @@ const AmountInput = ({
         setIsLoading(false);
         return;
       } else {
+        // const transaction_history = await fetch_pos_transactions_report(
+        //   site_company!,
+        //   account!,
+        //   site_url!,
+        //   toDate(new Date()),
+        //   toDate(new Date()),
+        // );
+        // process receipt
+
         toast.success("Invoice processed successfully");
         console.log("result", result);
+
+        //   router.refresh();
 
         if (result as SalesReceiptInformation) {
           await handlePrint(result as SalesReceiptInformation);
@@ -418,6 +463,8 @@ const AmountInput = ({
           clearCart();
           clearPaymentCarts();
           setPaidStatus(true);
+
+          // router.push("/payment/paid");
         } else {
           toast.error("Failed to print - Could not find transaction");
           setIsPrinted(false);
@@ -429,14 +476,104 @@ const AmountInput = ({
         clearCart();
         clearPaymentCarts();
         setPaidStatus(true);
+        // router.push("/payment/paid");
       }
+      // if (isPrinted) {
+      // }
     } catch (error) {
       console.error("Something went wrong", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
+
+    // clearCart();
   };
+
+  // const handleProcessInvoice = async () => {
+  //   if (isLoading) return;
+
+  //   // Basic validation checks
+  //   if (!currentCart) {
+  //     toast.error("Please add items to cart");
+  //     return;
+  //   }
+  //   if (!currentCustomer) {
+  //     toast.error("Please select a customer");
+  //     return;
+  //   }
+  //   if (totalPaid < total - discount || !totalPaid) {
+  //     toast.error("Insufficient funds");
+  //     return;
+  //   }
+
+  //   console.log("Current cart items:", currentCart.items);
+  //   console.log("Before inventory check:", currentCart.items);
+
+  //   // Batched inventory check for all cart items
+  //   const { isValid, invalidItems } = await checkInventoryForCartItems(
+  //     site_url!,
+  //     site_company!.company_prefix,
+  //     account!.user_id,
+  //     currentCart.items
+  //   );
+
+  //   if (!isValid) {
+  //     const invalidItemsMessage = invalidItems
+  //       .map(item => `${item.item.description} (Requested: ${item.quantity})`)
+  //       .join(", ");
+  //     toast.error(`Error! Insufficient stock for: ${invalidItemsMessage}`);
+  //     return; // Stop if quantities are insufficient
+  //   }
+
+  //   const pmnts = updateCashPayments(paymentCarts, total);
+  //   setIsLoading(true);
+
+  //   try {
+  //     const result = await submit_direct_sale_request(
+  //       site_url!,
+  //       site_company!.company_prefix,
+  //       account!.id,
+  //       account!.user_id,
+  //       currentCart.items,
+  //       currentCustomer,
+  //       pmnts,
+  //       currentCustomer.br_name,
+  //       currentCart.cart_id,
+  //       pin,
+  //     );
+
+  //     if (!result) {
+  //       toast.error("Transaction failed");
+  //     } else if (result && (result as OfflineSalesReceiptInformation).offline) {
+  //       await addInvoice(result as OfflineSalesReceiptInformation);
+  //       toast.info("Transaction saved Offline");
+  //       await handleOfflinePrint(result as UnsynchedInvoice);
+  //     } else {
+  //       toast.success("Invoice processed successfully");
+  //       if (result as SalesReceiptInformation) {
+  //         await handlePrint(result as SalesReceiptInformation);
+  //         localStorage.setItem(
+  //           "transaction_history",
+  //           JSON.stringify(result as SalesReceiptInformation)
+  //         );
+  //       } else {
+  //         toast.error("Failed to print - Could not find transaction");
+  //       }
+  //     }
+
+  //     clearCart();
+  //     clearPaymentCarts();
+  //     setPin("");
+  //     setPaidStatus(true);
+  //   } catch (error) {
+  //     console.error("Something went wrong", error);
+  //     toast.error("Something went wrong");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
 
 
   const handlePrint = async (data: SalesReceiptInformation) => {
