@@ -67,7 +67,8 @@ const ItemSearchBox = () => {
     updateCartMutate({ cart_id, newCart });
   };
   useEffect(() => {
-    if (site_company === null || site_company === undefined) {
+    if (site_company === null || site_company === undefined || !site_company || !account) {
+      toast.error("Please sign in to access this page.");
       router.replace("/sign-in");
     }
     if (account === null || account === undefined) {
