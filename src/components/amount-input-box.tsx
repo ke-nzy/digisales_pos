@@ -384,151 +384,51 @@ const AmountInput = ({
     });
   };
 
-  const handleProcessInvoice = async () => {
-    if (isLoading) {
-      return;
-    }
-    if (!currentCart) {
-      toast.error("Please add items to cart");
-      // setIsLoading(false);
-      return;
-    }
-    if (!currentCustomer) {
-      toast.error("Please select a customer");
-      // setIsLoading(false);
-      return;
-    }
-
-    if (totalPaid < total - discount || !totalPaid) {
-      toast.error("Insufficient funds");
-      return;
-    }
-
-    const pmnts = updateCashPayments(paymentCarts, total);
-    console.log("pmnts", pmnts);
-
-    setIsLoading(true);
-
-    console.log("currentCart-submit");
-    try {
-      const result = await submit_direct_sale_request(
-        site_url!,
-        site_company!.company_prefix,
-        account!.id,
-        account!.user_id,
-        currentCart.items,
-        currentCustomer,
-        pmnts,
-        currentCustomer.br_name,
-        currentCart.cart_id,
-        pin,
-      );
-      console.log("result", result);
-      if (!result) {
-        // sentry.captureException(result);
-        toast.error("Transaction failed");
-        setIsLoading(false);
-        return;
-      } else if (result && (result as OfflineSalesReceiptInformation).offline) {
-        await addInvoice(result as OfflineSalesReceiptInformation);
-        toast.info("Transaction saved Offline");
-        await handleOfflinePrint(result as UnsynchedInvoice);
-        clearCart();
-        clearPaymentCarts();
-        setPin("");
-        setIsLoading(false);
-        return;
-      } else {
-        // const transaction_history = await fetch_pos_transactions_report(
-        //   site_company!,
-        //   account!,
-        //   site_url!,
-        //   toDate(new Date()),
-        //   toDate(new Date()),
-        // );
-        // process receipt
-
-        toast.success("Invoice processed successfully");
-        console.log("result", result);
-
-        //   router.refresh();
-
-        if (result as SalesReceiptInformation) {
-          await handlePrint(result as SalesReceiptInformation);
-
-          localStorage.setItem(
-            "transaction_history",
-            JSON.stringify(result as SalesReceiptInformation),
-          );
-          clearCart();
-          clearPaymentCarts();
-          setPaidStatus(true);
-
-          // router.push("/payment/paid");
-        } else {
-          toast.error("Failed to print - Could not find transaction");
-          setIsPrinted(false);
-        }
-        setPin("");
-      }
-
-      if (!(result as OfflineSalesReceiptInformation).offline && result) {
-        clearCart();
-        clearPaymentCarts();
-        setPaidStatus(true);
-        // router.push("/payment/paid");
-      }
-      // if (isPrinted) {
-      // }
-    } catch (error) {
-      console.error("Something went wrong", error);
-      toast.error("Something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
-
-    // clearCart();
-  };
-
   // const handleProcessInvoice = async () => {
-  //   if (isLoading) return;
+  //   if (isLoading) {
+  //     return;
+  //   }
 
-  //   // Basic validation checks
   //   if (!currentCart) {
   //     toast.error("Please add items to cart");
   //     return;
   //   }
+
   //   if (!currentCustomer) {
   //     toast.error("Please select a customer");
   //     return;
   //   }
+
   //   if (totalPaid < total - discount || !totalPaid) {
   //     toast.error("Insufficient funds");
   //     return;
   //   }
 
-  //   console.log("Current cart items:", currentCart.items);
-  //   console.log("Before inventory check:", currentCart.items);
-
-  //   // Batched inventory check for all cart items
-  //   const { isValid, invalidItems } = await checkInventoryForCartItems(
-  //     site_url!,
-  //     site_company!.company_prefix,
-  //     account!.user_id,
-  //     currentCart.items
-  //   );
+  //   // Check item quantities in the cart based on available inventory
+  //   const { isValid, invalidItems = [] } = await checkItemQuantities(currentCart.items, allDetails);
+  //   console.log("quantitiesAreValid:", isValid);
+  //   console.log("currentCart.items:", currentCart.items);
 
   //   if (!isValid) {
+  //     // Highlight problematic items in the cart
+  //     highlightProblematicItems(currentCart.items, allDetails);
+
+  //     // Create an error message listing the problematic items
   //     const invalidItemsMessage = invalidItems
   //       .map(item => `${item.item.description} (Requested: ${item.quantity})`)
   //       .join(", ");
-  //     toast.error(`Error! Insufficient stock for: ${invalidItemsMessage}`);
-  //     return; // Stop if quantities are insufficient
+
+  //     // Show a toast error with the problematic items
+  //     toast.error(`Error! Quantities are insufficient for the following items: ${invalidItemsMessage}`);
+  //     return; // Stop the process if quantities are invalid
   //   }
 
   //   const pmnts = updateCashPayments(paymentCarts, total);
+  //   console.log("pmnts", pmnts);
+
   //   setIsLoading(true);
 
+  //   console.log("currentCart-submit");
   //   try {
   //     const result = await submit_direct_sale_request(
   //       site_url!,
@@ -542,30 +442,47 @@ const AmountInput = ({
   //       currentCart.cart_id,
   //       pin,
   //     );
+  //     console.log("result", result);
 
   //     if (!result) {
   //       toast.error("Transaction failed");
+  //       setIsLoading(false);
+  //       return;
   //     } else if (result && (result as OfflineSalesReceiptInformation).offline) {
   //       await addInvoice(result as OfflineSalesReceiptInformation);
   //       toast.info("Transaction saved Offline");
   //       await handleOfflinePrint(result as UnsynchedInvoice);
+  //       clearCart();
+  //       clearPaymentCarts();
+  //       setPin("");
+  //       setIsLoading(false);
+  //       return;
   //     } else {
   //       toast.success("Invoice processed successfully");
+  //       console.log("result", result);
+
   //       if (result as SalesReceiptInformation) {
   //         await handlePrint(result as SalesReceiptInformation);
+
   //         localStorage.setItem(
   //           "transaction_history",
-  //           JSON.stringify(result as SalesReceiptInformation)
+  //           JSON.stringify(result as SalesReceiptInformation),
   //         );
+  //         clearCart();
+  //         clearPaymentCarts();
+  //         setPaidStatus(true);
   //       } else {
   //         toast.error("Failed to print - Could not find transaction");
+  //         setIsPrinted(false);
   //       }
+  //       setPin("");
   //     }
 
-  //     clearCart();
-  //     clearPaymentCarts();
-  //     setPin("");
-  //     setPaidStatus(true);
+  //     if (!(result as OfflineSalesReceiptInformation).offline && result) {
+  //       clearCart();
+  //       clearPaymentCarts();
+  //       setPaidStatus(true);
+  //     }
   //   } catch (error) {
   //     console.error("Something went wrong", error);
   //     toast.error("Something went wrong");
@@ -574,6 +491,88 @@ const AmountInput = ({
   //   }
   // };
 
+
+const [submissionError, setSubmissionError] = useState<string | null>(null); // State for error messages
+
+const handleProcessInvoice = async () => {
+    if (isLoading) return;
+
+    // Validation Checks
+    if (!currentCart) {
+        setSubmissionError("Please add items to cart");
+        toast.error("Please add items to cart");
+        return;
+    }
+    if (!currentCustomer) {
+        setSubmissionError("Please select a customer");
+        toast.error("Please select a customer");
+        return;
+    }
+    if (totalPaid < total - discount || !totalPaid) {
+        setSubmissionError("Insufficient funds");
+        toast.error("Insufficient funds");
+        return;
+    }
+
+    const payments = updateCashPayments(paymentCarts, total);
+    setIsLoading(true);
+
+    try {
+        const result = await submit_direct_sale_request(
+            site_url!,
+            site_company!.company_prefix,
+            account!.id,
+            account!.user_id,
+            currentCart.items,
+            currentCustomer,
+            payments,
+            currentCustomer.br_name,
+            currentCart.cart_id,
+            pin
+        );
+
+        console.log("result", result);
+
+        //   router.refresh();
+
+        // Check if submission failed and capture reason if so
+        if (result?.status === 'FAILED') {
+            setSubmissionError(
+                `Error: ${result.reason || 'Submission failed'}. Items: ${result.items || 'Unknown'}`
+            );
+            toast.error(`Submission failed: ${result.reason}`);
+            return; // Stop further processing
+        }
+
+        // Handle offline/online success
+        if (result?.offline) {
+            await addInvoice(result);
+            toast.info("Transaction saved Offline");
+            await handleOfflinePrint(result);
+        } else {
+            toast.success("Invoice processed successfully");
+            if (result) await handlePrint(result);
+            setPaidStatus(true);
+            localStorage.setItem("transaction_history", JSON.stringify(result));
+        }
+
+        cleanupAfterInvoice();
+        setSubmissionError(null); // Clear any previous errors on success
+    } catch (error) {
+        console.error("Something went wrong:", error);
+        setSubmissionError("An unexpected error occurred. Please try again.");
+        toast.error("An unexpected error occurred");
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+  // Cleanup function to clear cart, payment, pin, etc.
+  const cleanupAfterInvoice = () => {
+    clearCart();
+    clearPaymentCarts();
+    setPin("");
+  };
 
 
   const handlePrint = async (data: SalesReceiptInformation) => {
