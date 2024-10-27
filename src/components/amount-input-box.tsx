@@ -60,7 +60,7 @@ const AmountInput = ({
   const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
     useCartStore();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isFetchingDetails, setIsFetchingDetails] = useState(false); 
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
 
@@ -439,112 +439,86 @@ const AmountInput = ({
   // };
 
 
-  const handleProcessInvoice = async () => {
-    if (isLoading) {
-      return;
-    }
+const [submissionError, setSubmissionError] = useState<string | null>(null); // State for error messages
+
+const handleProcessInvoice = async () => {
+    if (isLoading) return;
+
+    // Validation Checks
     if (!currentCart) {
-      toast.error("Please add items to cart");
-      // setIsLoading(false);
-      return;
+        setSubmissionError("Please add items to cart");
+        toast.error("Please add items to cart");
+        return;
     }
     if (!currentCustomer) {
-      toast.error("Please select a customer");
-      // setIsLoading(false);
-      return;
+        setSubmissionError("Please select a customer");
+        toast.error("Please select a customer");
+        return;
     }
-
     if (totalPaid < total - discount || !totalPaid) {
-      toast.error("Insufficient funds");
-      return;
+        setSubmissionError("Insufficient funds");
+        toast.error("Insufficient funds");
+        return;
     }
 
-    const pmnts = updateCashPayments(paymentCarts, total);
-    
-    console.log("pmnts", pmnts);
-
+    const payments = updateCashPayments(paymentCarts, total);
     setIsLoading(true);
 
-    console.log("currentCart-submit");
     try {
-      const result = await submit_direct_sale_request(
-        site_url!,
-        site_company!.company_prefix,
-        account!.id,
-        account!.user_id,
-        currentCart.items,
-        currentCustomer,
-        pmnts,
-        currentCustomer.br_name,
-        currentCart.cart_id,
-        pin,
-      );
-      console.log("result", result);
-      if (!result) {
-        // sentry.captureException(result);
-        toast.error("Transaction failed");
-        setIsLoading(false);
-        return;
-      } else if (result && (result as OfflineSalesReceiptInformation).offline) {
-        await addInvoice(result as OfflineSalesReceiptInformation);
-        toast.info("Transaction saved Offline");
-        await handleOfflinePrint(result as UnsynchedInvoice);
-        clearCart();
-        clearPaymentCarts();
-        setPin("");
-        setIsLoading(false);
-        return;
-      } else {
-        // const transaction_history = await fetch_pos_transactions_report(
-        //   site_company!,
-        //   account!,
-        //   site_url!,
-        //   toDate(new Date()),
-        //   toDate(new Date()),
-        // );
-        // process receipt
+        const result = await submit_direct_sale_request(
+            site_url!,
+            site_company!.company_prefix,
+            account!.id,
+            account!.user_id,
+            currentCart.items,
+            currentCustomer,
+            payments,
+            currentCustomer.br_name,
+            currentCart.cart_id,
+            pin
+        );
 
-        toast.success("Invoice processed successfully");
         console.log("result", result);
 
-        //   router.refresh();
-
-        if (result as SalesReceiptInformation) {
-          await handlePrint(result as SalesReceiptInformation);
-
-          localStorage.setItem(
-            "transaction_history",
-            JSON.stringify(result as SalesReceiptInformation),
-          );
-          clearCart();
-          clearPaymentCarts();
-          setPaidStatus(true);
-
-          // router.push("/payment/paid");
-        } else {
-          toast.error("Failed to print - Could not find transaction");
-          setIsPrinted(false);
+        // Check if submission failed and capture reason if so
+        if (result?.status === 'FAILED') {
+            setSubmissionError(
+                `Error: ${result.reason || 'Submission failed'}. Items: ${result.items || 'Unknown'}`
+            );
+            toast.error(`Submission failed: ${result.reason}`);
+            return; // Stop further processing
         }
-        setPin("");
-      }
 
-      if (!(result as OfflineSalesReceiptInformation).offline && result) {
-        clearCart();
-        clearPaymentCarts();
-        setPaidStatus(true);
-        // router.push("/payment/paid");
-      }
-      // if (isPrinted) {
-      // }
+        // Handle offline/online success
+        if (result?.offline) {
+            await addInvoice(result);
+            toast.info("Transaction saved Offline");
+            await handleOfflinePrint(result);
+        } else {
+            toast.success("Invoice processed successfully");
+            if (result) await handlePrint(result);
+            setPaidStatus(true);
+            localStorage.setItem("transaction_history", JSON.stringify(result));
+        }
+
+        cleanupAfterInvoice();
+        setSubmissionError(null); // Clear any previous errors on success
     } catch (error) {
-      console.error("Something went wrong", error);
-      toast.error("Something went wrong");
+        console.error("Something went wrong:", error);
+        setSubmissionError("An unexpected error occurred. Please try again.");
+        toast.error("An unexpected error occurred");
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
+};
 
-    // clearCart();
+  // Cleanup function to clear cart, payment, pin, etc.
+  const cleanupAfterInvoice = () => {
+    clearCart();
+    clearPaymentCarts();
+    setPin("");
   };
+
 
   const handlePrint = async (data: SalesReceiptInformation) => {
     try {
