@@ -11,6 +11,8 @@ import QRCode from "qrcode";
 import { calculateSubtotalAndDiscount } from "~/lib/utils";
 import { toast } from "sonner";
 
+const DEFAULT_QR_CODE_DATA = "www";
+
 const TransactionReceiptPDF = ({
   data,
   receipt_info,
@@ -23,33 +25,49 @@ const TransactionReceiptPDF = ({
   duplicate: boolean;
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState(data.qrCode || "");
+  const [simulateError, setSimulateError] = useState(false); 
+
+
+  const generateDefaultQRCode = async () => {
+    try {
+      const code = await QRCode.toDataURL(DEFAULT_QR_CODE_DATA);
+      setQrCodeUrl(code);
+    } catch (error) {
+      console.error("Failed to generate QR code:", error);
+    }
+  };
   const salesInfo = data[0];
 
   console.log("Sales Info", salesInfo);
 
   useEffect(() => {
-    console.log("QR Code", data.qrCode);
     const generateKraCode = async () => {
-      if (data.qrCode && data.qrCode.length > 0) {
-        try {
+      try {
+        // Simulate an error based on the flag
+        if (simulateError) {
+          throw new Error("Simulated QR code generation error");
+        }
+
+        if (data.qrCode && data.qrCode.length > 0) {
           const code = await QRCode.toDataURL(data.qrCode);
           setQrCodeUrl(code);
-        } catch (error) {
-          console.error("Failed to generate QR code:", error);
+        } else {
+          await generateDefaultQRCode();
         }
-      } else {
-        try {
-          const code = await QRCode.toDataURL("Digisales No KRA");
-          setQrCodeUrl(code);
-        } catch (error) {
-          console.error("Failed to generate QR code:", error);
-        }
+      } catch (error) {
+        console.error("Failed to generate QR code, falling back to default:", error);
+        await generateDefaultQRCode();
       }
     };
+
     generateKraCode().catch((error) => {
       console.error("Failed to generate QR code:", error);
+      // Generate the default QR code on catch
+      void generateDefaultQRCode();
     });
   }, [data.qrCode]);
+
+  
 
   const items: TransactionInvItem[] =
     salesInfo.pitems.length > 0 ? JSON.parse(salesInfo.pitems) : [];

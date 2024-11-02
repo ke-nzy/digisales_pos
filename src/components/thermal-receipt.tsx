@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Document,
   Page,
@@ -97,9 +97,18 @@ const TransactionReceiptPDF = ({
   const payments: Payment[] =
     data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
+
+
+    const [simulateError, setSimulateError] = useState(false); // Simulation flag
+    const [qrCodeUrl, setQrCodeUrl] = useState("");
+
+
+
   function get_printout_size(length: number): [number, number] {
     return [200, 477 + length * 10];
   }
+
+
 
   function sumTransAmount(payments: Payment[]): number {
     console.log("payments", payments);
@@ -120,19 +129,51 @@ const TransactionReceiptPDF = ({
     }, 0);
   }
 
+
+
   const calculateTotalQuantity = (items: TransactionInvItem[]): number => {
     return items.reduce((total, item) => total + parseFloat(item.quantity), 0);
   };
+
+
+
   const totalDiscount = calculateSubtotalAndDiscount(data);
   const totalQuantity = calculateTotalQuantity(items);
   const totalPaid = sumTransAmount(payments);
 
   console.log("sub_total", totalDiscount);
 
-  const kra_code = async () =>
-    await QrCode.toDataURL(
-      data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Digisales No KRA",
-    );
+
+  const kra_code = async () => {
+    try {
+      console.log("simulateError:", simulateError); // Log simulation flag
+      console.log("data.qrCode:", data.qrCode); // Log QR code data
+
+      // Trigger error if simulateError is set to true
+      if (simulateError) {
+        throw new Error("Simulated QR code generation error");
+      }
+
+      // Generate QR code if data.qrCode has content, else use fallback
+      const qrCodeData =
+        data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Digisales No KRA";
+      return await QrCode.toDataURL(qrCodeData);
+    } catch (error) {
+      console.error("Failed to generate QR code, using default:", error);
+      return await QrCode.toDataURL("www");
+    }
+  };
+
+  useEffect(() => {
+    // Call kra_code function and set the result to qrCodeUrl state
+    void kra_code().then(setQrCodeUrl);
+  }, [data.qrCode, simulateError]);
+
+
+
+
+
+  
   return (
     <Document>
       <Page
