@@ -11,7 +11,7 @@ import QRCode from "qrcode";
 import { calculateSubtotalAndDiscount } from "~/lib/utils";
 import { toast } from "sonner";
 
-const DEFAULT_QR_CODE_DATA = "www";
+const DEFAULT_QR_CODE_DATA = "Budgetwear";
 
 const TransactionReceiptPDF = ({
   data,

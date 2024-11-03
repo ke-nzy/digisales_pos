@@ -160,7 +160,7 @@ const TransactionReceiptPDF = ({
       return await QrCode.toDataURL(qrCodeData);
     } catch (error) {
       console.error("Failed to generate QR code, using default:", error);
-      return await QrCode.toDataURL("www");
+      return await QrCode.toDataURL("Budgetwear");
     }
   };
 
