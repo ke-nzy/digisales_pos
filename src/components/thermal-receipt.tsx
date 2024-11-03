@@ -156,7 +156,7 @@ const TransactionReceiptPDF = ({
 
       // Generate QR code if data.qrCode has content, else use fallback
       const qrCodeData =
-        data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Digisales No KRA";
+        data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Budgetwear";
       return await QrCode.toDataURL(qrCodeData);
     } catch (error) {
       console.error("Failed to generate QR code, using default:", error);
