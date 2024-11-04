@@ -523,7 +523,7 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
+          <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9, fontWeight: "bold" }]}>
             NO REFUND, NO EXCHANGE
           </Text>
         </View>
@@ -910,9 +910,12 @@ const TransactionReceiptPDF = ({
                   </Text>
                 </View>
               ) : (
-                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                  Null
-                </Text>
+                <View>
+                  <Text style={[styles.text]}>Middlware Invoice Number</Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    Null
+                  </Text>
+              </View>
               )}
 
               {data.qrDate ? (
@@ -921,9 +924,12 @@ const TransactionReceiptPDF = ({
                   <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
                 </View>
               ) : (
-                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                  Null
-                </Text>
+                <View>
+                  <Text style={[styles.text]}>QR Date</Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    Null
+                  </Text>
+              </View>
               )}
 
               {data.controlCode ? (
@@ -932,9 +938,12 @@ const TransactionReceiptPDF = ({
                   <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
                 </View>
               ) : (
-                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                  Null
-                </Text>
+                <View>
+                  <Text style={[styles.text]}>Control Code</Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    Null
+                  </Text>
+              </View>
               )}
             </View>
           </View>
@@ -944,7 +953,7 @@ const TransactionReceiptPDF = ({
             <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
+            <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9, fontWeight: "bold" }]}>
               NO REFUND, NO EXCHANGE
             </Text>
           </View>
