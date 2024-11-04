@@ -480,9 +480,12 @@ const TransactionReceiptPDF = ({
                 </Text>
               </View>
             ) : (
-              <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                Null
-              </Text>
+              <View>
+                <Text style={[styles.text]}>Middleware Invoice Number</Text>
+                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                  Null
+                </Text>
+              </View>
             )}
 
             {data.qrDate ? (
@@ -491,9 +494,12 @@ const TransactionReceiptPDF = ({
                 <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
               </View>
             ) : (
-              <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                Null
-              </Text>
+              <View>
+                <Text style={[styles.text]}>QR Date</Text>
+                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                  Null
+                </Text>
+              </View>
             )}
 
             {data.controlCode ? (
@@ -502,9 +508,12 @@ const TransactionReceiptPDF = ({
                 <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
               </View>
             ) : (
-              <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                Null
-              </Text>
+              <View>
+                <Text style={[styles.text]}>Control Code</Text>
+                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                  Null
+                </Text>
+              </View>
             )}
 
           </View>
