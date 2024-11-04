@@ -99,8 +99,8 @@ const TransactionReceiptPDF = ({
 
 
 
-    const [simulateError, setSimulateError] = useState(false); // Simulation flag
-    const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [simulateError, setSimulateError] = useState(false); // Simulation flag
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
 
 
 
@@ -173,7 +173,7 @@ const TransactionReceiptPDF = ({
 
 
 
-  
+
   return (
     <Document>
       <Page
@@ -538,33 +538,37 @@ const TransactionReceiptPDF = ({
           >
             {data.middlewareInvoiceNumber ? (
               <View style={{ paddingVertical: 1 }}>
-                <Text style={[styles.text]}>{`Middleware Invoice Number`}</Text>
+                <Text style={[styles.text]}>Middleware Invoice Number</Text>
                 <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {`${data.middlewareInvoiceNumber}`}
-                </Text>
-              </View>
-            ) : null}
-
-            {data.qrDate !== "" ? (
-              <View style={{ paddingVertical: 1 }}>
-                <Text style={[styles.text]}>{`QR Date`}</Text>
-                <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {`${data.qrDate}`}
+                  {data.middlewareInvoiceNumber}
                 </Text>
               </View>
             ) : (
-              <></>
+              <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                Null
+              </Text>
             )}
 
-            {data.controlCode !== "" ? (
+            {data.qrDate ? (
               <View style={{ paddingVertical: 1 }}>
-                <Text style={[styles.text]}>{`Control Code`}</Text>
-                <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {`${data.controlCode}`}
-                </Text>
+                <Text style={[styles.text]}>QR Date</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
               </View>
             ) : (
-              <></>
+              <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                Null
+              </Text>
+            )}
+
+            {data.controlCode ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>Control Code</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
+              </View>
+            ) : (
+              <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                Null
+              </Text>
             )}
           </View>
         </View>
@@ -957,35 +961,37 @@ const TransactionReceiptPDF = ({
             >
               {data.middlewareInvoiceNumber ? (
                 <View style={{ paddingVertical: 1 }}>
-                  <Text
-                    style={[styles.text]}
-                  >{`Middleware Invoice Number`}</Text>
+                  <Text style={[styles.text]}>Middleware Invoice Number</Text>
                   <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {`${data.middlewareInvoiceNumber}`}
-                  </Text>
-                </View>
-              ) : null}
-
-              {data.qrDate !== "" ? (
-                <View style={{ paddingVertical: 1 }}>
-                  <Text style={[styles.text]}>{`QR Date`}</Text>
-                  <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {`${data.qrDate}`}
+                    {data.middlewareInvoiceNumber}
                   </Text>
                 </View>
               ) : (
-                <></>
+                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                  Null
+                </Text>
               )}
 
-              {data.controlCode !== "" ? (
+              {data.qrDate ? (
                 <View style={{ paddingVertical: 1 }}>
-                  <Text style={[styles.text]}>{`Control Code`}</Text>
-                  <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {`${data.controlCode}`}
-                  </Text>
+                  <Text style={[styles.text]}>QR Date</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
                 </View>
               ) : (
-                <></>
+                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                  Null
+                </Text>
+              )}
+
+              {data.controlCode ? (
+                <View style={{ paddingVertical: 1 }}>
+                  <Text style={[styles.text]}>Control Code</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
+                </View>
+              ) : (
+                <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                  Null
+                </Text>
               )}
             </View>
           </View>
@@ -1029,9 +1035,9 @@ function TotalRowItem({ is_last, label, value }: TotalRowItemProps) {
         },
         is_last
           ? {
-              borderBottomWidth: 0.2,
-              borderBottomColor: "#000",
-            }
+            borderBottomWidth: 0.2,
+            borderBottomColor: "#000",
+          }
           : {},
       ]}
     >
