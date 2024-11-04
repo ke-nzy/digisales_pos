@@ -156,11 +156,11 @@ const TransactionReceiptPDF = ({
 
       // Generate QR code if data.qrCode has content, else use fallback
       const qrCodeData =
-        data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Budgetwear";
+        data.qrCode && data.qrCode.length > 0 ? data.qrCode : "ESD Device Unreachable";
       return await QrCode.toDataURL(qrCodeData);
     } catch (error) {
       console.error("Failed to generate QR code, using default:", error);
-      return await QrCode.toDataURL("Budgetwear");
+      return await QrCode.toDataURL("ESD Device Unreachable");
     }
   };
 
