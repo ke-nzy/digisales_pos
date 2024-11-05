@@ -481,9 +481,9 @@ const TransactionReceiptPDF = ({
               </View>
             ) : (
               <View>
-                <Text style={[styles.text]}>Middleware Invoice Number</Text>
+                <Text style={[styles.text]}></Text>
                 <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                  Null
+
                 </Text>
               </View>
             )}
@@ -495,9 +495,9 @@ const TransactionReceiptPDF = ({
               </View>
             ) : (
               <View>
-                <Text style={[styles.text]}>QR Date</Text>
+                <Text style={[styles.text]}></Text>
                 <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                  Null
+
                 </Text>
               </View>
             )}
@@ -509,9 +509,9 @@ const TransactionReceiptPDF = ({
               </View>
             ) : (
               <View>
-                <Text style={[styles.text]}>Control Code</Text>
+                <Text style={[styles.text]}></Text>
                 <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                  Null
+
                 </Text>
               </View>
             )}
@@ -911,11 +911,11 @@ const TransactionReceiptPDF = ({
                 </View>
               ) : (
                 <View>
-                  <Text style={[styles.text]}>Middlware Invoice Number</Text>
+                  <Text style={[styles.text]}></Text>
                   <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                    Null
+
                   </Text>
-              </View>
+                </View>
               )}
 
               {data.qrDate ? (
@@ -925,11 +925,11 @@ const TransactionReceiptPDF = ({
                 </View>
               ) : (
                 <View>
-                  <Text style={[styles.text]}>QR Date</Text>
+                  <Text style={[styles.text]}></Text>
                   <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                    Null
+
                   </Text>
-              </View>
+                </View>
               )}
 
               {data.controlCode ? (
@@ -939,11 +939,11 @@ const TransactionReceiptPDF = ({
                 </View>
               ) : (
                 <View>
-                  <Text style={[styles.text]}>Control Code</Text>
+                  <Text style={[styles.text]}></Text>
                   <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-                    Null
+
                   </Text>
-              </View>
+                </View>
               )}
             </View>
           </View>
