@@ -187,8 +187,8 @@ const CartActions = () => {
       }
       const val = selectedCartItem
         ? (Number(discountPercentage) / 100) *
-          selectedCartItem.details.price *
-          selectedCartItem.quantity
+        selectedCartItem.details.price *
+        selectedCartItem.quantity
         : 0;
 
       setDiscountValue(val.toString());
@@ -861,8 +861,8 @@ const CartActions = () => {
                               Amounts to KES{" "}
                               {selectedCartItem &&
                                 (Number(discountPercentage) / 100) *
-                                  selectedCartItem.details.price *
-                                  selectedCartItem.quantity}
+                                selectedCartItem.details.price *
+                                selectedCartItem.quantity}
                             </span>
                           </div>
                         </CardContent>

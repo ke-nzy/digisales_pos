@@ -63,6 +63,8 @@ declare type UserAccountInfo = {
   tho_sep: string;
   transaction_days: string;
   use_date_picker: string;
+  message?: string;
+  status?: string;
 };
 
 declare type CompanyReceiptInfo = {

@@ -29,6 +29,11 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "~/store/auth-store"; // Adjust the path as needed
 const SignIn = () => {
+
+  interface IpResponse {
+    ip: string; // The IP address returned by the API
+  }
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const [siteInfo, setSiteInfo] = useState<SiteCompany[] | null>(null);
@@ -36,6 +41,8 @@ const SignIn = () => {
     null,
   );
   const [isLoading, setIsLoading] = useState(false);
+
+  const [userIp, setUserIp] = useState<string | null>(null);
 
   const { account, site_url, site_company, site_info } = useAuthStore();
 
@@ -61,6 +68,22 @@ const SignIn = () => {
     },
   });
 
+  const fetchUserIp = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data: IpResponse = await response.json();
+      const userIp = setUserIp(data.ip);
+      console.log('User IP:', userIp);
+    } catch (error) {
+      console.error('Failed to fetch IP address', error);
+      setUserIp(null);
+    }
+  };
+
+  useEffect(() => {
+    void fetchUserIp();
+  }, []);
+
   const handleEnterSite = async () => {
     console.log("Getting Site Info", form.getValues().site_name);
 
@@ -80,68 +103,80 @@ const SignIn = () => {
     }
   };
 
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      // FETCH SITE INFO
       const company_information: SiteInfo[] | null = await fetch_site_info(
-        data.site_name ?? "",
+        data.site_name ?? ""
       );
 
       if (company_information === null) {
         throw new Error("Company information not loaded. Contact Support");
-      } else {
-        const login_result = await signIn({
-          company_url: company_information[0]!.company_url,
-          username: data.username,
-          password: data.password,
-          selected_company: selectedCompany?.company_prefix ?? "",
-        });
-        if (!login_result) {
-          console.log("LOGIN ERROR", login_result);
-          toast.error("Login Failed: Invalid Credentials");
-          return;
+      }
+
+      const login_result = await signIn({
+        company_url: company_information[0]!.company_url,
+        username: data.username,
+        password: data.password,
+        selected_company: selectedCompany?.company_prefix ?? "",
+        ip: userIp || "",
+      });
+
+      // Check if login was unsuccessful due to unauthorized access
+      if (!login_result.success) {
+        if (login_result.message === "Unauthorized Access") {
+          toast.error("Login Failed: Unauthorized Access!");
+        } else {
+          toast.error(login_result.message || "Login Failed: Invalid Credentials");
         }
-        //Fetch receipt information - kra pin;
+        return; // Prevent further execution
+      }
+
+      // Ensure login_result.data exists for further actions
+      if (login_result.data) {
+        // Fetch receipt information and roles only if login succeeded
         const receipt_info = await fetch_company_details(
           company_information[0]!.company_url,
-          selectedCompany!.company_prefix,
+          selectedCompany!.company_prefix
         );
+
         if (receipt_info == null) {
-          toast.error("Login Failed:  Receipt Information Setup Failed");
-          //TODO:  show error message
+          toast.error("Login Failed: Receipt Information Setup Failed");
           return;
         }
-        // Fetch Roles
-        //  const handleFetchRoles = async () => {
+
         const roles = await fetch_user_roles(
           company_information[0]!.company_url,
           selectedCompany!.company_prefix,
-          login_result.role_id,
-          login_result.id,
+          login_result.data.role_id,
+          login_result.data.id
         );
+
         if (roles === null) {
           toast.error("Failed to fetch roles");
         } else {
           localStorage.setItem("roles", JSON.stringify(roles));
         }
-        //  };
-        update_account(login_result);
+
+        // Set up account and site info
+        update_account(login_result.data);
         update_site_info(company_information[0]!);
         set_receipt_info(receipt_info);
         set_site_url(company_information[0]!.company_url);
         update_company_site(selectedCompany!);
 
-        // ReRoute
+        // Navigate to the dashboard if everything is successful
         handle_page_to_navigate_to();
       }
     } catch (error) {
-      toast.error("Login Failed:  Contact Support");
+      toast.error("Login Failed: Contact Support");
       console.log(error);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   // Page Actions
   const handle_page_to_navigate_to = () => {

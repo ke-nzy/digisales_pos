@@ -55,6 +55,7 @@ interface LoginUser {
   username: string;
   password: string;
   selected_company: string;
+  ip: string;
 }
 
 export type AuthorizationResponse = {
@@ -64,22 +65,33 @@ export type AuthorizationResponse = {
 
 export const signIn = async (userData: LoginUser) => {
   try {
-    // Mutation /Database
+    console.log("userData", userData);
+
     const form_data = new FormData();
     form_data.append("tp", "login");
     form_data.append("un", userData.username);
     form_data.append("up", userData.password);
     form_data.append("cp", userData.selected_company);
+    form_data.append("ip_address", userData.ip);
+
     const response = await axios.postForm<UserAccountInfo>(
       `${userData.company_url}process.php`,
-      form_data,
+      form_data
     );
 
-    return response.data;
+    // Check response data for unauthorized access
+    if (response.data && response.data.status === "FAILED") {
+      return { success: false, message: response.data.message };
+    }
+
+    // Return successful data
+    return { success: true, data: response.data };
   } catch (error) {
     console.error("Error", error);
+    return { success: false, message: "An error occurred. Please try again." };
   }
 };
+
 
 export async function fetch_company_details(
   site_url: string,

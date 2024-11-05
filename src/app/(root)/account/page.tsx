@@ -35,10 +35,9 @@ export default function AccountPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isAlertOpen, setIsAlertOpen] = useState(false)
 
-
-  console.log('Site company: ', site_company);
+  // console.log('Site company: ', site_company);
   
-  console.log('Account: ', account);
+  // console.log('Account: ', account);
 
   const handlePasswordUpdate = () => {
     if (!oldPassword) {
@@ -69,7 +68,7 @@ export default function AccountPage() {
         newPassword                           
       );
 
-      console.log('Full results: ', result);
+      // console.log('Full results: ', result);
   
       if (result.success) {
         toast.success('Password updated successfully');
