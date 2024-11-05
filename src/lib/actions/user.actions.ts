@@ -689,3 +689,39 @@ export async function fetch_shifts(
     return null;
   }
 }
+
+
+export async function updateUserCredentials(
+  site_url: string,
+  company_prefix: string,
+  userId: string,
+  username: string,
+  oldPassword: string,
+  newPassword: string
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "resetPassword");
+  form_data.append("cp", company_prefix);
+  form_data.append("id", userId);
+  form_data.append("ruser", username);
+  form_data.append("oldp", oldPassword);
+  form_data.append("newp", newPassword);
+
+  const full_url = `${site_url}process.php`;
+
+  try {
+    const response = await axios.postForm(full_url, form_data);
+
+    // Check the response data for success
+    if (response.data && response.data.status === "SUCCESS") {
+      return { success: true, message: "Credentials updated successfully" };
+    } else {
+      return { success: false, message: response.data.message || "Failed to update credentials" };
+    }
+  } catch (error) {
+    console.error("Error updating credentials:", error);
+    return { success: false, message: "An error occurred while updating" };
+  }
+}
+
+
