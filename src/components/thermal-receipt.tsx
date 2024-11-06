@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Document,
   Page,
@@ -97,9 +97,18 @@ const TransactionReceiptPDF = ({
   const payments: Payment[] =
     data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
+
+
+  const [simulateError, setSimulateError] = useState(false); // Simulation flag
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+
+
+
   function get_printout_size(length: number): [number, number] {
     return [200, 477 + length * 10];
   }
+
+
 
   function sumTransAmount(payments: Payment[]): number {
     console.log("payments", payments);
@@ -120,19 +129,51 @@ const TransactionReceiptPDF = ({
     }, 0);
   }
 
+
+
   const calculateTotalQuantity = (items: TransactionInvItem[]): number => {
     return items.reduce((total, item) => total + parseFloat(item.quantity), 0);
   };
+
+
+
   const totalDiscount = calculateSubtotalAndDiscount(data);
   const totalQuantity = calculateTotalQuantity(items);
   const totalPaid = sumTransAmount(payments);
 
   console.log("sub_total", totalDiscount);
 
-  const kra_code = async () =>
-    await QrCode.toDataURL(
-      data.qrCode && data.qrCode.length > 0 ? data.qrCode : "Digisales No KRA",
-    );
+
+  const kra_code = async () => {
+    try {
+      console.log("simulateError:", simulateError); // Log simulation flag
+      console.log("data.qrCode:", data.qrCode); // Log QR code data
+
+      // Trigger error if simulateError is set to true
+      if (simulateError) {
+        throw new Error("Simulated QR code generation error");
+      }
+
+      // Generate QR code if data.qrCode has content, else use fallback
+      const qrCodeData =
+        data.qrCode && data.qrCode.length > 0 ? data.qrCode : "ESD Device Unreachable";
+      return await QrCode.toDataURL(qrCodeData);
+    } catch (error) {
+      console.error("Failed to generate QR code, using default:", error);
+      return await QrCode.toDataURL("ESD Device Unreachable");
+    }
+  };
+
+  useEffect(() => {
+    // Call kra_code function and set the result to qrCodeUrl state
+    void kra_code().then(setQrCodeUrl);
+  }, [data.qrCode, simulateError]);
+
+
+
+
+
+
   return (
     <Document>
       <Page
@@ -497,33 +538,46 @@ const TransactionReceiptPDF = ({
           >
             {data.middlewareInvoiceNumber ? (
               <View style={{ paddingVertical: 1 }}>
-                <Text style={[styles.text]}>{`Middleware Invoice Number`}</Text>
+                <Text style={[styles.text]}>Middleware Invoice Number</Text>
                 <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {`${data.middlewareInvoiceNumber}`}
-                </Text>
-              </View>
-            ) : null}
-
-            {data.qrDate !== "" ? (
-              <View style={{ paddingVertical: 1 }}>
-                <Text style={[styles.text]}>{`QR Date`}</Text>
-                <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {`${data.qrDate}`}
+                  {data.middlewareInvoiceNumber}
                 </Text>
               </View>
             ) : (
-              <></>
+              <View>
+                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    
+                  </Text>
+              </View>
             )}
 
-            {data.controlCode !== "" ? (
+            {data.qrDate ? (
               <View style={{ paddingVertical: 1 }}>
-                <Text style={[styles.text]}>{`Control Code`}</Text>
-                <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {`${data.controlCode}`}
-                </Text>
+                <Text style={[styles.text]}>QR Date</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
               </View>
             ) : (
-              <></>
+              <View>
+                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    
+                  </Text>
+              </View>
+            )}
+
+            {data.controlCode ? (
+              <View style={{ paddingVertical: 1 }}>
+                <Text style={[styles.text]}>Control Code</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
+              </View>
+            ) : (
+              <View>
+                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    
+                  </Text>
+              </View>
             )}
           </View>
         </View>
@@ -532,7 +586,7 @@ const TransactionReceiptPDF = ({
           <Text style={[styles.text, { fontWeight: "bold" }]}>
             Thank you for doing business with us
           </Text>
-          <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
+          <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9, fontWeight: "bold" }]}>
             NO REFUND, NO EXCHANGE
           </Text>
         </View>
@@ -916,35 +970,46 @@ const TransactionReceiptPDF = ({
             >
               {data.middlewareInvoiceNumber ? (
                 <View style={{ paddingVertical: 1 }}>
-                  <Text
-                    style={[styles.text]}
-                  >{`Middleware Invoice Number`}</Text>
+                  <Text style={[styles.text]}>Middleware Invoice Number</Text>
                   <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {`${data.middlewareInvoiceNumber}`}
-                  </Text>
-                </View>
-              ) : null}
-
-              {data.qrDate !== "" ? (
-                <View style={{ paddingVertical: 1 }}>
-                  <Text style={[styles.text]}>{`QR Date`}</Text>
-                  <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {`${data.qrDate}`}
+                    {data.middlewareInvoiceNumber}
                   </Text>
                 </View>
               ) : (
-                <></>
+                <View>
+                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    
+                  </Text>
+              </View>
               )}
 
-              {data.controlCode !== "" ? (
+              {data.qrDate ? (
                 <View style={{ paddingVertical: 1 }}>
-                  <Text style={[styles.text]}>{`Control Code`}</Text>
-                  <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {`${data.controlCode}`}
-                  </Text>
+                  <Text style={[styles.text]}>QR Date</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
                 </View>
               ) : (
-                <></>
+                <View>
+                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    
+                  </Text>
+              </View>
+              )}
+
+              {data.controlCode ? (
+                <View style={{ paddingVertical: 1 }}>
+                  <Text style={[styles.text]}>Control Code</Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
+                </View>
+              ) : (
+                <View>
+                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
+                    
+                  </Text>
+              </View>
               )}
             </View>
           </View>
@@ -954,7 +1019,7 @@ const TransactionReceiptPDF = ({
             <Text style={[styles.text, { fontWeight: "ultrabold" }]}>
               Thank you for doing business with us
             </Text>
-            <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9 }]}>
+            <Text style={[{ fontFamily: "Helvetica-Bold", fontSize: 9, fontWeight: "bold" }]}>
               NO REFUND, NO EXCHANGE
             </Text>
           </View>
@@ -988,9 +1053,9 @@ function TotalRowItem({ is_last, label, value }: TotalRowItemProps) {
         },
         is_last
           ? {
-              borderBottomWidth: 0.2,
-              borderBottomColor: "#000",
-            }
+            borderBottomWidth: 0.2,
+            borderBottomColor: "#000",
+          }
           : {},
       ]}
     >

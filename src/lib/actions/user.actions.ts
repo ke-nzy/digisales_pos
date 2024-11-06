@@ -55,6 +55,7 @@ interface LoginUser {
   username: string;
   password: string;
   selected_company: string;
+  ip: string;
 }
 
 export type AuthorizationResponse = {
@@ -64,22 +65,33 @@ export type AuthorizationResponse = {
 
 export const signIn = async (userData: LoginUser) => {
   try {
-    // Mutation /Database
+    console.log("userData", userData);
+
     const form_data = new FormData();
     form_data.append("tp", "login");
     form_data.append("un", userData.username);
     form_data.append("up", userData.password);
     form_data.append("cp", userData.selected_company);
+    form_data.append("ip_address", userData.ip);
+
     const response = await axios.postForm<UserAccountInfo>(
       `${userData.company_url}process.php`,
-      form_data,
+      form_data
     );
 
-    return response.data;
+    // Check response data for unauthorized access
+    if (response.data && response.data.status === "FAILED") {
+      return { success: false, message: response.data.message };
+    }
+
+    // Return successful data
+    return { success: true, data: response.data };
   } catch (error) {
     console.error("Error", error);
+    return { success: false, message: "An error occurred. Please try again." };
   }
 };
+
 
 export async function fetch_company_details(
   site_url: string,
@@ -689,3 +701,39 @@ export async function fetch_shifts(
     return null;
   }
 }
+
+
+export async function updateUserCredentials(
+  site_url: string,
+  company_prefix: string,
+  userId: string,
+  username: string,
+  oldPassword: string,
+  newPassword: string
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "resetPassword");
+  form_data.append("cp", company_prefix);
+  form_data.append("id", userId);
+  form_data.append("ruser", username);
+  form_data.append("oldp", oldPassword);
+  form_data.append("newp", newPassword);
+
+  const full_url = `${site_url}process.php`;
+
+  try {
+    const response = await axios.postForm(full_url, form_data);
+
+    // Check the response data for success
+    if (response.data && response.data.status === "SUCCESS") {
+      return { success: true, message: "Credentials updated successfully" };
+    } else {
+      return { success: false, message: response.data.message || "Failed to update credentials" };
+    }
+  } catch (error) {
+    console.error("Error updating credentials:", error);
+    return { success: false, message: "An error occurred while updating" };
+  }
+}
+
+

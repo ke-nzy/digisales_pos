@@ -175,6 +175,15 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const handleReOpen = async () => {
     console.log(`cart_${data.unique_identifier}`);
 
+    // Retrieve shift data from localStorage
+    const shiftData = JSON.parse(localStorage.getItem("start_shift") || "null");
+
+    // Check if the shift is active based on the presence of a valid ID
+    if (!shiftData?.user_id) { // Adjust condition if another field better indicates shift status
+      toast.error("Please start a shift before reopening the cart!");
+      return; // Stop further execution if shift is inactive
+    }
+
     // Load the held cart from storage
     const loadCart = await getCart(`${data.unique_identifier}`);
     console.log("Loaded Held Cart:", loadCart);
@@ -212,6 +221,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
       toast.error("Failed to load cart.");
     }
   };
+
 
 
   const handlePrint = async (data: TransactionReportItem) => {
