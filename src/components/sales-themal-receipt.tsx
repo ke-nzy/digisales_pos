@@ -481,9 +481,9 @@ const TransactionReceiptPDF = ({
               </View>
             ) : (
               <View>
-                <Text style={[styles.text]}></Text>
+                <Text style={[styles.text]}>{''}</Text>
                 <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-
+                  {''}
                 </Text>
               </View>
             )}
@@ -495,9 +495,9 @@ const TransactionReceiptPDF = ({
               </View>
             ) : (
               <View>
-                <Text style={[styles.text]}></Text>
+                <Text style={[styles.text]}>{''}</Text>
                 <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-
+                  {''}
                 </Text>
               </View>
             )}
@@ -509,9 +509,9 @@ const TransactionReceiptPDF = ({
               </View>
             ) : (
               <View>
-                <Text style={[styles.text]}></Text>
+                <Text style={[styles.text]}>{''}</Text>
                 <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-
+                  {''}
                 </Text>
               </View>
             )}
@@ -911,9 +911,9 @@ const TransactionReceiptPDF = ({
                 </View>
               ) : (
                 <View>
-                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text]}>{''}</Text>
                   <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-
+                    {''}
                   </Text>
                 </View>
               )}
@@ -925,9 +925,9 @@ const TransactionReceiptPDF = ({
                 </View>
               ) : (
                 <View>
-                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text]}>{''}</Text>
                   <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-
+                    {''}
                   </Text>
                 </View>
               )}
@@ -939,9 +939,9 @@ const TransactionReceiptPDF = ({
                 </View>
               ) : (
                 <View>
-                  <Text style={[styles.text]}></Text>
+                  <Text style={[styles.text]}>{''}</Text>
                   <Text style={[styles.text, { fontWeight: "bold", color: "#999" }]}>
-
+                    {''}
                   </Text>
                 </View>
               )}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 
@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { usePayStore } from "~/store/pay-store";
 
 const Paid = () => {
+  const [isNavigating, setIsNavigating] = useState(false);
   const { site_company, site_url, account, receipt_info } = useAuthStore();
   const { paidStatus, setPaidStatus } = usePayStore();
   const [trans, setTrans] = React.useState<
@@ -41,9 +42,18 @@ const Paid = () => {
       return pos_transactions_report[0];
     }
   };
+
+
   const handlePrint = async (data: TransactionReportItem) => {
     try {
       console.log("handlePrint", data);
+
+      // If we're navigating away, save the print data and return
+      if (isNavigating) {
+        localStorage.setItem('pending_print', JSON.stringify(data));
+        window.location.href = '/';
+        return;
+      }
 
       const pdfBlob = await pdf(
         <TransactionReceiptPDF
@@ -51,44 +61,92 @@ const Paid = () => {
           receipt_info={receipt_info!}
           account={account!}
           duplicate={true}
-        />,
+        />
       ).toBlob();
 
       const url = URL.createObjectURL(pdfBlob);
       const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.zIndex = "1000";
-      iframe.src = url;
+      iframe.style.display = "none"; // Initially hide the iframe
       document.body.appendChild(iframe);
 
-      iframe.onload = () => {
-        iframe.focus();
-        iframe.contentWindow!.print();
+      return new Promise<void>((resolve, reject) => {
+        iframe.onload = () => {
+          // Set up cleanup function
+          const cleanup = () => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+              URL.revokeObjectURL(url);
+              console.log("Print cleanup completed");
+            }
+          };
 
-        const printTimeout = setTimeout(() => {
-          // Close the print preview window if it's still open after 2 minutes (120000ms)
-          if (document.body.contains(iframe)) {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(url);
-            console.log("Print preview closed after 2 minutes");
+          try {
+            // Configure iframe after it's loaded
+            iframe.style.position = "fixed";
+            iframe.style.display = "block";
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.style.zIndex = "1000";
+
+            iframe.focus();
+            iframe.contentWindow!.print();
+
+            // Set up cleanup timeout
+            const printTimeout = setTimeout(() => {
+              cleanup();
+              console.log("Print preview closed after timeout");
+            }, 60000);
+
+            // Handle after print
+            iframe.contentWindow!.onafterprint = () => {
+              clearTimeout(printTimeout);
+              cleanup();
+              resolve();
+            };
+          } catch (err) {
+            cleanup();
+            reject(err);
           }
-        }, 60000); // 2 minutes
-        iframe.contentWindow!.onafterprint = () => {
-          clearTimeout(printTimeout);
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url); // Revoke the URL to free up resources
         };
-      };
+
+        // Set src after setting up onload
+        iframe.src = url;
+      });
     } catch (error) {
       console.error("Failed to print document:", error);
       toast.error("Failed to print document");
+      throw error;
     }
   };
 
+  // Add this effect to handle pending prints
+  useEffect(() => {
+    const pendingPrint = localStorage.getItem('pending_print');
+    if (pendingPrint) {
+      const printData = JSON.parse(pendingPrint);
+      localStorage.removeItem('pending_print'); // Clear the pending print
+      handlePrint(printData).catch(console.error);
+    }
+  }, []); // Run once on component mount
+
+  // Update your navigation handler
+  const handleNewSale = () => {
+    setIsNavigating(true);
+    setPaidStatus(false);
+    window.location.href = '/'; // Use window.location instead of router.push
+  };
+
+  // Update your Card click handler
   const triggerPrint = async () => {
     console.log("triggerPrint");
+    if (isNavigating) {
+      const printData = transaction || trans;
+      if (printData) {
+        localStorage.setItem('pending_print', JSON.stringify(printData));
+        window.location.href = '/';
+      }
+      return;
+    }
     transaction
       ? await handlePrint(transaction as TransactionReportItem)
       : await handlePrint(trans!);
@@ -263,10 +321,7 @@ const Paid = () => {
                 </Card>
                 <Card
                   className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-                  onClick={() => {
-                    setPaidStatus(false);
-                    router.push("/");
-                  }}
+                  onClick={handleNewSale}
                 >
                   <CardHeader className="flex-col items-center justify-center  p-2 ">
                     <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">
