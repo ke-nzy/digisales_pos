@@ -123,11 +123,34 @@ const Paid = () => {
   useEffect(() => {
     const pendingPrint = localStorage.getItem('pending_print');
     if (pendingPrint) {
-      const printData = JSON.parse(pendingPrint);
-      localStorage.removeItem('pending_print'); // Clear the pending print
-      handlePrint(printData).catch(console.error);
+      try {
+        // Parse and cast as TransactionReportItem
+        const printData = JSON.parse(pendingPrint) as TransactionReportItem;
+
+        // Optional: Validate the structure of printData if necessary
+        if (isValidTransactionReportItem(printData)) {
+          handlePrint(printData).catch(console.error);
+        } else {
+          console.error("Invalid data structure for TransactionReportItem:", printData);
+        }
+      } catch (error) {
+        console.error("Error parsing pending print data:", error);
+      } finally {
+        // Clear pending print from localStorage
+        localStorage.removeItem('pending_print');
+      }
     }
-  }, []); // Run once on component mount
+  }, []);
+
+  // Helper function to validate the TransactionReportItem structure
+  function isValidTransactionReportItem(data: any): data is TransactionReportItem {
+    return (
+      data && typeof data === 'object' &&
+      'property1' in data && // Replace with actual properties of TransactionReportItem
+      'property2' in data // Continue adding property checks as needed
+    );
+  }
+  // Run once on component mount
 
   // Update your navigation handler
   const handleNewSale = () => {
