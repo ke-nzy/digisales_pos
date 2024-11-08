@@ -492,82 +492,78 @@ const AmountInput = ({
   // };
 
 
-const [submissionError, setSubmissionError] = useState<string | null>(null); // State for error messages
+  const [submissionError, setSubmissionError] = useState<string | null>(null); // State for error messages
 
-const handleProcessInvoice = async () => {
+  const handleProcessInvoice = async () => {
     if (isLoading) return;
 
-    // Validation Checks
-    if (!currentCart) {
-        setSubmissionError("Please add items to cart");
-        toast.error("Please add items to cart");
-        return;
-    }
-    if (!currentCustomer) {
-        setSubmissionError("Please select a customer");
-        toast.error("Please select a customer");
-        return;
-    }
-    if (totalPaid < total - discount || !totalPaid) {
-        setSubmissionError("Insufficient funds");
-        toast.error("Insufficient funds");
-        return;
-    }
-
-    const payments = updateCashPayments(paymentCarts, total);
-    setIsLoading(true);
-
     try {
-        const result = await submit_direct_sale_request(
-            site_url!,
-            site_company!.company_prefix,
-            account!.id,
-            account!.user_id,
-            currentCart.items,
-            currentCustomer,
-            payments,
-            currentCustomer.br_name,
-            currentCart.cart_id,
-            pin
-        );
+      // Validation Checks with Enhanced Messages
+      if (!currentCart) {
+        toast.error("Your cart is empty. Please add items to proceed.");
+        throw new Error("Cart is empty.");
+      }
+      if (!currentCustomer) {
+        toast.error("Please select a customer.");
+        throw new Error("Customer not selected.");
+      }
+      if (!totalPaid || totalPaid < total - discount) {
+        toast.error("Insufficient payment. Please check the total amount.");
+        throw new Error("Insufficient funds.");
+      }
 
-        console.log("result", result);
+      setIsLoading(true);
 
-        //   router.refresh();
+      // Finalize payments for submission
+      const payments = updateCashPayments(paymentCarts, total);
 
-        // Check if submission failed and capture reason if so
-        if (result?.status === 'FAILED') {
-            setSubmissionError(
-                `Error: ${result.reason || 'Submission failed'}. Items: ${result.items || 'Unknown'}`
-            );
-            toast.error(`Submission failed: ${result.reason}`);
-            return; // Stop further processing
-        }
+      const startApiTime = Date.now();
+      const result = await submit_direct_sale_request(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        account!.user_id,
+        currentCart.items,
+        currentCustomer,
+        payments,
+        currentCustomer.br_name,
+        currentCart.cart_id,
+        pin
+      );
+      const endApiTime = Date.now();
+      console.log("Api Request Time: ", startApiTime - endApiTime);
 
-        // Handle offline/online success
-        if (result?.offline) {
-            await addInvoice(result);
-            toast.info("Transaction saved Offline");
-            await handleOfflinePrint(result);
-        } else {
-            toast.success("Invoice processed successfully");
-            if (result) await handlePrint(result);
-            setPaidStatus(true);
-            localStorage.setItem("transaction_history", JSON.stringify(result));
-        }
+      console.log("Result for the carted items:", result);
 
-        cleanupAfterInvoice();
-        setSubmissionError(null); // Clear any previous errors on success
+      if (result?.status === "FAILED") {
+        toast.error(`Submission failed: ${result.reason || "Unknown error."}`);
+        throw new Error(`Submission error: ${result.reason || "No reason provided."}`);
+      }
+
+      toast.success("Invoice processed successfully");
+      setPaidStatus(true);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const startPrintTime = Date.now() // Slight delay for DOM stability
+      await handlePrint(result);
+      const endPrintTime = Date.now();
+      console.log("Total Print Time:", startPrintTime - endPrintTime);
+
+      localStorage.setItem("transaction_history", JSON.stringify(result));
+
+      cleanupAfterInvoice();
+      setSubmissionError(null);
+
     } catch (error) {
-        console.error("Something went wrong:", error);
-        setSubmissionError("An unexpected error occurred. Please try again.");
-        toast.error("An unexpected error occurred");
+      console.error("Process invoice error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unexpected error occurred";
+      setSubmissionError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
-  // Cleanup function to clear cart, payment, pin, etc.
+  // Cleanup function to reset cart and payment state
   const cleanupAfterInvoice = () => {
     clearCart();
     clearPaymentCarts();
@@ -580,19 +576,20 @@ const handleProcessInvoice = async () => {
       console.log("handlePrint", data);
       setPaidStatus(true);
 
+      // Generate PDF for printing
       const pdfBlob = await pdf(
         <TransactionReceiptPDF
           data={data}
           receipt_info={receipt_info!}
           account={account!}
           duplicate={true}
-        />,
+        />
       ).toBlob();
-
-      console.log("pdfBlob", pdfBlob);
 
       const url = URL.createObjectURL(pdfBlob);
       const iframe = document.createElement("iframe");
+
+      // Styling and positioning for print preview
       iframe.style.position = "fixed";
       iframe.style.width = "100%";
       iframe.style.height = "100%";
@@ -600,34 +597,40 @@ const handleProcessInvoice = async () => {
       iframe.src = url;
       document.body.appendChild(iframe);
 
+      // Load the iframe, wait a bit, and trigger print
       iframe.onload = () => {
-        iframe.focus();
-        iframe.contentWindow!.print();
-        iframe.contentWindow!.onafterprint = () => {
+        setTimeout(() => {
+          if (iframe.contentWindow) {
+            iframe.focus();
+            iframe.contentWindow.print();
+            iframe.contentWindow.onafterprint = () => {
+              document.body.removeChild(iframe);
+              URL.revokeObjectURL(url);
+              setIsPrinted(true);
+            };
+          } else {
+            console.warn("Iframe contentWindow is not accessible.");
+          }
+        }, 100); // Increase delay if necessary
+      };
+
+      // Fallback cleanup if onafterprint fails
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
           document.body.removeChild(iframe);
-          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+          URL.revokeObjectURL(url);
           setIsPrinted(true);
-        };
-      };
-      const cleanup = () => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(url);
-        setIsPrinted(true);
+          window.location.reload();
+        }
+      }, 50000);
 
-        // Force reload or redirection after printing to ensure no page residue
-        window.location.reload(); // or window.history.back(); if you want to return to the previous page
-      };
-
-      iframe.contentWindow!.onafterprint = cleanup;
-
-      // Fallback to force cleanup in case onafterprint fails
-      setTimeout(cleanup, 50000);
     } catch (error) {
       console.error("Failed to print document:", error);
-      toast.error("Failed to print document");
+      toast.error("Failed to print document. You can reprint from transaction history.");
       setIsPrinted(false);
     }
   };
+
 
   const handleOfflinePrint = async (data: UnsynchedInvoice) => {
     try {
