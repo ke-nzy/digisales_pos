@@ -137,6 +137,7 @@ export async function fetch_user_roles(
       `${site_url}process.php`,
       form,
     );
+    // console.log('This are the user roles available: ', response.data)
 
     return response.data;
   } catch (e) {

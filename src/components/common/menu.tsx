@@ -43,9 +43,13 @@ interface MenuProps {
 export default function Menu({ isOpen }: MenuProps) {
   const roles = localStorage.getItem("roles");
   const form = useRef<HTMLFormElement>(null);
+  const isInventoryManager = roles ? roles?.includes("mInventoryManager") : false;
   const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
   const isAdmin = roles ? roles?.includes("lOn Map") : false;
   const [bManager, setBManager] = useState<boolean>(isBranchManager);
+  const [inventoryManager, setInventoryManager] = useState<boolean>(
+    isInventoryManager,
+  );
   const [admin, setAdmin] = useState<boolean>(isAdmin);
   const pathname = usePathname();
   const { clear_auth_session, site_url, site_company, account } =
@@ -63,6 +67,15 @@ export default function Menu({ isOpen }: MenuProps) {
       setBManager(false);
     }
   }, [roles]);
+
+  useEffect(() => {
+    if (roles?.includes("mInventoryManager")) {
+      setInventoryManager(true);
+    } else {
+      setInventoryManager(false);
+    }
+  }, [roles]);
+  
   useEffect(() => {
     if (roles?.includes("lOn Map")) {
       setAdmin(true);
@@ -91,7 +104,7 @@ export default function Menu({ isOpen }: MenuProps) {
       form.current.reset();
     }
   };
-  const menuList = getMenuList(pathname, bManager, admin);
+  const menuList = getMenuList(pathname, bManager, admin, inventoryManager);
   const handleHoldCart = async () => {
     if (!currentCart) {
       toast.error("Please add items to cart");

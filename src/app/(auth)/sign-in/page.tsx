@@ -130,7 +130,7 @@ const SignIn = () => {
         } else {
           toast.error(login_result.message || "Login Failed: Invalid Credentials");
         }
-        return; // Prevent further execution
+        return; // Prevents further execution
       }
 
       // Ensure login_result.data exists for further actions

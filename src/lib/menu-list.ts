@@ -32,6 +32,7 @@ export function getMenuList(
   pathname: string,
   isBranchManager: boolean | undefined,
   isAdmin: boolean | undefined,
+  isInventoryManager: boolean | undefined
 ): Group[] {
   if (isAdmin) {
     return [
@@ -270,6 +271,63 @@ export function getMenuList(
         ],
       },
     ];
+  } else if (isInventoryManager) {
+    return [
+      {
+        groupLabel: "",
+        menus: [
+          {
+            href: "/dashboard",
+            label: "Dashboard",
+            active: pathname.includes("/dashboard"),
+            icon: LayoutGrid,
+            submenus: [],
+          },
+        ],
+      },
+      {
+        groupLabel: "Items & Inventory",
+        menus: [
+          {
+            href: "/inventory",
+            label: "Inventory",
+            active: pathname.includes("/products"),
+            icon: SquarePen,
+            submenus: [
+              {
+                href: "/inventory",
+                label: "Branch Inventory",
+                active: pathname === "/inventory",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        groupLabel: "Sales",
+        menus: [
+          {
+            href: "/transactions",
+            label: "Transactions",
+            active: pathname.includes("/transactions"),
+            icon: ArrowLeftRight,
+            submenus: [],
+          },
+        ],
+      },
+      {
+        groupLabel: "Settings",
+        menus: [
+          {
+            href: "/account",
+            label: "Account",
+            active: pathname.includes("/account"),
+            icon: Settings,
+            submenus: [],
+          },
+        ],
+      },
+    ];
   } else {
     return [
       {
@@ -295,13 +353,13 @@ export function getMenuList(
             icon: ArrowLeftRight,
             submenus: [],
           },
-          {
-            href: "/unsynced-invoices",
-            label: "Unsynced Invoices",
-            active: pathname.includes("/unsynced-invoices"),
-            icon: CloudOff,
-            submenus: [],
-          },
+          // {
+          //   href: "/unsynced-invoices",
+          //   label: "Unsynced Invoices",
+          //   active: pathname.includes("/unsynced-invoices"),
+          //   icon: CloudOff,
+          //   submenus: [],
+          // },
           // {
           //   href: "/reservations",
           //   label: "Reservations",
