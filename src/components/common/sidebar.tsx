@@ -22,6 +22,7 @@ export function Sidebar() {
   const sft = localStorage.getItem("start_shift");
   const roles = localStorage.getItem("roles");
   const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
+  const isInventoryManager = roles ? roles?.includes("mInventoryManager") : false;
 
   useEffect(() => {
     const shift = localStorage.getItem("start_shift");
@@ -29,12 +30,12 @@ export function Sidebar() {
     router.refresh();
     if (s?.message === "Success" && s.user_id === account?.id) {
       setMainLink(
-        s?.id ? (isBranchManager ? "/dashboard" : "/") : "/dashboard",
+        s?.id ? (isBranchManager || isInventoryManager ? "/dashboard" : "/") : "/dashboard",
       );
     } else {
       setMainLink("/dashboard");
     }
-  }, [sft, path, account, router, isBranchManager]);
+  }, [sft, path, account, router, isBranchManager, isInventoryManager]);
 
   if (!sidebar) return null;
   return (
