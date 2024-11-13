@@ -64,6 +64,20 @@ const AmountInput = ({
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
 
 
+  interface CartItem {
+    item: {
+      stock_id: string;
+      description: string;
+      rate: string;
+      kit: string;
+      units: string;
+      mb_flag: string;
+    };
+    quantity: number;
+    discount?: string | undefined;
+    max_quantity: number;
+  }
+
   type ItemDetails = {
     stock_id: string;
     price: number;
@@ -91,13 +105,16 @@ const AmountInput = ({
     form_data.append("id", user_id);
 
     try {
-      const response = await axios.post(`${site_url}process.php`, form_data);
+      const response = await axios.postForm(`${site_url}process.php`, form_data);
+      console.log("Updated Fetched item details for stock ID:", stock_id, ":", response.data);
+
       if (response.data === "") {
         console.error(`No data returned for stock ID: ${stock_id}`);
         return null;
       }
 
       const args = (typeof response.data === 'string' ? response.data : "").split("|");
+      console.log("Fetched item details for stock ID args:", stock_id, ":", args); 
       return {
         stock_id,
         price: parseFloat(args[0] ?? "0"),
@@ -139,6 +156,42 @@ const AmountInput = ({
       void fetchAllItemDetails();
     }
   }, [inventory, site_url, site_company!.company_prefix, account!.id]);
+
+
+  const checkInventoryForCartItems = async (
+    site_url: string,
+    company_prefix: string,
+    user_id: string,
+    items: CartItem[]
+  ) => {
+    items.forEach((item, index) => {
+      console.log(`Checking item: ${item.item.description}, Requested Quantity: ${item.quantity}`);
+  });   
+    // Map through cart items and fetch details in parallel
+    const itemDetailsPromises = items.map(item =>
+      fetchItemDetails(site_url, company_prefix, user_id, item.item.stock_id, item.item.kit)
+    );
+    console.log("Items in cart:", itemDetailsPromises);
+
+    // Await all fetch requests and filter out any invalid entries
+    const itemDetails = await Promise.all(itemDetailsPromises);
+    console.log("Item details fetched:", itemDetails);
+    const invalidItems: CartItem[] = [];
+
+    // Check for each item in cart if quantity is sufficient
+    items.forEach((item, index) => {
+      const details = itemDetails[index];
+      if (details && item.quantity > details.quantity_available) {
+        invalidItems.push(item);
+      }
+    });
+
+    return {
+      isValid: invalidItems.length === 0,
+      invalidItems
+    };
+  };
+
 
 
   // const { inventory } = useInventory();  
