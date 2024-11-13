@@ -15,11 +15,12 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
 import { DownloadIcon } from "lucide-react";
 import CsvDownloader from "react-csv-downloader";
@@ -36,6 +37,11 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
   const tableRef = useRef<HTMLDivElement>(null);
+  const [roles, setRoles] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRoles(localStorage.getItem('roles'));
+  }, []);
 
   function transformData(data: TransactionReportItem[]) {
     return data.flatMap((transaction) => {
@@ -54,7 +60,7 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
       }));
     });
   }
-  console.log("columns", columns);
+  // console.log("columns", columns);
 
   const csvColumns = columns.map((column) => ({
     id: column.id!,
@@ -91,18 +97,20 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
 
   return (
     <>
-      <div className="flex flex-row justify-end">
-        <CsvDownloader
-          filename="transactions"
-          columns={csvColumns}
-          datas={transformedData}
-        >
-          <Button variant={"outline"} size={"sm"}>
-            <DownloadIcon className="mr-2 size-4" aria-hidden="true" />
-            Export
-          </Button>
-        </CsvDownloader>
-      </div>
+      {roles && roles.includes("mBranchManager") && (
+        <div className="flex flex-row justify-end">
+          <CsvDownloader
+            filename="transactions"
+            columns={csvColumns}
+            datas={transformedData}
+          >
+            <Button variant={"outline"} size={"sm"}>
+              <DownloadIcon className="mr-2 size-4" aria-hidden="true" />
+              Export
+            </Button>
+          </CsvDownloader>
+        </div>
+      )}
       <div className="rounded-md border" ref={tableRef}>
         <Table>
           <TableHeader>
@@ -114,9 +122,9 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
@@ -152,6 +160,31 @@ export function TransactionsDataTable<TData extends TransactionReportItem>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            {table.getFooterGroups().map((footerGroup) => (
+              <TableRow key={footerGroup.id} className="border-t">
+                <TableCell className="font-medium">Total</TableCell>
+                {footerGroup.headers.map((header, index) => {
+                  // Skip the first cell since we already have the "Total" cell
+                  if (index === 0) return null;
+
+                  return (
+                    <TableCell
+                      key={header.id}
+                      className="py-3 text-right font-medium"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.footer,
+                          header.getContext()
+                        )}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableFooter>
         </Table>
       </div>
     </>

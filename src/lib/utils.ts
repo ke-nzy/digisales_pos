@@ -434,9 +434,41 @@ export const posTransactionColumns: ColumnDef<any>[] = [
     // },
   },
   {
+    id: "pitems",
+    accessorKey: "pitems",
+    header: "ITEM_QUANTITY",
+    cell: ({ row }) => {
+      const quantity = parseFloat(row.original.quantity as string); 
+      if (!quantity) return "-";
+
+      try {
+        const itemQuantity = quantity;
+        return itemQuantity || "-";
+      } catch (error) {
+        return "Invalid";
+      }
+    },
+    footer: ({ table }) => {
+      const totalQuantity = table.getFilteredRowModel().rows.reduce((total, row) => {
+        const quantity = parseFloat(row.original.quantity as string) || 0;
+        return total + quantity;
+      }, 0);
+      
+      return `${totalQuantity.toFixed(2)}`;
+    }
+  },
+  {
     id: "ptotal",
     accessorKey: "ptotal",
     header: "CART_TOTAL",
+    footer: ({ table }) => {
+      const total = table.getFilteredRowModel().rows.reduce((sum, row) => {
+        const amount = parseFloat(row.original.ptotal as string) || 0;
+        return sum + amount;
+      }, 0);
+      
+      return `${total.toFixed(2)}`;
+    }
   },
   {
     id: "pdate",
