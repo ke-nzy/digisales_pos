@@ -38,7 +38,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const roles = localStorage.getItem("roles");
-    if (roles?.includes("mBranchManager")) {
+    if (roles?.includes("mBranchManager") || roles?.includes("mInventoryManager")) {
       router.replace("/dashboard");
     }
   }, [roles]);

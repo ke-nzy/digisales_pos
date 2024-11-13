@@ -494,6 +494,201 @@ const AmountInput = ({
 
   const [submissionError, setSubmissionError] = useState<string | null>(null); // State for error messages
 
+  // const handleProcessInvoice = async () => {
+  //   if (isLoading) return;
+
+  //   const perfMetrics = {
+  //     validation: 0,
+  //     paymentProcessing: 0,
+  //     apiRequest: 0,
+  //     printTime: 0,
+  //     cleanup: 0,
+  //     total: 0
+  //   };
+
+  //   const transactionStart = performance.now();
+  //   const requestId = generateRandomString(8); // Unique ID for this transaction
+
+  //   try {
+  //     console.group(`Transaction ${requestId}`);
+  //     console.time(`Total Transaction ${requestId}`);
+
+  //     // Start validation timing
+  //     const validationStart = performance.now();
+
+  //     // Enhanced validation with payload checking
+  //     const validationResults = {
+  //       cart: Boolean(currentCart),
+  //       cartItems: currentCart?.items?.length > 0,
+  //       customer: Boolean(currentCustomer),
+  //       payment: Boolean(totalPaid && totalPaid >= total - discount)
+  //     };
+
+  //     console.log('Validation Results:', validationResults);
+
+  //     if (!validationResults.cart || !validationResults.cartItems) {
+  //       toast.error("Your cart is empty. Please add items to proceed.");
+  //       throw new Error("Cart validation failed: Empty cart");
+  //     }
+  //     if (!validationResults.customer) {
+  //       toast.error("Please select a customer.");
+  //       throw new Error("Cart validation failed: No customer selected");
+  //     }
+  //     if (!validationResults.payment) {
+  //       toast.error("Insufficient payment. Please check the total amount.");
+  //       throw new Error("Cart validation failed: Insufficient funds");
+  //     }
+
+  //     perfMetrics.validation = performance.now() - validationStart;
+  //     console.log(`Validation completed in ${perfMetrics.validation.toFixed(2)}ms`);
+
+  //     setIsLoading(true);
+
+  //     // Payment processing timing
+  //     const paymentStart = performance.now();
+  //     const payments = updateCashPayments(paymentCarts, total);
+  //     perfMetrics.paymentProcessing = performance.now() - paymentStart;
+
+  //     // Log payment details for debugging
+  //     console.log('Payment Details:', {
+  //       totalAmount: total,
+  //       discount,
+  //       totalPaid,
+  //       paymentCount: payments.length,
+  //       paymentTypes: payments.map(p => p.paymentType)
+  //     });
+
+  //     // API request with detailed logging
+  //     const apiStart = performance.now();
+  //     console.time(`API Request ${requestId}`);
+
+  //     // Calculate payload size
+  //     const requestPayload = {
+  //       siteUrl: site_url,
+  //       companyPrefix: site_company?.company_prefix,
+  //       accountId: account?.id,
+  //       userId: account?.user_id,
+  //       items: currentCart.items,
+  //       customer: currentCustomer,
+  //       payments,
+  //       brName: currentCustomer.br_name,
+  //       cartId: currentCart.cart_id,
+  //       pin
+  //     };
+
+  //     const payloadSize = new Blob([JSON.stringify(requestPayload)]).size;
+  //     console.log(`Request Payload Size: ${(payloadSize / 1024).toFixed(2)}KB`);
+
+  //     const result = await Promise.race([
+  //       submit_direct_sale_request(
+  //         site_url!,
+  //         site_company!.company_prefix,
+  //         account!.id,
+  //         account!.user_id,
+  //         currentCart.items,
+  //         currentCustomer,
+  //         payments,
+  //         currentCustomer.br_name,
+  //         currentCart.cart_id,
+  //         pin
+  //       ),
+  //       new Promise((_, reject) =>
+  //         setTimeout(() => reject(new Error('API request timeout after 60s')), 60000)
+  //       )
+  //     ]);
+
+  //     console.timeEnd(`API Request ${requestId}`);
+  //     perfMetrics.apiRequest = performance.now() - apiStart;
+
+  //     // Log response details
+  //     const responseSize = new Blob([JSON.stringify(result)]).size;
+  //     console.log(`Response Size: ${(responseSize / 1024).toFixed(2)}KB`);
+  //     console.log('API Response:', result);
+
+  //     if (!result) {
+  //       throw new Error('API returned null or undefined result');
+  //     }
+
+  //     if (result?.status === "FAILED") {
+  //       throw new Error(`Submission error: ${result.reason || "No reason provided"}`);
+  //     }
+
+  //     // Success path
+  //     toast.success("Invoice processed successfully");
+  //     setPaidStatus(true);
+
+  //     // Print handling with timing
+  //     const printStart = performance.now();
+  //     console.time(`Print Operation ${requestId}`);
+
+  //     await new Promise(resolve => setTimeout(resolve, 100));
+  //     await handlePrint(result);
+
+  //     console.timeEnd(`Print Operation ${requestId}`);
+  //     perfMetrics.printTime = performance.now() - printStart;
+
+  //     // Cleanup timing
+  //     const cleanupStart = performance.now();
+  //     console.time(`Cleanup Operations ${requestId}`);
+
+  //     await Promise.all([
+  //       localStorage.setItem("transaction_history", JSON.stringify(result)),
+  //       (async () => {
+  //         try {
+  //           await clearCart();
+  //           await clearPaymentCarts();
+  //           setPin("");
+  //           setSubmissionError(null);
+  //         } catch (cleanupError) {
+  //           console.error('Cleanup operation failed:', cleanupError);
+  //         }
+  //       })()
+  //     ]);
+
+  //     console.timeEnd(`Cleanup Operations ${requestId}`);
+  //     perfMetrics.cleanup = performance.now() - cleanupStart;
+
+  //   } catch (error) {
+  //     console.error("Process invoice error:", {
+  //       error,
+  //       requestId,
+  //       perfMetrics,
+  //       state: {
+  //         cart: Boolean(currentCart),
+  //         customer: Boolean(currentCustomer),
+  //         payments: paymentCarts.length
+  //       }
+  //     });
+
+  //     const errorMessage = error instanceof Error
+  //       ? `Error: ${error.message}`
+  //       : "Unexpected error occurred";
+
+  //     setSubmissionError(errorMessage);
+  //     toast.error(errorMessage);
+
+  //   } finally {
+  //     perfMetrics.total = performance.now() - transactionStart;
+
+  //     // Log final performance metrics
+  //     console.log('Performance Metrics:', {
+  //       ...perfMetrics,
+  //       totalTimeSeconds: (perfMetrics.total / 1000).toFixed(2)
+  //     });
+
+  //     console.log('Time Distribution:', {
+  //       validation: `${((perfMetrics.validation / perfMetrics.total) * 100).toFixed(2)}%`,
+  //       paymentProcessing: `${((perfMetrics.paymentProcessing / perfMetrics.total) * 100).toFixed(2)}%`,
+  //       apiRequest: `${((perfMetrics.apiRequest / perfMetrics.total) * 100).toFixed(2)}%`,
+  //       printTime: `${((perfMetrics.printTime / perfMetrics.total) * 100).toFixed(2)}%`,
+  //       cleanup: `${((perfMetrics.cleanup / perfMetrics.total) * 100).toFixed(2)}%`
+  //     });
+
+  //     console.groupEnd();
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleProcessInvoice = async () => {
     if (isLoading) return;
 
@@ -533,10 +728,13 @@ const AmountInput = ({
       const endApiTime = Date.now();
       console.log("Api Request Time: ", startApiTime - endApiTime);
 
+      console.log("Items with an issue: ", result?.items)
+
       console.log("Result for the carted items:", result);
 
       if (result?.status === "FAILED") {
-        toast.error(`Submission failed: ${result.reason || "Unknown error."}`);
+        // toast.error(`Submission failed: ${result.reason || "Unknown error."} Items with an issue: ${result.items}`);
+        toast.error(`Submission failed: ${result.reason} The following items are out of stock: ${result.items}`)
         throw new Error(`Submission error: ${result.reason || "No reason provided."}`);
       }
 
@@ -632,43 +830,43 @@ const AmountInput = ({
   };
 
 
-  const handleOfflinePrint = async (data: UnsynchedInvoice) => {
-    try {
-      console.log("handlePrint", data);
-      setPaidStatus(true);
+  // const handleOfflinePrint = async (data: UnsynchedInvoice) => {
+  //   try {
+  //     console.log("handlePrint", data);
+  //     setPaidStatus(true);
 
-      const pdfBlob = await pdf(
-        <OfflineTransactionReceiptPDF
-          data={data}
-          receipt_info={receipt_info!}
-          account={account!}
-          duplicate={true}
-        />,
-      ).toBlob();
-      const url = URL.createObjectURL(pdfBlob);
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.zIndex = "1000";
-      iframe.src = url;
-      document.body.appendChild(iframe);
+  //     const pdfBlob = await pdf(
+  //       <OfflineTransactionReceiptPDF
+  //         data={data}
+  //         receipt_info={receipt_info!}
+  //         account={account!}
+  //         duplicate={true}
+  //       />,
+  //     ).toBlob();
+  //     const url = URL.createObjectURL(pdfBlob);
+  //     const iframe = document.createElement("iframe");
+  //     iframe.style.position = "fixed";
+  //     iframe.style.width = "100%";
+  //     iframe.style.height = "100%";
+  //     iframe.style.zIndex = "1000";
+  //     iframe.src = url;
+  //     document.body.appendChild(iframe);
 
-      iframe.onload = () => {
-        iframe.focus();
-        iframe.contentWindow!.print();
-        iframe.contentWindow!.onafterprint = () => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url); // Revoke the URL to free up resources
-          setIsPrinted(true);
-        };
-      };
-    } catch (error) {
-      console.error("Failed to print document:", error);
-      toast.error("Failed to print document");
-      setIsPrinted(false);
-    }
-  };
+  //     iframe.onload = () => {
+  //       iframe.focus();
+  //       iframe.contentWindow!.print();
+  //       iframe.contentWindow!.onafterprint = () => {
+  //         document.body.removeChild(iframe);
+  //         URL.revokeObjectURL(url); // Revoke the URL to free up resources
+  //         setIsPrinted(true);
+  //       };
+  //     };
+  //   } catch (error) {
+  //     console.error("Failed to print document:", error);
+  //     toast.error("Failed to print document");
+  //     setIsPrinted(false);
+  //   }
+  // };
 
   return (
     <div className="flex h-full w-full flex-col space-y-6">

@@ -99,7 +99,7 @@ const TransactionReceiptPDF = ({
 
 
 
-  const [simulateError, setSimulateError] = useState(false); // Simulation flag
+  const [simulateError, setSimulateError] = useState(false); 
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
 

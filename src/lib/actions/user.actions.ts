@@ -137,6 +137,7 @@ export async function fetch_user_roles(
       `${site_url}process.php`,
       form,
     );
+    // console.log('This are the user roles available: ', response.data)
 
     return response.data;
   } catch (e) {
@@ -241,10 +242,12 @@ export async function fetch_pos_transactions_report(
   const form_data = new FormData();
   form_data.append("tp", "loadPOSTransaction");
   form_data.append("cp", site_company.company_prefix);
-  if (!roles?.includes("mBranchManager") || roles === null) {
+
+  if (!roles?.includes("mBranchManager") && !roles?.includes("mInventoryManager")) {
     form_data.append("id", account.id);
-  }
-  if (roles?.includes("mBranchManager")) {
+  }  
+
+  if (roles?.includes("mBranchManager") || roles?.includes("mInventoryManager")) {
     form_data.append("branch_code", account.default_store);
   }
   if (cashier_id) {
@@ -287,10 +290,10 @@ export async function fetch_held_transactions_report(
   const form_data = new FormData();
   form_data.append("tp", "loadHeldTransaction");
   form_data.append("cp", site_company.company_prefix);
-  if (!roles?.includes("mBranchManager") || roles === null) {
+  if (!roles?.includes("mBranchManager") && !roles?.includes("mInventoryManager")) {
     form_data.append("id", account.id);
-  }
-  if (roles?.includes("mBranchManager")) {
+  }  
+  if (roles?.includes("mBranchManager") || roles?.includes("mInventoryManager")) {
     form_data.append("branch_code", account.default_store);
   }
   // form_data.append("id", account.id);

@@ -1008,7 +1008,7 @@ const CartActions = () => {
             <h4 className="text-center text-sm font-normal">Process Payment</h4>
           </CardHeader>
         </Card>
-        <Card
+        {/* <Card
           className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
           onClick={() => (syncing ? null : router.push("/unsynced-invoices"))}
         >
@@ -1034,7 +1034,7 @@ const CartActions = () => {
                 : ""}
             </h4>
           </CardHeader>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
