@@ -101,6 +101,7 @@ export default function UserNav() {
       await deleteMetadata();
       clear_auth_session();
       router.push("/sign-in");
+      window.location.reload();
     }
     await deleteMetadata();
     clear_auth_session();
