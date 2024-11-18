@@ -104,6 +104,28 @@ const SignIn = () => {
   };
 
 
+  interface LoginSuccessResponse {
+    success: boolean;
+    data: UserAccountInfo;
+  }
+
+  interface LoginSuccessResponse {
+    success: boolean;
+    data: UserAccountInfo;
+  }
+
+  interface LoginFailedCredentialsResponse {
+    success: boolean;
+    data: false;
+  }
+
+  interface LoginUnauthorizedResponse {
+    success: false;
+    message: string;
+  }
+
+  type LoginResponse = LoginSuccessResponse | LoginFailedCredentialsResponse | LoginUnauthorizedResponse;
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
@@ -111,9 +133,16 @@ const SignIn = () => {
         data.site_name ?? ""
       );
 
-      if (company_information === null) {
-        throw new Error("Company information not loaded. Contact Support");
+      if (!company_information || company_information.length === 0) {
+        toast.error("Company information not found. Please check site name.");
+        return;
       }
+
+      console.log("Attempting login with:", {
+        company_url: company_information[0]!.company_url,
+        username: data.username,
+        selected_company: selectedCompany?.company_prefix
+      });
 
       const login_result = await signIn({
         company_url: company_information[0]!.company_url,
@@ -121,31 +150,58 @@ const SignIn = () => {
         password: data.password,
         selected_company: selectedCompany?.company_prefix ?? "",
         ip: userIp || "",
-      });
+      }) as LoginResponse;
 
-      // Check if login was unsuccessful due to unauthorized access
-      if (!login_result.success) {
-        if (login_result.message === "Unauthorized Access") {
-          toast.error("Login Failed: Unauthorized Access!");
-        } else {
-          toast.error(login_result.message || "Login Failed: Invalid Credentials");
-        }
-        return; // Prevents further execution
+      console.log("Login result:", login_result);
+
+      // Check if login_result exists
+      if (!login_result) {
+        toast.error("Login failed: No response from server");
+        return;
       }
 
-      // Ensure login_result.data exists for further actions
-      if (login_result.data) {
-        // Fetch receipt information and roles only if login succeeded
+      // Check for unauthorized access first
+      if (!login_result.success && 'message' in login_result) {
+        toast.error(login_result.message);
+        return;
+      }
+
+      // Check for invalid credentials
+      if ('data' in login_result && login_result.data === false) {
+        toast.error("Invalid username or password");
+        return;
+      }
+
+      // Type guard for successful login
+      const isSuccessfulLogin = (
+        response: LoginResponse
+      ): response is LoginSuccessResponse => {
+        return response.success &&
+          'data' in response &&
+          response.data !== false &&
+          typeof response.data === 'object';
+      };
+
+      // Check login result
+      if (!isSuccessfulLogin(login_result)) {
+        toast.error("Login failed. Please try again.");
+        return;
+      }
+
+      // At this point TypeScript knows login_result.data is UserAccountInfo
+      try {
+        console.log("Fetching receipt info...");
         const receipt_info = await fetch_company_details(
           company_information[0]!.company_url,
           selectedCompany!.company_prefix
         );
 
-        if (receipt_info == null) {
-          toast.error("Login Failed: Receipt Information Setup Failed");
+        if (!receipt_info) {
+          toast.error("Failed to load company details");
           return;
         }
 
+        console.log("Fetching user roles...");
         const roles = await fetch_user_roles(
           company_information[0]!.company_url,
           selectedCompany!.company_prefix,
@@ -153,30 +209,43 @@ const SignIn = () => {
           login_result.data.id
         );
 
-        if (roles === null) {
-          toast.error("Failed to fetch roles");
-        } else {
-          localStorage.setItem("roles", JSON.stringify(roles));
+        if (!roles) {
+          toast.error("Failed to load user roles");
+          return;
         }
 
-        // Set up account and site info
+        // Store roles in localStorage
+        localStorage.setItem("roles", JSON.stringify(roles));
+
+        // Update all required information
         update_account(login_result.data);
         update_site_info(company_information[0]!);
         set_receipt_info(receipt_info);
         set_site_url(company_information[0]!.company_url);
         update_company_site(selectedCompany!);
 
-        // Navigate to the dashboard if everything is successful
+        // Show success message
+        toast.success("Login successful!");
+
+        // Navigate to appropriate page
         handle_page_to_navigate_to();
+
+      } catch (innerError) {
+        console.error("Post-login setup error:", innerError);
+        toast.error("Failed to complete login setup");
       }
+
     } catch (error) {
-      toast.error("Login Failed: Contact Support");
-      console.log(error);
+      console.error("Login error:", error);
+      if (error instanceof Error) {
+        toast.error(`Login failed: ${error.message}`);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
   };
-
 
   // Page Actions
   const handle_page_to_navigate_to = () => {
