@@ -213,7 +213,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
           console.log("Confirmed Cart in currentCart after setState:", useCartStore.getState().currentCart);
         }, 100);
 
-        toast.success("Held Cart reopened and set in currentCart.");
+        toast.success("Held Cart reopened and set.");
         router.push("/");
       }
     } catch (error) {
