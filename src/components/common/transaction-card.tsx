@@ -325,6 +325,8 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
     }
   };
 
+  const roles = localStorage.getItem("roles");
+
   return (
     <Card key={data.unique_identifier}>
       <CardHeader>
@@ -573,15 +575,18 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
             <TrashIcon className="h-3.5 w-3.5" />
             Clear
           </Button>
-          <Button
-            onClick={handleReOpen}
-            size="sm"
-            variant="default"
-            className="flex-grow gap-2"
-          >
-            <CopyIcon className="h-3.5 w-3.5" />
-            Open
-          </Button>
+          {!roles?.includes("mBranchManager") && (
+            <Button
+              onClick={handleReOpen}
+              size="sm"
+              variant="default"
+              className="flex-grow gap-2"
+            >
+              <CopyIcon className="h-3.5 w-3.5" />
+              Open
+            </Button>
+          )}
+
         </CardFooter>
       )}
     </Card>
