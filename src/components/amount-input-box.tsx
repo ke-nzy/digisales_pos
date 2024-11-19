@@ -704,6 +704,12 @@ const AmountInput = ({
   const handleProcessInvoice = async () => {
     if (isLoading) return;
 
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out after 30 seconds'));
+      }, 60000);
+    });
+
     const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = "Transaction in progress. Are you sure you want to leave?";
@@ -732,18 +738,24 @@ const AmountInput = ({
       const payments = updateCashPayments(paymentCarts, total);
 
       const startApiTime = Date.now();
-      const result = await submit_direct_sale_request(
-        site_url!,
-        site_company!.company_prefix,
-        account!.id,
-        account!.user_id,
-        currentCart.items,
-        currentCustomer,
-        payments,
-        currentCustomer.br_name,
-        currentCart.cart_id,
-        pin
-      );
+
+      // Wrap the API call in a Promise.race with the timeout
+      const result = await Promise.race([
+        submit_direct_sale_request(
+          site_url!,
+          site_company!.company_prefix,
+          account!.id,
+          account!.user_id,
+          currentCart.items,
+          currentCustomer,
+          payments,
+          currentCustomer.br_name,
+          currentCart.cart_id,
+          pin
+        ),
+        timeoutPromise
+      ]);
+
       const endApiTime = Date.now();
       console.log("Api Request Time: ", startApiTime - endApiTime);
 
@@ -794,14 +806,26 @@ const AmountInput = ({
         }
       } else {
         // Unexpected response status
-        const errorMessage = response.Message || "Transaction failed, please try again later";
+        const errorMessage = response.Message || "Transaction failed, please check your network connection";
         toast.error(errorMessage);
         throw new Error(errorMessage);
       }
 
     } catch (error) {
       console.error("Process invoice error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unexpected error occurred";
+      let errorMessage = "Unexpected error occurred";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        // Special handling for timeout error
+        if (error.message === 'Request timed out after 30 seconds') {
+          toast.error("The request timed out. Please try again.");
+          cleanupAfterInvoice(); // Optional: decide if you want to clean up after timeout
+        } else {
+          toast.error(errorMessage);
+        }
+      }
+
       setSubmissionError(errorMessage);
     } finally {
       window.removeEventListener("beforeunload", beforeUnloadHandler);
