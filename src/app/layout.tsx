@@ -8,7 +8,7 @@ import { Toaster } from "~/components/ui/sonner";
 import type { Viewport } from "next";
 
 import Providers from "~/providers/providers";
-import AuthErrorBoundary from "~/hawk-tuah/ErrorBoundary";
+import { AuthErrorBoundary } from "~/hawk-tuah/ErrorBoundary";
 
 // const fontSans = FontSans({
 //   subsets: ["latin"],
