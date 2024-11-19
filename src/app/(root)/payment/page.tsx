@@ -51,7 +51,7 @@ const Payment = () => {
   const [pin, setPin] = useState<string>(selectedCustomer?.pin ?? "");
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [pinDialogOpen, setPinDialogOpen] = useState<boolean>(false);
-  const { paymentCarts } = usePayStore();
+  const { paymentCarts, clearPaymentCarts } = usePayStore();
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const router = useRouter();
   const { customer } = useCustomers();
@@ -65,10 +65,13 @@ const Payment = () => {
         <ResizablePanel defaultSize={25}>
           <div className="flex h-full flex-col items-start  justify-start space-y-4 p-6">
             <Button
-              onClick={() => router.back()}
+              onClick={() => {
+                clearPaymentCarts();
+                router.back()
+              }}
               variant={"destructive"}
               className="w-full"
-            >
+              >
               X Cancel
             </Button>
             <PaymentOptions amount={amount} setAmount={setAmount} />
