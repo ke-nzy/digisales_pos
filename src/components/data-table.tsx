@@ -47,7 +47,7 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
-  console.log("data", data.reverse());
+  // console.log("data", data.reverse());
   const [rowClicked, setRowClicked] = useState<number | null>(null);
 
   const table = useReactTable({

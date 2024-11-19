@@ -106,7 +106,7 @@ const AmountInput = ({
 
     try {
       const response = await axios.postForm(`${site_url}process.php`, form_data);
-      console.log("Updated Fetched item details for stock ID:", stock_id, ":", response.data);
+      // console.log("Updated Fetched item details for stock ID:", stock_id, ":", response.data);
 
       if (response.data === "") {
         console.error(`No data returned for stock ID: ${stock_id}`);
@@ -114,7 +114,7 @@ const AmountInput = ({
       }
 
       const args = (typeof response.data === 'string' ? response.data : "").split("|");
-      console.log("Fetched item details for stock ID args:", stock_id, ":", args);
+      // console.log("Fetched item details for stock ID args:", stock_id, ":", args);
       return {
         stock_id,
         price: parseFloat(args[0] ?? "0"),
@@ -144,7 +144,7 @@ const AmountInput = ({
         const validDetails = resolvedDetails.filter(detail => detail !== null);
         setAllDetails(validDetails);
 
-        console.log("Fetched item details:", validDetails);
+        // console.log("Fetched item details:", validDetails);
       } catch (error) {
         console.error("Error fetching item details", error);
       } finally {
@@ -706,7 +706,7 @@ const AmountInput = ({
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
-        reject(new Error('Request timed out after 30 seconds'));
+        reject(new Error('Request timed out after 60 seconds'));
       }, 60000);
     });
 
@@ -771,7 +771,7 @@ const AmountInput = ({
 
       // Check for Failed status first
       if (response.status?.toLowerCase() === 'failed') {
-        const errorMessage = response.Message || "Transaction failed";
+        const errorMessage = response.Message || response.reason || "Transaction failed";
 
         // Handle duplicate cart ID case
         if (errorMessage.includes("Unique Identifier already Exist")) {
@@ -806,7 +806,7 @@ const AmountInput = ({
         }
       } else {
         // Unexpected response status
-        const errorMessage = response.Message || "Transaction failed, please check your network connection";
+        const errorMessage = response.Message || response.reason || "Transaction failed, please check your network connection";
         toast.error(errorMessage);
         throw new Error(errorMessage);
       }
@@ -818,9 +818,9 @@ const AmountInput = ({
       if (error instanceof Error) {
         errorMessage = error.message;
         // Special handling for timeout error
-        if (error.message === 'Request timed out after 30 seconds') {
+        if (error.message === 'Request timed out after 60 seconds') {
           toast.error("The request timed out. Please try again.");
-          cleanupAfterInvoice(); // Optional: decide if you want to clean up after timeout
+          // cleanupAfterInvoice(); 
         } else {
           toast.error(errorMessage);
         }

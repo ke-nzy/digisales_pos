@@ -81,10 +81,10 @@ const ItemSearchBox = () => {
     }
   }, [currentCart]);
   useEffect(() => {
-    console.log(
-      "item",
-      inventory.find((invItem) => invItem.stock_id.startsWith("C")),
-    );
+    // console.log(
+    //   "item",
+    //   inventory.find((invItem) => invItem.stock_id.startsWith("C")),
+    // );
     if (item) {
       console.log("item", item);
       if (details !== null && details !== undefined) {

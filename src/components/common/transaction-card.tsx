@@ -83,7 +83,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
 
-  console.log("payments", data.payments);
+  // console.log("payments", data.payments);
   const payments: Payment[] =
     data.payments && data.payments.length > 0 ? JSON.parse(data.payments) : [];
   const handleCopy = async () => {

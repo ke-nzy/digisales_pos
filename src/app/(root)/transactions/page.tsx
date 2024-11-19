@@ -65,7 +65,7 @@ const TransactionsPage = () => {
     );
   }, [all, searchTerm]);
 
-  console.log('All POS transactions Report', filteredTransactions);
+  // console.log('All POS transactions Report', filteredTransactions);
 
   console.log("searchParams", searchParams.get("searchTerm"));
   useEffect(() => {
