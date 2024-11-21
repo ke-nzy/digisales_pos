@@ -707,7 +707,7 @@ const AmountInput = ({
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error('Request timed out after 60 seconds'));
-      }, 60000);
+      }, 45000);
     });
 
     const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
@@ -818,7 +818,7 @@ const AmountInput = ({
       if (error instanceof Error) {
         errorMessage = error.message;
         // Special handling for timeout error
-        if (error.message === 'Request timed out after 60 seconds') {
+        if (error.message === 'Request timed out after 45 seconds') {
           toast.error("The request timed out. Please try again.");
           // cleanupAfterInvoice(); 
         } else {

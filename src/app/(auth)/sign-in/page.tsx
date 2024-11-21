@@ -31,7 +31,10 @@ import { useAuthStore } from "~/store/auth-store"; // Adjust the path as needed
 const SignIn = () => {
 
   interface IpResponse {
-    ip: string; // The IP address returned by the API
+    ip: string; 
+  }
+  interface IpResponse {
+    ip: string;
   }
 
   const router = useRouter();
@@ -70,13 +73,32 @@ const SignIn = () => {
 
   const fetchUserIp = async () => {
     try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data: IpResponse = await response.json();
-      const userIp = setUserIp(data.ip);
-      console.log('User IP:', userIp);
+      // Option 1: Using ipapi.co which supports CORS
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      setUserIp(data.ip);
+      console.log('User IP:', data.ip);
     } catch (error) {
       console.error('Failed to fetch IP address', error);
-      setUserIp(null);
+
+      // Fallback option: Try alternative IP API
+      try {
+        const fallbackResponse = await fetch('https://api.ipify.org?format=json', {
+          headers: {
+            'Accept': 'application/json',
+          },
+          // Add Next.js specific config if using API routes
+          next: {
+            revalidate: 3600 // Cache for 1 hour
+          }
+        });
+        const fallbackData: IpResponse = await fallbackResponse.json();
+        setUserIp(fallbackData.ip);
+        console.log('User IP (fallback):', fallbackData.ip);
+      } catch (fallbackError) {
+        console.error('Fallback IP fetch failed', fallbackError);
+        setUserIp(null);
+      }
     }
   };
 
