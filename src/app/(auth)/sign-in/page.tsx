@@ -34,6 +34,12 @@ const SignIn = () => {
     ip: string; 
   }
 
+  interface IpapiResponse {
+    ip: string;
+    city?: string;
+    country?: string;
+  }
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const [siteInfo, setSiteInfo] = useState<SiteCompany[] | null>(null);
@@ -66,7 +72,7 @@ const SignIn = () => {
     try {
       // Option 1: Using ipapi.co which supports CORS
       const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
+      const data = await response.json() as IpapiResponse;
   
       if (typeof data.ip === 'string') {
         setUserIp(data.ip);
