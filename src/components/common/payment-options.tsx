@@ -118,14 +118,23 @@ const PaymentOptions = ({
   };
 
   const handleManualSubmit = (ttp: string) => {
-    if (parseFloat(amnt) <= 0) {
-      toast.error("Please enter an amount");
+    // Check for empty or invalid amount
+    if (!amnt || amnt.trim() === "" || parseFloat(amnt) <= 0) {
+      toast.error("Please enter a valid amount");
       return;
     }
 
-    if (!ttp.includes("CASH") && transactionNumber === "") {
-      toast.error("Please enter a transaction number");
-      return;
+    // Check for required transaction number (except for CASH payments)
+    if (!ttp.includes("CASH")) {
+      if (!transactionNumber || transactionNumber.trim() === "") {
+        toast.error("Please enter a transaction number");
+        return;
+      }
+
+      if (!pName || pName.trim() === "") {
+        toast.error("Please enter the payer's name");
+        return;
+      }
     }
     const paid: PaymentProps = {
       item: {
@@ -143,14 +152,20 @@ const PaymentOptions = ({
     setTransactionNumber("");
     setPName("");
     setManualDialogOpen(false);
+    toast.success("Payment added successfully");
   };
 
   const handleTransactionFound = () => {
-    addItemToPayments(foundTransaction!, "MPESA");
+    if (!foundTransaction) {
+      toast.error("No transaction details found");
+      return;
+    }
+    addItemToPayments(foundTransaction, "MPESA");
     setAmount("");
     setMpesaDialogOpen(false);
     setLookupRef("");
     setTransactionFoundDialog(false);
+    toast.success("M-Pesa payment added successfully");
   };
   return (
     <div className="mx-auto grid w-full max-w-md grid-cols-1 gap-4">

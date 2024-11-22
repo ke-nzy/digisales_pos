@@ -65,7 +65,7 @@ const DashBoard = () => {
   }, [searchParams]);
 
   const roles = localStorage.getItem("roles");
-  console.log("roles", roles);
+  // console.log("roles", roles);
 
   useEffect(() => {
     if (roles === null) {

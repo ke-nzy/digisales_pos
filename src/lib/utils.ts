@@ -461,14 +461,14 @@ export const posTransactionColumns: ColumnDef<any>[] = [
     id: "ptotal",
     accessorKey: "ptotal",
     header: "CART_TOTAL",
-    footer: ({ table }) => {
-      const total = table.getFilteredRowModel().rows.reduce((sum, row) => {
-        const amount = parseFloat(row.original.ptotal as string) || 0;
-        return sum + amount;
-      }, 0);
+    // footer: ({ table }) => {
+    //   const total = table.getFilteredRowModel().rows.reduce((sum, row) => {
+    //     const amount = parseFloat(row.original.ptotal as string) || 0;
+    //     return sum + amount;
+    //   }, 0);
       
-      return `${total.toFixed(2)}`;
-    }
+    //   return `${total.toFixed(2)}`;
+    // }
   },
   {
     id: "pdate",

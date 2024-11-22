@@ -178,7 +178,7 @@ export async function fetch_sales_person_summary_report(
       //    Add sentry here
       return [];
     }
-    console.log("response", response.data);
+    // console.log("response", response.data);
 
     return response.data;
   } catch (error) {
@@ -266,7 +266,7 @@ export async function fetch_pos_transactions_report(
       //    Add sentry here
       return [];
     }
-    console.log("response", response.data);
+    // console.log("response", response.data);
 
     return response.data;
   } catch (error) {
@@ -310,7 +310,7 @@ export async function fetch_held_transactions_report(
       //    Add sentry here
       return [];
     }
-    console.log("response", response.data);
+    // console.log("response", response.data);
 
     return response.data;
   } catch (error) {

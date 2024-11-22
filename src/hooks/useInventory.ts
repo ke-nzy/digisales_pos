@@ -38,7 +38,7 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   //   }
   // }
 
-  console.log("Forcing fetch from API for testing.");
+  // console.log("Forcing fetch from API for testing.");
   const sellable = await fetch_all_sellable_items(
     site_company!,
     account!,
@@ -130,7 +130,7 @@ export const useInventory = () => {
   });
 
   // Log the final inventory data, loading state, and any errors
-  console.log("Inventory Data:", data);
+  // console.log("Inventory Data:", data);
   console.log("Is Loading:", isLoading);
   console.log("Error:", error);
 

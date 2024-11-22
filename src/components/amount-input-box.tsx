@@ -106,7 +106,7 @@ const AmountInput = ({
 
     try {
       const response = await axios.postForm(`${site_url}process.php`, form_data);
-      console.log("Updated Fetched item details for stock ID:", stock_id, ":", response.data);
+      // console.log("Updated Fetched item details for stock ID:", stock_id, ":", response.data);
 
       if (response.data === "") {
         console.error(`No data returned for stock ID: ${stock_id}`);
@@ -114,7 +114,7 @@ const AmountInput = ({
       }
 
       const args = (typeof response.data === 'string' ? response.data : "").split("|");
-      console.log("Fetched item details for stock ID args:", stock_id, ":", args); 
+      // console.log("Fetched item details for stock ID args:", stock_id, ":", args);
       return {
         stock_id,
         price: parseFloat(args[0] ?? "0"),
@@ -144,7 +144,7 @@ const AmountInput = ({
         const validDetails = resolvedDetails.filter(detail => detail !== null);
         setAllDetails(validDetails);
 
-        console.log("Fetched item details:", validDetails);
+        // console.log("Fetched item details:", validDetails);
       } catch (error) {
         console.error("Error fetching item details", error);
       } finally {
@@ -166,7 +166,7 @@ const AmountInput = ({
   ) => {
     items.forEach((item, index) => {
       console.log(`Checking item: ${item.item.description}, Requested Quantity: ${item.quantity}`);
-  });   
+    });
     // Map through cart items and fetch details in parallel
     const itemDetailsPromises = items.map(item =>
       fetchItemDetails(site_url, company_prefix, user_id, item.item.stock_id, item.item.kit)
@@ -689,8 +689,32 @@ const AmountInput = ({
   //   }
   // };
 
+  type ServerResponse = {
+    message: string;
+    Message?: string;
+    invNo?: string;
+    delNo?: string;
+    vat?: number;
+    ttpAuto?: any;
+    items?: string[];
+    reason?: string;
+    [key: string]: any;
+  };
+
   const handleProcessInvoice = async () => {
     if (isLoading) return;
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out after 60 seconds'));
+      }, 45000);
+    });
+
+    const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "Transaction in progress. Are you sure you want to leave?";
+      return e.returnValue;
+    };
 
     try {
       // Validation Checks with Enhanced Messages
@@ -708,55 +732,103 @@ const AmountInput = ({
       }
 
       setIsLoading(true);
+      window.addEventListener("beforeunload", beforeUnloadHandler);
 
       // Finalize payments for submission
       const payments = updateCashPayments(paymentCarts, total);
 
       const startApiTime = Date.now();
-      const result = await submit_direct_sale_request(
-        site_url!,
-        site_company!.company_prefix,
-        account!.id,
-        account!.user_id,
-        currentCart.items,
-        currentCustomer,
-        payments,
-        currentCustomer.br_name,
-        currentCart.cart_id,
-        pin
-      );
+
+      // Wrap the API call in a Promise.race with the timeout
+      const result = await Promise.race([
+        submit_direct_sale_request(
+          site_url!,
+          site_company!.company_prefix,
+          account!.id,
+          account!.user_id,
+          currentCart.items,
+          currentCustomer,
+          payments,
+          currentCustomer.br_name,
+          currentCart.cart_id,
+          pin
+        ),
+        timeoutPromise
+      ]);
+
       const endApiTime = Date.now();
       console.log("Api Request Time: ", startApiTime - endApiTime);
 
-      console.log("Items with an issue: ", result?.items)
-
-      console.log("Result for the carted items:", result);
-
-      if (result?.status === "FAILED") {
-        // toast.error(`Submission failed: ${result.reason || "Unknown error."} Items with an issue: ${result.items}`);
-        toast.error(`Submission failed: ${result.reason} The following items are out of stock: ${result.items}`)
-        throw new Error(`Submission error: ${result.reason || "No reason provided."}`);
+      // Type guard to ensure result is of correct type
+      if (!result || typeof result !== 'object') {
+        toast.error("Invalid response received from server");
+        throw new Error("Invalid response from server");
       }
 
-      toast.success("Invoice processed successfully");
-      setPaidStatus(true);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const startPrintTime = Date.now() // Slight delay for DOM stability
-      await handlePrint(result);
-      const endPrintTime = Date.now();
-      console.log("Total Print Time:", startPrintTime - endPrintTime);
+      const response = result as ServerResponse;
 
-      localStorage.setItem("transaction_history", JSON.stringify(result));
+      console.log('Server response:', response);
 
-      cleanupAfterInvoice();
-      setSubmissionError(null);
+      // Check for Failed status first
+      if (response.status?.toLowerCase() === 'failed') {
+        const errorMessage = response.Message || response.reason || "Transaction failed";
+
+        // Handle duplicate cart ID case
+        if (errorMessage.includes("Unique Identifier already Exist")) {
+          toast.error("This cart has already been processed. Please create a new cart.");
+          cleanupAfterInvoice(); // Clear the cart if it's a duplicate submission
+        } else {
+          toast.error(errorMessage);
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Success case - check for 'Success' status or message
+      if (response.status?.toLowerCase() === 'success' ||
+        response.message?.toLowerCase() === 'success' ||
+        response.Message?.toLowerCase() === 'success') {
+        toast.success("Invoice processed successfully");
+        setPaidStatus(true);
+        localStorage.setItem("transaction_history", JSON.stringify(response));
+
+        try {
+          const startPrintTime = Date.now();
+          await handlePrint(response as SalesReceiptInformation);
+          const endPrintTime = Date.now();
+          console.log("Total Print Time:", startPrintTime - endPrintTime);
+        } catch (printError) {
+          console.error("Print error:", printError);
+          toast.error("Invoice processed but printing failed. You can reprint from transaction history.");
+        } finally {
+          // Always clean up after successful transaction, regardless of print status
+          cleanupAfterInvoice();
+          setSubmissionError(null);
+        }
+      } else {
+        // Unexpected response status
+        const errorMessage = response.Message || response.reason || "Transaction failed, please check your network connection";
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
+      }
 
     } catch (error) {
       console.error("Process invoice error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unexpected error occurred";
+      let errorMessage = "Unexpected error occurred";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        // Special handling for timeout error
+        if (error.message === 'Request timed out after 45 seconds') {
+          toast.error("The request timed out. Please try again.");
+          // cleanupAfterInvoice(); 
+        } else {
+          toast.error(errorMessage);
+        }
+      }
+
       setSubmissionError(errorMessage);
-      toast.error(errorMessage);
     } finally {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
       setIsLoading(false);
     }
   };
@@ -767,7 +839,6 @@ const AmountInput = ({
     clearPaymentCarts();
     setPin("");
   };
-
 
   const handlePrint = async (data: SalesReceiptInformation) => {
     try {

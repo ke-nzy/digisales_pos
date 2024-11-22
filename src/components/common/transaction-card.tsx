@@ -83,7 +83,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
   const items: TransactionInvItem[] =
     data.pitems.length > 0 ? JSON.parse(data.pitems) : [];
 
-  console.log("payments", data.payments);
+  // console.log("payments", data.payments);
   const payments: Payment[] =
     data.payments && data.payments.length > 0 ? JSON.parse(data.payments) : [];
   const handleCopy = async () => {
@@ -213,7 +213,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
           console.log("Confirmed Cart in currentCart after setState:", useCartStore.getState().currentCart);
         }, 100);
 
-        toast.success("Held Cart reopened and set in currentCart.");
+        toast.success("Held Cart reopened and set.");
         router.push("/");
       }
     } catch (error) {
@@ -324,6 +324,8 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
       setAuthorizationDialogOpen(true);
     }
   };
+
+  const roles = localStorage.getItem("roles");
 
   return (
     <Card key={data.unique_identifier}>
@@ -573,15 +575,18 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
             <TrashIcon className="h-3.5 w-3.5" />
             Clear
           </Button>
-          <Button
-            onClick={handleReOpen}
-            size="sm"
-            variant="default"
-            className="flex-grow gap-2"
-          >
-            <CopyIcon className="h-3.5 w-3.5" />
-            Open
-          </Button>
+          {!roles?.includes("mBranchManager") && (
+            <Button
+              onClick={handleReOpen}
+              size="sm"
+              variant="default"
+              className="flex-grow gap-2"
+            >
+              <CopyIcon className="h-3.5 w-3.5" />
+              Open
+            </Button>
+          )}
+
         </CardFooter>
       )}
     </Card>
