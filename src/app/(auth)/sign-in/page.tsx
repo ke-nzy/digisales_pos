@@ -33,9 +33,6 @@ const SignIn = () => {
   interface IpResponse {
     ip: string; 
   }
-  interface IpResponse {
-    ip: string;
-  }
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,12 +51,6 @@ const SignIn = () => {
   const set_receipt_info = useAuthStore((state) => state.set_receipt_info);
   const update_company_site = useAuthStore((state) => state.set_site_company);
   const update_account = useAuthStore((state) => state.set_account_info);
-  // const update_bypass_login_info = useAuthStore(
-  //   (state) => state.set_without_sign_in_auth,
-  // );
-  {
-    /** auth store info -end */
-  }
 
   const formSchema = authFormSchema();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -76,31 +67,41 @@ const SignIn = () => {
       // Option 1: Using ipapi.co which supports CORS
       const response = await fetch('https://ipapi.co/json/');
       const data = await response.json();
-      setUserIp(data.ip);
-      console.log('User IP:', data.ip);
+  
+      if (typeof data.ip === 'string') {
+        setUserIp(data.ip);
+        console.log('User IP:', data.ip);
+      } else {
+        throw new Error('Invalid IP format from ipapi.co');
+      }
     } catch (error) {
       console.error('Failed to fetch IP address', error);
-
+  
       // Fallback option: Try alternative IP API
       try {
         const fallbackResponse = await fetch('https://api.ipify.org?format=json', {
           headers: {
             'Accept': 'application/json',
           },
-          // Add Next.js specific config if using API routes
           next: {
-            revalidate: 3600 // Cache for 1 hour
-          }
+            revalidate: 3600, // Cache for 1 hour
+          },
         });
         const fallbackData: IpResponse = await fallbackResponse.json();
-        setUserIp(fallbackData.ip);
-        console.log('User IP (fallback):', fallbackData.ip);
+  
+        if (typeof fallbackData.ip === 'string') {
+          setUserIp(fallbackData.ip);
+          console.log('User IP (fallback):', fallbackData.ip);
+        } else {
+          throw new Error('Invalid IP format from ipify');
+        }
       } catch (fallbackError) {
         console.error('Fallback IP fetch failed', fallbackError);
         setUserIp(null);
       }
     }
   };
+  
 
   useEffect(() => {
     void fetchUserIp();
