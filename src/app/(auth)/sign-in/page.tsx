@@ -70,7 +70,6 @@ const SignIn = () => {
 
   const fetchUserIp = async () => {
     try {
-      // Option 1: Using ipapi.co which supports CORS
       const response = await fetch('https://ipapi.co/json/');
       const data = await response.json() as IpapiResponse;
   
@@ -83,7 +82,6 @@ const SignIn = () => {
     } catch (error) {
       console.error('Failed to fetch IP address', error);
   
-      // Fallback option: Try alternative IP API
       try {
         const fallbackResponse = await fetch('https://api.ipify.org?format=json', {
           headers: {
