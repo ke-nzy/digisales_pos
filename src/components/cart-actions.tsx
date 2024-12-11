@@ -68,6 +68,7 @@ import {
 } from "~/hooks/use-unsynced-invoices";
 import { sync_invoice } from "~/lib/actions/pay.actions";
 import { Skeleton } from "./ui/skeleton";
+import CartCounter from "./CartCounter";
 
 const CartActions = () => {
   const {
@@ -81,6 +82,7 @@ const CartActions = () => {
     setSelectedCartItem,
     setCurrentCustomer,
     deleteItemFromCart,
+    clearCart,
     setCopiedCartItems,
   } = useCartStore((state) => state);
   const { mutate: updateCartMutate } = useUpdateCart();
@@ -109,6 +111,18 @@ const CartActions = () => {
   const { unsyncedInvoices: offlineInvoices, loading: offlineLoading } =
     useOfflineInvoices();
   const [syncing, setSyncing] = useState<boolean>(false);
+
+  type ServerResponse = {
+    message: string;
+    Message?: string;
+    invNo?: string;
+    delNo?: string;
+    vat?: number;
+    ttpAuto?: any;
+    items?: string[];
+    reason?: string;
+    [key: string]: any;
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -215,32 +229,57 @@ const CartActions = () => {
   const handleLogout = async () => {
     if (currentCart) {
       const res = await handleHoldCart();
-      if (res) {
+      console.log("Server response: ", res);
+
+      if (!res || typeof res !== "object") {
+        toast.error("Invalid response received from server");
+        return;
+      }
+
+      if (res.status?.toLowerCase() === "failed") {
+        const errorMessage = res.Message || res.reason || "Unknown error occurred";
+
+        if (errorMessage.includes("The user has no active shift.")) {
+          toast.error("Please start your shift!");
+          // clearCart()
+          return;
+        }
+
+        toast.error(errorMessage);
+        return;
+      }
+
+      // Handle success response
+      if (res.message?.toLowerCase() === "success") {
         clear_auth_session();
         router.push("/sign-in");
-      } else {
-        toast.error("Unable to hold cart");
+        return;
       }
-    } else {
-      clear_auth_session();
-      router.push("/sign-in");
+
+      // Fallback for unexpected responses
+      toast.error("Unexpected response from server");
+      console.error("Unexpected response structure: ", res);
+      return;
     }
+
+    // If no cart, proceed with logout
     clear_auth_session();
+    router.push("/sign-in");
   };
 
+
+
   const handleHoldCart = async () => {
-    if (isLoading) {
-      return;
-    }
+    if (isLoading) return null;
+
     if (!currentCart) {
       toast.error("Please add items to cart");
-      // setIsLoading(false);
-      return;
+      return null;
     }
+
     if (!currentCustomer) {
       toast.error("Please select a customer");
-      // setIsLoading(false);
-      return;
+      return null;
     }
 
     setIsLoading(true);
@@ -257,24 +296,35 @@ const CartActions = () => {
         currentCart.cart_id,
       );
       console.log("result", result);
+
+      const response = result as ServerResponse;
+
+      console.log("Server response", response);
+
+      if (response.status?.toLowerCase() === "failed") {
+        const errorMessage = response.Message || response.reason || "Cart failed to hold";
+        // clearCart();
+        toast.warning(errorMessage);
+        return response;
+      }
+
       if (!result) {
-        // sentry.captureException(result);
-        toast.error("Hold  Action failed");
-        setIsLoading(false);
-        return false;
+        toast.error("Hold Action failed");
+        return null;
       }
 
       holdCart();
-
       toast.success("Cart held successfully");
-      return true;
+      return response;
     } catch (error) {
+      console.error("Error holding cart", error);
       toast.error("Something went wrong");
-      return false;
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleAutoSync = async () => {
     console.log("handleAutoSync");
@@ -886,6 +936,8 @@ const CartActions = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      <CartCounter />
 
       <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <Card

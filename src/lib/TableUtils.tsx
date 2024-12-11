@@ -33,12 +33,17 @@ export const inventoryColumns: ColumnDef<StockItem>[] = [
     footer: (props) => {
       const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
         const rowData = row.original;
-        console.log("rowData-sum", rowData.item, sum);
+        // console.log("Row data: ", rowData)
+        // console.log("rowData-sum", rowData.item, sum);
 
         return sum + parseInt(rowData.balance);
       }, 0);
       return total.toFixed(2);
     },
+  },
+  {
+    accessorKey: "selling_price",
+    header: "Tagged price",
   },
   {
     id: "actions",

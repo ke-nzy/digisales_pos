@@ -612,6 +612,8 @@ export async function fetch_shift_collections(
       form,
     );
 
+    console.log('Shift collections: ', response.data)
+
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {

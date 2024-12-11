@@ -132,6 +132,7 @@ export async function fetch_branch_inventory(
       `${site_url}process.php`,
       form_data,
     );
+    console.log(response);
     if ((response as unknown as string) === "") {
       console.error("tp: userStoreBalance failed");
       //    Add sentry here

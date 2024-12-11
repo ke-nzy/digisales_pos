@@ -10,6 +10,7 @@ import {
 import QRCode from "qrcode";
 import { calculateSubtotalAndDiscount } from "~/lib/utils";
 import { toast } from "sonner";
+import { RenderItemsSection } from "./RenderItemsSection";
 
 const DEFAULT_QR_CODE_DATA = "ESD Device Unreachable";
 
@@ -74,8 +75,34 @@ const TransactionReceiptPDF = ({
   const payments: Payment[] =
     salesInfo.payments.length > 0 ? JSON.parse(salesInfo.payments) : [];
 
-  function get_printout_size(length: number): [number, number] {
-    return [200, 477 + length * 10];
+  function get_printout_size(
+    items: TransactionInvItem[],
+    payments: Payment[]
+  ): [number, number] {
+    // Base height for headers, company info, etc.
+    const baseHeight = 477;
+
+    // Count how many items are clothes and bags
+    const clothes = items.filter(item => !["CR0001", "CR0002"].includes(item.item_option_id));
+    const bags = items.filter(item => ["CR0001", "CR0002"].includes(item.item_option_id));
+
+    // Calculate additional rows:
+    // - Each item row (clothes + bags)
+    // - Subtotal row for clothes (if exists)
+    // - Subtotal row for bags (if exists)
+    // - Spacing between sections (if both exist)
+    // - Grand total row
+    // - Payment rows
+    const additionalRows =
+      items.length + // All item rows
+      (clothes.length > 0 ? 1 : 0) + // Clothes subtotal
+      (bags.length > 0 ? 1 : 0) + // Bags subtotal
+      (clothes.length > 0 && bags.length > 0 ? 1 : 0) + // Spacing
+      1 + // Grand total
+      payments.length; // Payment rows
+
+    // Return width and calculated height
+    return [200, baseHeight + (additionalRows * 10)];
   }
 
   function sumTransAmount(payments: Payment[]): number {
@@ -109,7 +136,7 @@ const TransactionReceiptPDF = ({
   return (
     <Document>
       <Page
-        size={get_printout_size(items.length + payments.length + 3)}
+        size={get_printout_size(items, payments)}
         style={{ padding: 2 }}
       >
         <View>
@@ -275,69 +302,9 @@ const TransactionReceiptPDF = ({
               </Text>
             </View>
           </View>
-          {items.map((item, index, array) => {
-            return (
-              <View style={{ flexDirection: "row" }} key={index}>
-                <View
-                  style={[
-                    styles.table_col,
-                    { width: "47%" },
-                    index === array.length - 1 ? styles.table_col_last_row : {},
-                    { borderLeftWidth: 0.3, borderLeftColor: "#000" },
-                  ]}
-                >
-                  <Text style={[styles.text]}>{item.item_option}</Text>
-                </View>
-                <View
-                  style={[
-                    styles.table_col,
-                    { width: "13%" },
-                    index === array.length - 1 ? styles.table_col_last_row : {},
-                  ]}
-                >
-                  <Text style={[styles.text]}>{item.quantity}</Text>
-                </View>
-                <View
-                  style={[
-                    styles.table_col,
-                    { width: "20%" },
-                    index === array.length - 1 ? styles.table_col_last_row : {},
-                  ]}
-                >
-                  <Text style={[styles.text]}>{`${item.price}`}</Text>
-                </View>
-                <View
-                  style={[
-                    styles.table_col,
-                    { width: "20%" },
-                    index === array.length - 1 ? styles.table_col_last_row : {},
-                  ]}
-                >
-                  <Text style={[styles.text]}>
-                    {`${parseFloat(item.quantity) * parseFloat(item.price)}`}
-                  </Text>
-                </View>
-              </View>
-            );
-            // <View style={styles.tableRow} key={index}>
-            //   <View style={[styles.tableCol, { width: "60rem" }]}>
-            //     <Text style={styles.tableCell}>{item.item_option}</Text>
-            //   </View>
-            //   <View style={styles.tableCol}>
-            //     <Text style={styles.tableCell}>{item.quantity}</Text>
-            //   </View>
-            //   <View style={styles.tableCol}>
-            //     <Text style={styles.tableCell}>{item.price}</Text>
-            //   </View>
-            //   <View style={styles.tableCol}>
-            //     <Text style={styles.tableCell}>
-            //       {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
-            //         2,
-            //       )}
-            //     </Text>
-            //   </View>
-            // </View>
-          })}
+
+          <RenderItemsSection items={items} />
+
           <View style={{ flexDirection: "row" }}>
             <View style={[{ width: "47%" }]}></View>
             <View style={[{ width: "13%" }]}></View>
@@ -530,7 +497,7 @@ const TransactionReceiptPDF = ({
       </Page>
       {duplicate && (
         <Page
-          size={get_printout_size(items.length + payments.length + 3)}
+          size={get_printout_size(items, payments)}
           style={{ padding: 2 }}
         >
           <View>
@@ -690,77 +657,11 @@ const TransactionReceiptPDF = ({
                 </Text>
               </View>
             </View>
-            {items.map((item, index, array) => {
-              return (
-                <View style={{ flexDirection: "row" }} key={index}>
-                  <View
-                    style={[
-                      styles.table_col,
-                      { width: "47%" },
-                      index === array.length - 1
-                        ? styles.table_col_last_row
-                        : {},
-                      { borderLeftWidth: 0.3, borderLeftColor: "#000" },
-                    ]}
-                  >
-                    <Text style={[styles.text]}>{item.item_option}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.table_col,
-                      { width: "13%" },
-                      index === array.length - 1
-                        ? styles.table_col_last_row
-                        : {},
-                    ]}
-                  >
-                    <Text style={[styles.text]}>{item.quantity}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.table_col,
-                      { width: "20%" },
-                      index === array.length - 1
-                        ? styles.table_col_last_row
-                        : {},
-                    ]}
-                  >
-                    <Text style={[styles.text]}>{`${item.price}`}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.table_col,
-                      { width: "20%" },
-                      index === array.length - 1
-                        ? styles.table_col_last_row
-                        : {},
-                    ]}
-                  >
-                    <Text style={[styles.text]}>
-                      {`${parseFloat(item.quantity) * parseFloat(item.price)}`}
-                    </Text>
-                  </View>
-                </View>
-              );
-              // <View style={styles.tableRow} key={index}>
-              //   <View style={[styles.tableCol, { width: "60rem" }]}>
-              //     <Text style={styles.tableCell}>{item.item_option}</Text>
-              //   </View>
-              //   <View style={styles.tableCol}>
-              //     <Text style={styles.tableCell}>{item.quantity}</Text>
-              //   </View>
-              //   <View style={styles.tableCol}>
-              //     <Text style={styles.tableCell}>{item.price}</Text>
-              //   </View>
-              //   <View style={styles.tableCol}>
-              //     <Text style={styles.tableCell}>
-              //       {(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(
-              //         2,
-              //       )}
-              //     </Text>
-              //   </View>
-              // </View>
-            })}
+
+
+            <RenderItemsSection items={items} />
+
+
             <View style={{ flexDirection: "row" }}>
               <View style={[{ width: "47%" }]}></View>
               <View style={[{ width: "13%" }]}></View>

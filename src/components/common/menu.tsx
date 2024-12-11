@@ -40,6 +40,18 @@ interface MenuProps {
   isOpen: boolean | undefined;
 }
 
+type ServerResponse = {
+  message: string;
+  Message?: string;
+  invNo?: string;
+  delNo?: string;
+  vat?: number;
+  ttpAuto?: any;
+  items?: string[];
+  reason?: string;
+  [key: string]: any;
+};
+
 export default function Menu({ isOpen }: MenuProps) {
   const roles = localStorage.getItem("roles");
   const form = useRef<HTMLFormElement>(null);
@@ -75,7 +87,7 @@ export default function Menu({ isOpen }: MenuProps) {
       setInventoryManager(false);
     }
   }, [roles]);
-  
+
   useEffect(() => {
     if (roles?.includes("lOn Map")) {
       setAdmin(true);
@@ -105,6 +117,7 @@ export default function Menu({ isOpen }: MenuProps) {
     }
   };
   const menuList = getMenuList(pathname, bManager, admin, inventoryManager);
+
   const handleHoldCart = async () => {
     if (!currentCart) {
       toast.error("Please add items to cart");
@@ -131,6 +144,17 @@ export default function Menu({ isOpen }: MenuProps) {
         currentCart.cart_id,
       );
       console.log("result", result);
+
+      const response = result as ServerResponse;
+
+      console.log("Server response", response);
+
+      if(response.status?.toLowerCase() === 'failed') {
+        const errorMessage = response.Message || response.reason || "Cart failed to hold";
+        toast.warning(errorMessage);
+        return response;
+      }
+
       if (!result) {
         // sentry.captureException(result);
         toast.error("Hold  Action failed");
@@ -153,6 +177,30 @@ export default function Menu({ isOpen }: MenuProps) {
     if (currentCart) {
       if (!isBranchManager) {
         const res = await handleHoldCart();
+        console.log("Menu Server response: ", res);
+
+        if(!res || typeof res != "object") {
+          toast.error("Invalid response");
+          return;
+        }
+
+        if(res.status?.toLowerCase() === "failed") {
+          const errorMessage = res.Message || res.reason || "Uknown error occured!";
+
+          if (errorMessage.includes("The user has no active shift.")) {
+            toast.error("Please start your shift!");
+            return;
+          }
+  
+          toast.error(errorMessage);
+          return;
+        }
+
+        // if(!res) {
+        //   toast.error("Please start your shift");
+        //   return;
+        // }
+
         if (res) {
           clear_auth_session();
           router.push("/sign-in");

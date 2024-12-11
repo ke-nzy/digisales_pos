@@ -277,6 +277,8 @@ declare type StockItem = {
   stock_id: string;
   item: string;
   balance: string;
+  pulldown: string;
+  selling_price: string;
 };
 
 declare type GeneralReport = {

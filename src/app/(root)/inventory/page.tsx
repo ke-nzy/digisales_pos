@@ -17,6 +17,16 @@ const InventoryPage = () => {
   const non_saleable_inventory = inventory.filter(
     (item) => item.item === "HANGERS" || item.item === "CLIPPERS",
   );
+
+
+  const pulldownItems = inventory.filter(
+    (item) => item.pulldown !== "0",
+  )
+
+  console.log("PulldownItems", pulldownItems)
+
+  console.log("This is the inventrory mofo! ", inventory)
+
   if (loading)
     return (
       <main className="flex min-h-[60vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -89,6 +99,7 @@ const InventoryPage = () => {
                   <TabsTrigger value="all">All</TabsTrigger>
                   <TabsTrigger value="saleable">Saleable</TabsTrigger>
                   <TabsTrigger value="non-saleable">Non Saleable</TabsTrigger>
+                  <TabsTrigger value="pulldown">Pulldown</TabsTrigger>
                 </TabsList>
               </div>
 
@@ -112,6 +123,14 @@ const InventoryPage = () => {
                 <DataTable
                   columns={inventoryColumns}
                   data={non_saleable_inventory}
+                  filCol="stock_id"
+                  onRowClick={(rowData) => console.log(rowData)}
+                />
+              </TabsContent>
+              <TabsContent value="pulldown">
+                <DataTable
+                  columns={inventoryColumns}
+                  data={pulldownItems}
                   filCol="stock_id"
                   onRowClick={(rowData) => console.log(rowData)}
                 />
