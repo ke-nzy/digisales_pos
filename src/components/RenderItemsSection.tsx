@@ -188,6 +188,7 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
             {bags.length > 0 && (
                 renderSubtotal("Bags Subtotal", calculateSubtotal(bags))
             )}
+            
 
             {/* Grand Total */}
             <View style={{ flexDirection: "row", marginTop: 25 }}>
