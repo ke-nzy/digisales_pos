@@ -107,8 +107,34 @@ const TransactionReceiptPDF = ({
 
 
 
-  function get_printout_size(length: number): [number, number] {
-    return [200, 477 + length * 10];
+  function get_printout_size(
+    items: TransactionInvItem[],
+    payments: Payment[]
+  ): [number, number] {
+    // Base height for headers, company info, etc.
+    const baseHeight = 477;
+
+    // Count how many items are clothes and bags
+    const clothes = items.filter(item => !["CR0001", "CR0002"].includes(item.item_option_id));
+    const bags = items.filter(item => ["CR0001", "CR0002"].includes(item.item_option_id));
+
+    // Calculate additional rows:
+    // - Each item row (clothes + bags)
+    // - Subtotal row for clothes (if exists)
+    // - Subtotal row for bags (if exists)
+    // - Spacing between sections (if both exist)
+    // - Grand total row
+    // - Payment rows
+    const additionalRows =
+      items.length + // All item rows
+      (clothes.length > 0 ? 1 : 0) + // Clothes subtotal
+      (bags.length > 0 ? 1 : 0) + // Bags subtotal
+      (clothes.length > 0 && bags.length > 0 ? 1 : 0) + // Spacing
+      1 + // Grand total
+      payments.length; // Payment rows
+
+    // Return width and calculated height
+    return [200, baseHeight + (additionalRows * 10)];
   }
 
 
@@ -175,7 +201,7 @@ const TransactionReceiptPDF = ({
   return (
     <Document>
       <Page
-        size={get_printout_size(items.length + payments.length + 3)}
+        size={get_printout_size(items, payments)}
         style={{ padding: 2 }}
       >
         <View>
@@ -531,7 +557,7 @@ const TransactionReceiptPDF = ({
       </Page>
       {duplicate && (
         <Page
-          size={get_printout_size(items.length + payments.length + 3)}
+          size={get_printout_size(items, payments)}
           style={{ padding: 2 }}
         >
           <View>
@@ -710,6 +736,7 @@ const TransactionReceiptPDF = ({
               </View>
             </View>
           </View>
+
           <View style={{ paddingVertical: 1 }}>
             <Text
               style={[
@@ -785,6 +812,7 @@ const TransactionReceiptPDF = ({
               );
             })}
           </View>
+
           <View style={{ alignItems: "flex-end" }}>
             <TotalRowItem
               label={"Total Item Count"}
@@ -814,6 +842,7 @@ const TransactionReceiptPDF = ({
               is_last
             />
           </View>
+
           <View
             style={{
               width: "100%",

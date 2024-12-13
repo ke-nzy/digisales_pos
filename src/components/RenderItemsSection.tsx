@@ -157,7 +157,7 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
     return (
         <View style={styles.table}>
             {/* Header */}
-            <View style={{ flexDirection: "row" }}>
+            {/* <View style={{ flexDirection: "row" }}>
                 <View style={[styles.table_col, { width: "47%" }]}>
                     <Text style={[styles.text, { fontWeight: "bold" }]}>Item</Text>
                 </View>
@@ -170,12 +170,12 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
                 <View style={[styles.table_col, { width: "20%" }]}>
                     <Text style={[styles.text, { fontWeight: "bold" }]}>Amount</Text>
                 </View>
-            </View>
+            </View> */}
 
             {/* Clothes Section */}
             {clothes.map((item, index, array) => renderItemRow(item, index, array))}
             {clothes.length > 0 && (
-                renderSubtotal("Clothes Subtotal", calculateSubtotal(clothes))
+                renderSubtotal("Items Subtotal", calculateSubtotal(clothes))
             )}
 
             {/* Spacer if both sections present */}
