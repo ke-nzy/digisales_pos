@@ -31,7 +31,7 @@ import {
 //   DropdownMenuTrigger,
 //   DropdownMenuSeparator,
 // } from "~/components/ui/dropdown-menu";
-import { cn } from "~/lib/utils";
+import { cn, SYSTEM_HOLD_REASONS } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
 import { usePayStore } from "~/store/pay-store";
@@ -69,6 +69,7 @@ import {
 import { sync_invoice } from "~/lib/actions/pay.actions";
 import { Skeleton } from "./ui/skeleton";
 import CartCounter from "./CartCounter";
+import HoldCartDialog from "~/hawk-tuah/components/HoldCartDialog";
 
 const CartActions = () => {
   const {
@@ -88,7 +89,7 @@ const CartActions = () => {
   const { mutate: updateCartMutate } = useUpdateCart();
   const router = useRouter();
   const sidebar = useStore(useSidebarToggle, (state) => state);
-  const [isLoading, setIsLoading] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { paymentCarts } = usePayStore();
   const { site_url, site_company, account, clear_auth_session } =
     useAuthStore();
@@ -111,6 +112,7 @@ const CartActions = () => {
   const { unsyncedInvoices: offlineInvoices, loading: offlineLoading } =
     useOfflineInvoices();
   const [syncing, setSyncing] = useState<boolean>(false);
+  const [isHoldDialogOpen, setIsHoldDialogOpen] = useState(false);
 
   type ServerResponse = {
     message: string;
@@ -228,7 +230,7 @@ const CartActions = () => {
 
   const handleLogout = async () => {
     if (currentCart) {
-      const res = await handleHoldCart();
+      const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
       console.log("Server response: ", res);
 
       if (!res || typeof res !== "object") {
@@ -269,7 +271,7 @@ const CartActions = () => {
 
 
 
-  const handleHoldCart = async () => {
+  const handleHoldCart = async (systemReason?: typeof SYSTEM_HOLD_REASONS[keyof typeof SYSTEM_HOLD_REASONS]) => {
     if (isLoading) return null;
 
     if (!currentCart) {
@@ -294,6 +296,7 @@ const CartActions = () => {
         null,
         currentCustomer.br_name,
         currentCart.cart_id,
+        systemReason,
       );
       console.log("result", result);
 
@@ -320,6 +323,58 @@ const CartActions = () => {
       console.error("Error holding cart", error);
       toast.error("Something went wrong");
       return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleHoldCartWithReasons = async (selectedReasons: string[]): Promise<void> => {
+    if (isLoading) return;
+
+    if (!currentCart) {
+      toast.error("Please add items to cart");
+      return;
+    }
+
+    if (!currentCustomer) {
+      toast.error("Please select a customer");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await submit_hold_direct_sale_request(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        account!.user_id,
+        currentCart.items,
+        currentCustomer,
+        null,
+        currentCustomer.br_name,
+        currentCart.cart_id,
+        selectedReasons,
+      );
+
+      const response = result as ServerResponse;
+
+      if (response.status?.toLowerCase() === "failed") {
+        const errorMessage = response.Message || response.reason || "Cart failed to hold";
+        toast.warning(errorMessage);
+        return;
+      }
+
+      if (!result) {
+        toast.error("Hold Action failed");
+        return;
+      }
+
+      holdCart();
+      setIsHoldDialogOpen(false);
+      toast.success("Cart held successfully");
+    } catch (error) {
+      console.error("Error holding cart", error);
+      toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
@@ -551,7 +606,7 @@ const CartActions = () => {
     const shift = localStorage.getItem("start_shift");
     const s: CheckInResponse = JSON.parse(shift!);
     if (currentCart) {
-      const res = await handleHoldCart();
+      const res = await handleHoldCart(SYSTEM_HOLD_REASONS.END_SHIFT);
       if (res) {
         const response = await submit_end_shift(
           site_url!,
@@ -1015,7 +1070,7 @@ const CartActions = () => {
 
         <Card
           className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-          onClick={() => handleHoldCart()}
+          onClick={() => setIsHoldDialogOpen(true)}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
@@ -1087,6 +1142,14 @@ const CartActions = () => {
             </h4>
           </CardHeader>
         </Card> */}
+        <HoldCartDialog
+          isOpen={isHoldDialogOpen}
+          onClose={() => setIsHoldDialogOpen(false)}
+          onConfirm={handleHoldCartWithReasons}
+          siteUrl={site_url!}
+          companyPrefix={site_company!.company_prefix}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

@@ -653,3 +653,9 @@ export function transformArrayToCart(input: TransactionReportItem): Cart {
     items: directSalesItems,
   };
 }
+
+
+export const SYSTEM_HOLD_REASONS = {
+  END_SHIFT: ["System: End of shift - Incomplete transaction"],
+  LOGOUT: ["System: User logout - Incomplete transaction"]
+} satisfies Record<string, string[]>;

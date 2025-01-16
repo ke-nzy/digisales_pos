@@ -33,17 +33,24 @@ export const inventoryColumns: ColumnDef<StockItem>[] = [
     footer: (props) => {
       const total = props.table.getCoreRowModel().rows.reduce((sum, row) => {
         const rowData = row.original;
-        // console.log("Row data: ", rowData)
-        // console.log("rowData-sum", rowData.item, sum);
-
         return sum + parseInt(rowData.balance);
       }, 0);
       return total.toFixed(2);
     },
   },
   {
-    accessorKey: "selling_price",
+    id: "price",
     header: "Tagged price",
+    accessorFn: (row) => row.selling_price || row.price,
+    cell: (props) => {
+      const row = props.row.original;
+      const price = parseInt(row.selling_price || row.price || "0");
+      return React.createElement(
+        "span",
+        { className: "text-right" },
+        price.toLocaleString()
+      );
+    }
   },
   {
     id: "actions",

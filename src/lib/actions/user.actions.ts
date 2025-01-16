@@ -402,6 +402,7 @@ export async function submit_hold_direct_sale_request(
   payments: null,
   customer_name: string,
   identifier: string,
+  selectedReasons?: string[],
 ) {
   console.log("Submitting payment details for direct sale");
 
@@ -463,6 +464,7 @@ export async function submit_hold_direct_sale_request(
   form_data.append("cpbooking_id", "");
   form_data.append("cust_name", customer_name);
   form_data.append("unique_identifier", identifier);
+  form_data.append("reason", selectedReasons ? JSON.stringify(selectedReasons) : '');
 
   try {
     const response = await axios.postForm<SalesReceiptInformation>(
