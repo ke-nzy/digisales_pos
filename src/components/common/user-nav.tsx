@@ -27,6 +27,7 @@ import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
 import { useState } from "react";
 import { submit_hold_direct_sale_request } from "~/lib/actions/user.actions";
+import { SYSTEM_HOLD_REASONS } from "~/lib/utils";
 
 export default function UserNav() {
   const { account, clear_auth_session, site_url, site_company } =
@@ -39,7 +40,7 @@ export default function UserNav() {
   const isBranchManager = roles ? roles?.includes("mBranchManager") : false;
   const router = useRouter();
 
-  const handleHoldCart = async () => {
+  const handleHoldCart = async (systemReason?: typeof SYSTEM_HOLD_REASONS[keyof typeof SYSTEM_HOLD_REASONS]) => {
     if (!currentCart) {
       toast.error("Please add items to cart");
       // setIsLoading(false);
@@ -63,6 +64,7 @@ export default function UserNav() {
         null,
         currentCustomer.br_name,
         currentCart.cart_id,
+        systemReason,  
       );
       console.log("result", result);
       if (!result) {
@@ -87,7 +89,7 @@ export default function UserNav() {
   const handleLogout = async () => {
     if (currentCart) {
       if (!isBranchManager) {
-        const res = await handleHoldCart();
+        const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
         if (res) {
           clear_auth_session();
           router.push("/sign-in");

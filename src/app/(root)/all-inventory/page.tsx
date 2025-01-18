@@ -56,7 +56,7 @@ const AllInventoryPage = () => {
       pulldown: item.pulldown || "0",
       balance: item.balance,
       branch_name: item.branch_name,
-      description: item.description
+      description: item.description,
     }))
 
     return selectedBranch === "all" 

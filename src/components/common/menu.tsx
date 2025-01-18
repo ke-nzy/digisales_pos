@@ -200,8 +200,10 @@ export default function Menu({ isOpen }: MenuProps) {
   
         // Handle success response
         if (res.message?.toLowerCase() === "success") {
+          await deleteMetadata()
           clear_auth_session();
           router.push("/sign-in");
+          window.location.reload();
           return;
         }
   
@@ -214,6 +216,7 @@ export default function Menu({ isOpen }: MenuProps) {
       // If no cart, proceed with logout
       clear_auth_session();
       router.push("/sign-in");
+      window.location.reload();
     };
 
   return (
