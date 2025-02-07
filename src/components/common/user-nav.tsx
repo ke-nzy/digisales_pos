@@ -64,7 +64,7 @@ export default function UserNav() {
         null,
         currentCustomer.br_name,
         currentCart.cart_id,
-        systemReason,  
+        systemReason,
       );
       console.log("result", result);
       if (!result) {
@@ -86,27 +86,44 @@ export default function UserNav() {
     }
   };
 
+  // const handleLogout = async () => {
+  //   if (currentCart) {
+  //     if (!isBranchManager) {
+  //       const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
+  //       if (res) {
+  //         clear_auth_session();
+  //         router.push("/sign-in");
+  //       } else {
+  //         toast.error("Unable to hold cart");
+  //       }
+  //     } else {
+  //       toast.error("You are not authorized to hold cart");
+  //     }
+  //   } else {
+  //     await deleteMetadata();
+  //     clear_auth_session();
+  //     router.push("/sign-in");
+  //     window.location.reload();
+  //   }
+  //   await deleteMetadata();
+  //   clear_auth_session();
+  // };
+
   const handleLogout = async () => {
     if (currentCart) {
-      if (!isBranchManager) {
-        const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
-        if (res) {
-          clear_auth_session();
-          router.push("/sign-in");
-        } else {
-          toast.error("Unable to hold cart");
-        }
-      } else {
-        toast.error("You are not authorized to hold cart");
-      }
-    } else {
+      toast.error("Please hold or process the current cart before logging out");
+      return;
+    }
+
+    try {
       await deleteMetadata();
       clear_auth_session();
       router.push("/sign-in");
       window.location.reload();
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to logout. Please try again.");
     }
-    await deleteMetadata();
-    clear_auth_session();
   };
 
   return (

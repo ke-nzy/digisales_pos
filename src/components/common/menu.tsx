@@ -175,49 +175,68 @@ export default function Menu({ isOpen }: MenuProps) {
     }
   };
   
+    // const handleLogout = async () => {
+    //   if (currentCart) {
+    //     const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
+    //     console.log("Server response: ", res);
+  
+    //     if (!res || typeof res !== "object") {
+    //       toast.error("Invalid response received from server");
+    //       return;
+    //     }
+  
+    //     if (res.status?.toLowerCase() === "failed") {
+    //       const errorMessage = res.Message || res.reason || "Unknown error occurred";
+  
+    //       if (errorMessage.includes("The user has no active shift.")) {
+    //         toast.error("Please start your shift!");
+    //         // clearCart()
+    //         return;
+    //       }
+  
+    //       toast.error(errorMessage);
+    //       return;
+    //     }
+  
+    //     // Handle success response
+    //     if (res.message?.toLowerCase() === "success") {
+    //       await deleteMetadata()
+    //       clear_auth_session();
+    //       router.push("/sign-in");
+    //       window.location.reload();
+    //       return;
+    //     }
+  
+    //     // Fallback for unexpected responses
+    //     toast.error("Unexpected response from server");
+    //     console.error("Unexpected response structure: ", res);
+    //     return;
+    //   }
+  
+    //   // If no cart, proceed with logout
+    //   clear_auth_session();
+    //   router.push("/sign-in");
+    //   window.location.reload();
+    // };
+
     const handleLogout = async () => {
       if (currentCart) {
-        const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
-        console.log("Server response: ", res);
-  
-        if (!res || typeof res !== "object") {
-          toast.error("Invalid response received from server");
+          // Show user they need to handle cart first
+          toast.error("Please hold or process the current cart before logging out");
           return;
-        }
-  
-        if (res.status?.toLowerCase() === "failed") {
-          const errorMessage = res.Message || res.reason || "Unknown error occurred";
-  
-          if (errorMessage.includes("The user has no active shift.")) {
-            toast.error("Please start your shift!");
-            // clearCart()
-            return;
-          }
-  
-          toast.error(errorMessage);
-          return;
-        }
-  
-        // Handle success response
-        if (res.message?.toLowerCase() === "success") {
-          await deleteMetadata()
+      }
+      
+      try {
+          // No cart exists, proceed with logout
+          await deleteMetadata();
           clear_auth_session();
           router.push("/sign-in");
           window.location.reload();
-          return;
-        }
-  
-        // Fallback for unexpected responses
-        toast.error("Unexpected response from server");
-        console.error("Unexpected response structure: ", res);
-        return;
+      } catch (error) {
+          console.error("Logout error:", error);
+          toast.error("Failed to logout. Please try again.");
       }
-  
-      // If no cart, proceed with logout
-      clear_auth_session();
-      router.push("/sign-in");
-      window.location.reload();
-    };
+  };
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">

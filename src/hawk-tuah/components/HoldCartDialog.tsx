@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Checkbox } from '~/components/ui/checkbox';
 import { Label } from '~/components/ui/label';
 import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { toast } from 'sonner';
+import { submit_authorization_request } from '~/lib/actions/user.actions';
 
-// API response types
 interface HoldReasonsResponse {
     status: 'SUCCESS' | 'FAILED';
     data: HoldReason[];
@@ -24,7 +26,7 @@ interface HoldCartDialogProps {
     onConfirm: (selectedReasons: string[]) => Promise<void>;
     siteUrl: string;
     companyPrefix: string;
-    isLoading?: boolean | undefined;
+    isLoading?: boolean;
 }
 
 const HoldCartDialog: React.FC<HoldCartDialogProps> = ({
@@ -35,20 +37,71 @@ const HoldCartDialog: React.FC<HoldCartDialogProps> = ({
     companyPrefix,
     isLoading = false
 }) => {
+    // Authentication state
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+    // Reasons state
     const [holdReasons, setHoldReasons] = useState<HoldReason[]>([]);
     const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
-    const [fetchingReasons, setFetchingReasons] = useState<boolean>(false);
+    const [fetchingReasons, setFetchingReasons] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Reset states when dialog opens/closes
     useEffect(() => {
-        if (isOpen) {
+        if (!isOpen) {
+            setUsername('');
+            setPassword('');
+            setIsAuthenticated(false);
+            setSelectedReasons([]);
+            setError(null);
+        }
+    }, [isOpen]);
+
+    // Fetch reasons after successful authentication
+    useEffect(() => {
+        if (isAuthenticated && isOpen) {
             void fetchHoldReasons();
         }
-    }, [isOpen, siteUrl, companyPrefix]); 
+    }, [isAuthenticated, isOpen]);
 
-    const fetchHoldReasons = async (): Promise<void> => {
+    const handleAuthenticate = async () => {
+        setIsAuthenticating(true);
+        setError(null);
+
+        try {
+            const auth = await submit_authorization_request(
+                siteUrl,
+                companyPrefix,
+                username,
+                password,
+                'hold_cart'
+            );
+
+            if (auth) {
+                setIsAuthenticated(true);
+                toast.success("Authorized");
+
+                // Fetch reasons after successful authentication
+                await fetchHoldReasons();
+            } else {
+                toast.error("Unauthorized to perform this action");
+                setError("Unauthorized access");
+            }
+        } catch (e) {
+            toast.error("Authorization Failed: Something Went Wrong");
+            setError("Authentication failed");
+        } finally {
+            setIsAuthenticating(false);
+        }
+    };
+
+    const fetchHoldReasons = async () => {
         setFetchingReasons(true);
         setError(null);
+
         try {
             const form = new FormData();
             form.append("tp", "getHeldCartReasons");
@@ -65,10 +118,11 @@ const HoldCartDialog: React.FC<HoldCartDialogProps> = ({
                 setHoldReasons(result.data);
             } else {
                 setError(result.message || "Failed to load hold reasons");
+                toast.error("Failed to load hold reasons");
             }
         } catch (e) {
             setError("Failed to fetch hold reasons");
-            console.error('Error fetching hold reasons:', e);
+            toast.error("Failed to fetch hold reasons");
         } finally {
             setFetchingReasons(false);
         }
@@ -78,27 +132,65 @@ const HoldCartDialog: React.FC<HoldCartDialogProps> = ({
         setSelectedReasons(prev => {
             if (prev.includes(reason.reason_description)) {
                 return prev.filter(desc => desc !== reason.reason_description);
-            } else {
-                return [...prev, reason.reason_description];
             }
+            return [...prev, reason.reason_description];
         });
     };
 
-    const handleConfirm = async (): Promise<void> => {
+    const handleConfirm = async () => {
         if (selectedReasons.length === 0) {
-            setError("Please select at least one reason");
+            toast.error("Please select at least one reason");
             return;
         }
-        await onConfirm(selectedReasons);
+
+        try {
+            await onConfirm(selectedReasons);
+            // Close dialog after successful confirmation
+            setTimeout(() => {
+                handleClose();
+            }, 2000);
+        } catch (error) {
+            toast.error("Failed to hold cart");
+        }
     };
 
-    const handleClose = (): void => {
+    const handleClose = () => {
+        setUsername('');
+        setPassword('');
+        setIsAuthenticated(false);
         setSelectedReasons([]);
         setError(null);
         onClose();
     };
 
-    const renderContent = (): React.ReactNode => {
+    const renderAuthenticationStep = () => (
+        <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter username"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                />
+            </div>
+            {error && (
+                <div className="text-red-500 text-sm">{error}</div>
+            )}
+        </div>
+    );
+
+    const renderReasonsStep = () => {
         if (fetchingReasons) {
             return (
                 <div className="flex items-center justify-center py-4">
@@ -107,7 +199,7 @@ const HoldCartDialog: React.FC<HoldCartDialogProps> = ({
             );
         }
 
-        if (error && !fetchingReasons) {
+        if (error) {
             return <div className="text-red-500 text-center py-4">{error}</div>;
         }
 
@@ -136,32 +228,46 @@ const HoldCartDialog: React.FC<HoldCartDialogProps> = ({
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Select Hold Reasons</DialogTitle>
+                    <DialogTitle>
+                        {!isAuthenticated ? 'Authenticate to Hold Cart' : 'Select Hold Reasons'}
+                    </DialogTitle>
                 </DialogHeader>
 
-                {renderContent()}
-
-                {error && !fetchingReasons && (
-                    <div className="text-red-500 text-sm mb-4">{error}</div>
-                )}
+                {!isAuthenticated ? renderAuthenticationStep() : renderReasonsStep()}
 
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={() => void handleConfirm()}
-                        disabled={isLoading || selectedReasons.length === 0}
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Holding Cart...
-                            </>
-                        ) : (
-                            'Hold Cart'
-                        )}
-                    </Button>
+                    {!isAuthenticated ? (
+                        <Button
+                            onClick={() => void handleAuthenticate()}
+                            disabled={isAuthenticating || !username || !password}
+                        >
+                            {isAuthenticating ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Authenticating...
+                                </>
+                            ) : (
+                                'Authenticate'
+                            )}
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => void handleConfirm()}
+                            disabled={isLoading || selectedReasons.length === 0}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Holding Cart...
+                                </>
+                            ) : (
+                                'Hold Cart'
+                            )}
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>

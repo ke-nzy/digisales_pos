@@ -228,48 +228,63 @@ const CartActions = () => {
     }
   }, []);
 
+  // const handleLogout = async () => {
+  //   if (currentCart) {
+  //     const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
+  //     console.log("Server response: ", res);
+
+  //     if (!res || typeof res !== "object") {
+  //       toast.error("Invalid response received from server");
+  //       return;
+  //     }
+
+  //     if (res.status?.toLowerCase() === "failed") {
+  //       const errorMessage = res.Message || res.reason || "Unknown error occurred";
+
+  //       if (errorMessage.includes("The user has no active shift.")) {
+  //         toast.error("Please start your shift!");
+  //         // clearCart()
+  //         return;
+  //       }
+
+  //       toast.error(errorMessage);
+  //       return;
+  //     }
+
+  //     // Handle success response
+  //     if (res.message?.toLowerCase() === "success") {
+  //       clear_auth_session();
+  //       router.push("/sign-in");
+  //       return;
+  //     }
+
+  //     // Fallback for unexpected responses
+  //     toast.error("Unexpected response from server");
+  //     console.error("Unexpected response structure: ", res);
+  //     return;
+  //   }
+
+  //   // If no cart, proceed with logout
+  //   clear_auth_session();
+  //   router.push("/sign-in");
+  // };
+
   const handleLogout = async () => {
     if (currentCart) {
-      const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
-      console.log("Server response: ", res);
-
-      if (!res || typeof res !== "object") {
-        toast.error("Invalid response received from server");
-        return;
-      }
-
-      if (res.status?.toLowerCase() === "failed") {
-        const errorMessage = res.Message || res.reason || "Unknown error occurred";
-
-        if (errorMessage.includes("The user has no active shift.")) {
-          toast.error("Please start your shift!");
-          // clearCart()
-          return;
-        }
-
-        toast.error(errorMessage);
-        return;
-      }
-
-      // Handle success response
-      if (res.message?.toLowerCase() === "success") {
-        clear_auth_session();
-        router.push("/sign-in");
-        return;
-      }
-
-      // Fallback for unexpected responses
-      toast.error("Unexpected response from server");
-      console.error("Unexpected response structure: ", res);
+      // Prevent logout if cart exists
+      toast.error("Please hold or process the current cart before logging out");
       return;
     }
 
-    // If no cart, proceed with logout
-    clear_auth_session();
-    router.push("/sign-in");
+    try {
+      // No cart exists, proceed with logout
+      clear_auth_session();
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to logout. Please try again.");
+    }
   };
-
-
 
   const handleHoldCart = async (systemReason?: typeof SYSTEM_HOLD_REASONS[keyof typeof SYSTEM_HOLD_REASONS]) => {
     if (isLoading) return null;
@@ -601,48 +616,87 @@ const CartActions = () => {
   //   }
   // };
 
-  const handleCheckOut = async () => {
-    console.log("checkout");
-    const shift = localStorage.getItem("start_shift");
-    const s: CheckInResponse = JSON.parse(shift!);
-    if (currentCart) {
-      const res = await handleHoldCart(SYSTEM_HOLD_REASONS.END_SHIFT);
-      if (res) {
-        const response = await submit_end_shift(
-          site_url!,
-          site_company!.company_prefix,
-          account!.id,
-          s.id,
-        );
-        console.log(" checkout response", response);
+  // const handleCheckOut = async () => {
+  //   console.log("checkout");
+  //   const shift = localStorage.getItem("start_shift");
+  //   const s: CheckInResponse = JSON.parse(shift!);
+  //   if (currentCart) {
+  //     const res = await handleHoldCart(SYSTEM_HOLD_REASONS.END_SHIFT);
+  //     if (res) {
+  //       const response = await submit_end_shift(
+  //         site_url!,
+  //         site_company!.company_prefix,
+  //         account!.id,
+  //         s.id,
+  //       );
+  //       console.log(" checkout response", response);
 
-        if (response) {
-          localStorage.removeItem("start_shift");
-          toast.success("Shift ended");
-          router.push("/dashboard");
-        } else {
-          toast.error("Failed to End shift");
-        }
-      } else {
-        toast.error("Unable to hold cart");
+  //       if (response) {
+  //         localStorage.removeItem("start_shift");
+  //         toast.success("Shift ended");
+  //         router.push("/dashboard");
+  //       } else {
+  //         toast.error("Failed to End shift");
+  //       }
+  //     } else {
+  //       toast.error("Unable to hold cart");
+  //       return;
+  //     }
+  //   } else {
+  //     const response = await submit_end_shift(
+  //       site_url!,
+  //       site_company!.company_prefix,
+  //       account!.id,
+  //       s.id,
+  //     );
+  //     console.log(" checkout response", response);
+
+  //     if (response) {
+  //       localStorage.removeItem("start_shift");
+  //       toast.success("Shift ended");
+  //       router.push("/dashboard");
+  //     } else {
+  //       toast.error("Failed to End shift");
+  //     }
+  //   }
+  // };
+
+  const handleCheckOut = async () => {
+    try {
+      // Get shift data from localStorage
+      const shiftData = localStorage.getItem("start_shift");
+      if (!shiftData) {
+        toast.error("No active shift found");
         return;
       }
-    } else {
+
+      const shift: CheckInResponse = JSON.parse(shiftData);
+
+      // Check for current cart
+      if (currentCart) {
+        toast.error("Please hold or process the current cart before ending your shift");
+        return;
+      }
+
+      // Proceed with ending shift
       const response = await submit_end_shift(
         site_url!,
         site_company!.company_prefix,
         account!.id,
-        s.id,
+        shift.id,
       );
-      console.log(" checkout response", response);
 
       if (response) {
         localStorage.removeItem("start_shift");
         toast.success("Shift ended");
         router.push("/dashboard");
       } else {
-        toast.error("Failed to End shift");
+        toast.error("Failed to end shift");
       }
+
+    } catch (error) {
+      console.error("Error ending shift:", error);
+      toast.error("Failed to end shift. Please try again.");
     }
   };
 
