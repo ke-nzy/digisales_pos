@@ -93,6 +93,11 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
         );
     };
 
+    // Calculate total quantity
+    const calculateTotalQuantity = (items: TransactionInvItem[]): number => {
+        return items.reduce((sum, item) => sum + parseFloat(item.quantity), 0);
+    };
+
     const renderItemRow = (
         item: TransactionInvItem,
         index: number,
@@ -141,10 +146,18 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
         </View>
     );
 
-    const renderSubtotal = (label: string, amount: number) => (
+    const renderSubtotal = (label: string, amount: number, quantity: number) => (
         <View style={{ flexDirection: "row" }}>
-            <View style={[styles.table_col, { width: "80%" }]}>
+            <View style={[styles.table_col, { width: "47%" }]}>
                 <Text style={[styles.text, { fontWeight: "bold" }]}>{label}</Text>
+            </View>
+            <View style={[styles.table_col, { width: "13%" }]}>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                    {quantity}
+                </Text>
+            </View>
+            <View style={[styles.table_col, { width: "20%" }]}>
+                <Text style={[styles.text, { fontWeight: "bold" }]}></Text>
             </View>
             <View style={[styles.table_col, { width: "20%" }]}>
                 <Text style={[styles.text, { fontWeight: "bold" }]}>
@@ -156,26 +169,14 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
 
     return (
         <View style={styles.table}>
-            {/* Header */}
-            {/* <View style={{ flexDirection: "row" }}>
-                <View style={[styles.table_col, { width: "47%" }]}>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>Item</Text>
-                </View>
-                <View style={[styles.table_col, { width: "13%" }]}>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>Qty</Text>
-                </View>
-                <View style={[styles.table_col, { width: "20%" }]}>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>Price</Text>
-                </View>
-                <View style={[styles.table_col, { width: "20%" }]}>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>Amount</Text>
-                </View>
-            </View> */}
-
             {/* Clothes Section */}
             {clothes.map((item, index, array) => renderItemRow(item, index, array))}
             {clothes.length > 0 && (
-                renderSubtotal("Items Subtotal", calculateSubtotal(clothes))
+                renderSubtotal(
+                    "Items Subtotal",
+                    calculateSubtotal(clothes),
+                    calculateTotalQuantity(clothes)
+                )
             )}
 
             {/* Spacer if both sections present */}
@@ -186,14 +187,25 @@ export const RenderItemsSection = ({ items }: { items: TransactionInvItem[] }) =
             {/* Bags Section */}
             {bags.map((item, index, array) => renderItemRow(item, index, array))}
             {bags.length > 0 && (
-                renderSubtotal("Bags Subtotal", calculateSubtotal(bags))
+                renderSubtotal(
+                    "Bags Subtotal",
+                    calculateSubtotal(bags),
+                    calculateTotalQuantity(bags)
+                )
             )}
-            
 
             {/* Grand Total */}
             <View style={{ flexDirection: "row", marginTop: 25 }}>
-                <View style={[styles.table_col, { width: "80%" }]}>
+                <View style={[styles.table_col, { width: "47%" }]}>
                     <Text style={[styles.text, { fontWeight: "bold" }]}>Grand Total:</Text>
+                </View>
+                <View style={[styles.table_col, { width: "13%" }]}>
+                    <Text style={[styles.text, { fontWeight: "bold" }]}>
+                        {calculateTotalQuantity([...clothes, ...bags])}
+                    </Text>
+                </View>
+                <View style={[styles.table_col, { width: "20%" }]}>
+                    <Text style={[styles.text, { fontWeight: "bold" }]}></Text>
                 </View>
                 <View style={[styles.table_col, { width: "20%" }]}>
                     <Text style={[styles.text, { fontWeight: "bold" }]}>
