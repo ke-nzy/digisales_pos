@@ -43,6 +43,26 @@ const Paid = () => {
     }
   };
 
+  // console.log("Transaction history data: ", trans);
+
+  const parseTransactionDetails = (trans: TransactionReportItem | null | undefined): Payment[] => {
+    try {
+      if (!trans?.payments) {
+        return [];
+      }
+      
+      const payments = JSON.parse(trans.payments) as Payment[];
+      return Array.isArray(payments) ? payments : [];
+    } catch (error) {
+      console.error('Error parsing transaction payments:', error);
+      return [];
+    }
+  };
+
+  const transactionDetails = parseTransactionDetails(trans);
+  
+  // console.log("Transaction details: ", transactionDetails);
+
 
   const handlePrint = async (data: TransactionReportItem) => {
     try {
@@ -317,7 +337,7 @@ const Paid = () => {
               <span className="ml-2 flex flex-row text-lg  font-medium">
                 Change:
                 <p className="text-xl font-semibold text-green-700">
-                  KES {paid - parseFloat(trans?.ptotal || "0")}
+                  KES {transactionDetails[0]?.balance || "0"}
                 </p>
               </span>
             </div>

@@ -99,6 +99,7 @@ const TransactionReceiptPDF = ({
     data.payments.length > 0 ? JSON.parse(data.payments) : [];
 
   console.log("Thermal receipt itsms: ", items);
+  console.log("Thermal receipt payments: ", payments);
 
 
 
