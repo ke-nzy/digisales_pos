@@ -369,7 +369,7 @@ const TransactionReceiptPDF = ({
 
           <RenderItemsSection items={items} />
 
-          <View style={{ flexDirection: "row" }}>
+          {/* <View style={{ flexDirection: "row" }}>
             <View style={[{ width: "47%" }]}></View>
             <View style={[{ width: "13%" }]}></View>
             <View style={[{ width: "20%" }]}>
@@ -378,7 +378,8 @@ const TransactionReceiptPDF = ({
             <View style={[{ width: "20%", border: 0.5 }]}>
               <Text style={[styles.text]}> {totalDiscount.subtotal}</Text>
             </View>
-          </View>
+          </View> */}
+          <View style={{height: 15}} />
         </View>
         <View style={{ paddingVertical: 1 }}>
           <Text
@@ -449,6 +450,7 @@ const TransactionReceiptPDF = ({
             );
           })}
         </View>
+        {/* <View style={{height: 10}} /> */}
         <View style={{ alignItems: "flex-end" }}>
           <TotalRowItem label={"Total Item Count"} value={`${totalQuantity}`} />
           <TotalRowItem

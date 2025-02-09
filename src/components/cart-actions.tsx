@@ -280,6 +280,7 @@ const CartActions = () => {
       // No cart exists, proceed with logout
       clear_auth_session();
       router.push("/sign-in");
+      window.location.reload();
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout. Please try again.");
