@@ -105,8 +105,13 @@ const DashBoard = () => {
         toast.success("Shift started");
         router.push("/");
       } else {
-        toast.error("Failed to start shift");
-        set_shift_started(false);
+        try {
+          console.log(response)
+          toast.error("Failed to start shift");
+          set_shift_started(false);
+        } catch (err) {
+          console.log("Error: ", err)
+        }
       }
     }
   };

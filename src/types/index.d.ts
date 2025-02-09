@@ -112,6 +112,12 @@ declare type InventoryItem = {
   kit: string;
   units: string;
   mb_flag: string;
+  branch_name: string;
+  pulldown: string;
+  item: string;
+  price: string;
+  selling_price: string;
+  balance: string;
 };
 
 declare type PriceList = {
@@ -277,6 +283,10 @@ declare type StockItem = {
   stock_id: string;
   item: string;
   balance: string;
+  pulldown: string;
+  selling_price: string;
+  price?: string;
+  branch_name?: string;
 };
 
 declare type GeneralReport = {

@@ -24,7 +24,7 @@ interface CartState {
 const LOCAL_STORAGE_KEY = "currentCart";
 const invNo = generateRandomString(3);
 
-export const useCartStore = create<CartState>((set, get) => ({
+const initialState = {
   selectedCartItem: null,
   currentCart: null,
   currentCustomer: {
@@ -39,41 +39,110 @@ export const useCartStore = create<CartState>((set, get) => ({
     pin: "-",
   },
   copiedCartItems: null,
-  addItemToCart: (item: DirectSales) => {
-    const state = get();
-    if (!state.currentCart) {
-      const newCart: Cart = {
-        cart_id: `cart_${invNo}${Date.now()}`,
-        items: [item],
-      };
-      console.log("new cart", newCart);
+};
 
-      set({ currentCart: newCart });
-      setCart(newCart).catch((error) =>
-        console.error("Failed to set cart:", error),
-      );
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCart));
-    } else {
-      const existingItemIndex = state.currentCart.items.findIndex(
-        (cartItem) =>
-          cartItem.item.stock_id === item.item.stock_id &&
-          cartItem.item.description === item.item.description,
-      );
+const safeLocalStorage = {
+  getItem: (key: string) => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(key);
+    }
+    return null;
+  },
+  setItem: (key: string, value: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  },
+  removeItem: (key: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  }
+};
 
-      if (existingItemIndex !== -1) {
-        const existingItem = state.currentCart.items[existingItemIndex];
-        if (existingItem!.quantity + item.quantity > item.max_quantity) {
-          toast.error("You can't add more than the max quantity");
-        }
-        const newQuantity = Math.min(
-          existingItem!.quantity + item.quantity,
-          item.max_quantity,
+export const useCartStore = create<CartState>((set, get) => {
+  // Initialize store with data from localStorage if available
+  if (typeof window !== 'undefined') {
+    const storedCart = safeLocalStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedCart) {
+      try {
+        const parsedCart = JSON.parse(storedCart);
+        initialState.currentCart = parsedCart;
+      } catch (error) {
+        console.error('Failed to parse stored cart:', error);
+      }
+    }
+  }
+
+  return {
+    ...initialState,
+
+    addItemToCart: (item: DirectSales) => {
+      const state = get();
+      if (!state.currentCart) {
+        const newCart: Cart = {
+          cart_id: `cart_${invNo}${Date.now()}`,
+          items: [item],
+        };
+        console.log("new cart", newCart);
+
+        set({ currentCart: newCart });
+        setCart(newCart).catch((error) =>
+          console.error("Failed to set cart:", error),
+        );
+        safeLocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCart));
+      } else {
+        const existingItemIndex = state.currentCart.items.findIndex(
+          (cartItem) =>
+            cartItem.item.stock_id === item.item.stock_id &&
+            cartItem.item.description === item.item.description,
         );
 
-        const updatedItems = state.currentCart.items.map((cartItem, index) =>
-          index === existingItemIndex
-            ? { ...cartItem, quantity: newQuantity }
-            : cartItem,
+        if (existingItemIndex !== -1) {
+          const existingItem = state.currentCart.items[existingItemIndex];
+          if (existingItem!.quantity + item.quantity > item.max_quantity) {
+            toast.error("You can't add more than the max quantity");
+          }
+          const newQuantity = Math.min(
+            existingItem!.quantity + item.quantity,
+            item.max_quantity,
+          );
+
+          const updatedItems = state.currentCart.items.map((cartItem, index) =>
+            index === existingItemIndex
+              ? { ...cartItem, quantity: newQuantity }
+              : cartItem,
+          );
+
+          const updatedCart: Cart = {
+            ...state.currentCart,
+            items: updatedItems,
+          };
+
+          set({ currentCart: updatedCart });
+          setCart(updatedCart).catch((error) =>
+            console.error("Failed to update cart:", error),
+          );
+          safeLocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
+        } else {
+          const updatedCart: Cart = {
+            ...state.currentCart,
+            items: [...state.currentCart.items, item],
+          };
+          set({ currentCart: updatedCart });
+          setCart(updatedCart).catch((error) =>
+            console.error("Failed to update cart:", error),
+          );
+          safeLocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
+        }
+      }
+    },
+
+    deleteItemFromCart: (item: DirectSales) => {
+      const state = get();
+      if (state.currentCart) {
+        const updatedItems = state.currentCart.items.filter(
+          (cartItem) => cartItem.item.description !== item.item.description,
         );
 
         const updatedCart: Cart = {
@@ -85,115 +154,84 @@ export const useCartStore = create<CartState>((set, get) => ({
         setCart(updatedCart).catch((error) =>
           console.error("Failed to update cart:", error),
         );
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
-      } else {
-        const updatedCart: Cart = {
-          ...state.currentCart,
-          items: [...state.currentCart.items, item],
-        };
-        set({ currentCart: updatedCart });
-        setCart(updatedCart).catch((error) =>
-          console.error("Failed to update cart:", error),
-        );
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
+        safeLocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
       }
-    }
-  },
-  deleteItemFromCart: (item: DirectSales) => {
-    const state = get();
-    if (state.currentCart) {
-      const updatedItems = state.currentCart.items.filter(
-        (cartItem) => cartItem.item.description !== item.item.description,
-      );
+    },
 
-      const updatedCart: Cart = {
-        ...state.currentCart,
-        items: updatedItems,
-      };
+    update_cart_item: (item: DirectSales) => {
+      console.log("item", item);
 
-      set({ currentCart: updatedCart });
-      setCart(updatedCart).catch((error) =>
-        console.error("Failed to update cart:", error),
-      );
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCart));
-    }
-  },
-  update_cart_item: (item: DirectSales) => {
-    console.log("item", item);
-
-    const previous = [...get().currentCart!.items] as DirectSales[];
-    const new_state = previous.map((x) => {
-      if (x.item.stock_id === item.item.stock_id) {
-        if (x.item.description === item.item.description) {
+      const previous = [...get().currentCart!.items] as DirectSales[];
+      const new_state = previous.map((x) => {
+        if (x.item.stock_id === item.item.stock_id) {
+          if (x.item.description === item.item.description) {
+            return item;
+          }
           return item;
         }
-        return item;
+        return x;
+      });
+
+      console.log("new_state", new_state);
+
+      set({ currentCart: { ...get().currentCart!, items: new_state } });
+    },
+
+    saveCart: () => {
+      const state = get();
+      if (state.currentCart) {
+        setCart(state.currentCart).catch((error) =>
+          console.error("Failed to save cart:", error),
+        );
+        safeLocalStorage.setItem(
+          LOCAL_STORAGE_KEY,
+          JSON.stringify(state.currentCart),
+        );
       }
-      return x;
-    });
+    },
 
-    console.log("new_state", new_state);
+    clearCart: () => {
+      const state = get();
+      if (state.currentCart) {
+        deleteCart(state.currentCart.cart_id)
+          .then(() => set({ currentCart: null }))
+          .catch((error) => console.error("Failed to clear cart:", error));
+        safeLocalStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
+    },
 
-    set({ currentCart: { ...get().currentCart!, items: new_state } });
-  },
-  saveCart: () => {
-    const state = get();
-    if (state.currentCart) {
-      setCart(state.currentCart).catch((error) =>
-        console.error("Failed to save cart:", error),
-      );
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify(state.currentCart),
-      );
-    }
-  },
-  clearCart: () => {
-    const state = get();
-    if (state.currentCart) {
-      deleteCart(state.currentCart.cart_id)
-        .then(() => set({ currentCart: null }))
-        .catch((error) => console.error("Failed to clear cart:", error));
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
-  },
-  loadCart: (cart_id: string) => {
-    // Wrap async logic in a function
-    const loadCartAsync = async () => {
-      try {
-        const cart = await getCart(cart_id);
-        if (cart) {
-          set({ currentCart: cart });
+    loadCart: (cart_id: string) => {
+      const loadCartAsync = async () => {
+        try {
+          const cart = await getCart(cart_id);
+          if (cart) {
+            set({ currentCart: cart });
+            safeLocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cart));
+          }
+        } catch (error) {
+          console.error("Failed to load cart:", error);
         }
-      } catch (error) {
-        console.error("Failed to load cart:", error);
-      }
-    };
-    // Call the async function
-    loadCartAsync().catch((error) =>
-      console.error("Failed to load cart:", error),
-    );
-  },
-  holdCart: () => {
-    set({ currentCart: null });
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-  },
-  setSelectedCartItem: (item: DirectSales | null) => {
-    set({ selectedCartItem: item });
-  },
-  setCurrentCustomer: (customer: Customer | null) => {
-    set({ currentCustomer: customer });
-  },
-  setCopiedCartItems: (items: DirectSales[] | null) => {
-    set({ copiedCartItems: items });
-  },
-}));
+      };
+      loadCartAsync().catch((error) =>
+        console.error("Failed to load cart:", error),
+      );
+    },
 
-const loadCartFromLocalStorage = () => {
-  const storedCart = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (storedCart) {
-    useCartStore.setState({ currentCart: JSON.parse(storedCart) });
-  }
-};
+    holdCart: () => {
+      set({ currentCart: null });
+      safeLocalStorage.removeItem(LOCAL_STORAGE_KEY);
+    },
 
-loadCartFromLocalStorage();
+    setSelectedCartItem: (item: DirectSales | null) => {
+      set({ selectedCartItem: item });
+    },
+
+    setCurrentCustomer: (customer: Customer | null) => {
+      set({ currentCustomer: customer });
+    },
+
+    setCopiedCartItems: (items: DirectSales[] | null) => {
+      set({ copiedCartItems: items });
+    },
+  };
+});

@@ -6,7 +6,7 @@ import { Ellipsis, Headset, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import emailjs from "@emailjs/browser";
 
-import { cn } from "~/lib/utils";
+import { cn, SYSTEM_HOLD_REASONS } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
@@ -39,6 +39,18 @@ import { submit_hold_direct_sale_request } from "~/lib/actions/user.actions";
 interface MenuProps {
   isOpen: boolean | undefined;
 }
+
+type ServerResponse = {
+  message: string;
+  Message?: string;
+  invNo?: string;
+  delNo?: string;
+  vat?: number;
+  ttpAuto?: any;
+  items?: string[];
+  reason?: string;
+  [key: string]: any;
+};
 
 export default function Menu({ isOpen }: MenuProps) {
   const roles = localStorage.getItem("roles");
@@ -75,7 +87,7 @@ export default function Menu({ isOpen }: MenuProps) {
       setInventoryManager(false);
     }
   }, [roles]);
-  
+
   useEffect(() => {
     if (roles?.includes("lOn Map")) {
       setAdmin(true);
@@ -105,7 +117,8 @@ export default function Menu({ isOpen }: MenuProps) {
     }
   };
   const menuList = getMenuList(pathname, bManager, admin, inventoryManager);
-  const handleHoldCart = async () => {
+
+  const handleHoldCart = async (systemReason?: typeof SYSTEM_HOLD_REASONS[keyof typeof SYSTEM_HOLD_REASONS]) => {
     if (!currentCart) {
       toast.error("Please add items to cart");
       // setIsLoading(false);
@@ -129,8 +142,20 @@ export default function Menu({ isOpen }: MenuProps) {
         null,
         currentCustomer.br_name,
         currentCart.cart_id,
+        systemReason,
       );
       console.log("result", result);
+
+      const response = result as ServerResponse;
+
+      console.log("Server response", response);
+
+      if(response.status?.toLowerCase() === 'failed') {
+        const errorMessage = response.Message || response.reason || "Cart failed to hold";
+        toast.warning(errorMessage);
+        return response;
+      }
+
       if (!result) {
         // sentry.captureException(result);
         toast.error("Hold  Action failed");
@@ -141,7 +166,7 @@ export default function Menu({ isOpen }: MenuProps) {
       holdCart();
 
       toast.success("Cart held successfully");
-      return true;
+      return response;
     } catch (error) {
       toast.error("Something went wrong");
       return false;
@@ -149,26 +174,68 @@ export default function Menu({ isOpen }: MenuProps) {
       setIsLoading(false);
     }
   };
-  const handleLogout = async () => {
-    if (currentCart) {
-      if (!isBranchManager) {
-        const res = await handleHoldCart();
-        if (res) {
+  
+    // const handleLogout = async () => {
+    //   if (currentCart) {
+    //     const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
+    //     console.log("Server response: ", res);
+  
+    //     if (!res || typeof res !== "object") {
+    //       toast.error("Invalid response received from server");
+    //       return;
+    //     }
+  
+    //     if (res.status?.toLowerCase() === "failed") {
+    //       const errorMessage = res.Message || res.reason || "Unknown error occurred";
+  
+    //       if (errorMessage.includes("The user has no active shift.")) {
+    //         toast.error("Please start your shift!");
+    //         // clearCart()
+    //         return;
+    //       }
+  
+    //       toast.error(errorMessage);
+    //       return;
+    //     }
+  
+    //     // Handle success response
+    //     if (res.message?.toLowerCase() === "success") {
+    //       await deleteMetadata()
+    //       clear_auth_session();
+    //       router.push("/sign-in");
+    //       window.location.reload();
+    //       return;
+    //     }
+  
+    //     // Fallback for unexpected responses
+    //     toast.error("Unexpected response from server");
+    //     console.error("Unexpected response structure: ", res);
+    //     return;
+    //   }
+  
+    //   // If no cart, proceed with logout
+    //   clear_auth_session();
+    //   router.push("/sign-in");
+    //   window.location.reload();
+    // };
+
+    const handleLogout = async () => {
+      if (currentCart) {
+          // Show user they need to handle cart first
+          toast.error("Please hold or process the current cart before logging out");
+          return;
+      }
+      
+      try {
+          // No cart exists, proceed with logout
+          await deleteMetadata();
           clear_auth_session();
           router.push("/sign-in");
-        } else {
-          toast.error("Unable to hold cart");
-        }
-      } else {
-        toast.error("You are not authorized to hold cart");
+          window.location.reload();
+      } catch (error) {
+          console.error("Logout error:", error);
+          toast.error("Failed to logout. Please try again.");
       }
-    } else {
-      await deleteMetadata();
-      clear_auth_session();
-      router.push("/sign-in");
-    }
-    await deleteMetadata();
-    clear_auth_session();
   };
 
   return (

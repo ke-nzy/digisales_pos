@@ -36,8 +36,8 @@ export async function fetch_all_sellable_items(
 
 export async function fetch_all_item_inventory(
   site_company: SiteCompany,
-  account: UserAccountInfo,
   site_url: string,
+  account: UserAccountInfo,
 ) {
   const form_data = new FormData();
   form_data.append("tp", "loadItemsAllWithPriceAndBalance");
@@ -51,6 +51,8 @@ export async function fetch_all_item_inventory(
       `${site_url}process.php`,
       form_data,
     );
+    console.log("All item inventory: ", response);
+
     if ((response as unknown as string) === "") {
       console.error("tp: loadItemsAll failed");
       //    Add sentry here
@@ -132,8 +134,42 @@ export async function fetch_branch_inventory(
       `${site_url}process.php`,
       form_data,
     );
+    console.log("Branch inventory: ", response);
     if ((response as unknown as string) === "") {
       console.error("tp: userStoreBalance failed");
+      //    Add sentry here
+      return [];
+    }
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(error);
+    }
+    return null;
+  }
+}
+
+export async function fetchAllItemsInSiteInventory(
+  site_company: SiteCompany,
+  site_url: string,
+  // account: UserAccountInfo,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "loadItemsAllWithPriceAndBalance");
+  form_data.append("cp", site_company.company_prefix);
+  form_data.append("name", "%%");
+  // form_data.append("branch_code", account.default_store);
+  form_data.append("type", "Sales");
+
+  try {
+    const response = await axios.postForm<PriceList[]>(
+      `${site_url}process.php`,
+      form_data,
+    );
+    console.log("All site item inventory: ", response);
+
+    if ((response as unknown as string) === "") {
+      console.error("tp: loadItemsAll failed");
       //    Add sentry here
       return [];
     }

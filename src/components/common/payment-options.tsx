@@ -14,7 +14,7 @@ import {
   DialogClose,
 } from "../ui/dialog";
 import { DataTable } from "../data-table";
-import { paymentColumns } from "~/lib/utils";
+import { calculateCartTotal, calculateDiscount, paymentColumns, tallyTotalAmountPaid } from "~/lib/utils";
 import { usePayStore } from "~/store/pay-store";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
@@ -26,6 +26,8 @@ import { useAuthStore } from "~/store/auth-store";
 import { toast } from "sonner";
 import { removeSpecialCharacters } from "../../lib/utils";
 import { Skeleton } from "../ui/skeleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
+import { useCartStore } from "~/store/cart-store";
 
 interface PaymentProps {
   item: Payment;
@@ -46,7 +48,14 @@ const PaymentOptions = ({
     loading: loadingMpesaPayments,
     refetch: refetchMpesaPayments,
   } = useMpesaPayments();
-  const { addItemToPayments, paymentCarts } = usePayStore();
+  const {
+    paymentCarts,
+    validateAndAddPayment,
+    showAmountAlert,
+    pendingPayment,
+    confirmPendingPayment,
+    cancelPendingPayment,
+  } = usePayStore();
   const [paid, setPaid] = useState<ManualBankPaymentAccount | null>(null);
   const [pName, setPName] = useState<string>("");
   const [transactionNumber, setTransactionNumber] = useState<string>("");
@@ -70,24 +79,38 @@ const PaymentOptions = ({
     }
   }, [loadingMpesaPayments]);
 
+  const { currentCart } = useCartStore();
+  const total = currentCart ? calculateCartTotal(currentCart) : 0;
+  const discount = currentCart ? calculateDiscount(currentCart) : 0;
+
+  // Calculate total amount already paid
+  const totalPaid = tallyTotalAmountPaid(paymentCarts);
+
+  // Calculate remaining balance
+  const balance = total - discount - totalPaid;
+
   const handleMpesaRowClick = (rowData: Payment) => {
-    const paymentType = "MPESA"; // Extract the payment type from the data table
-    addItemToPayments(rowData, paymentType);
-    setAmount("");
-    setMpesaDialogOpen(false);
+    validateAndAddPayment({
+      item: rowData,
+      paymentType: "MPESA",
+      balance
+    });
+    if (!showAmountAlert) {
+      setAmount("");
+      setMpesaDialogOpen(false);
+    }
   };
 
   const handleMpesaLookup = async () => {
     setIsLoading(true);
-    let found = false; // Flag to determine if the transaction was found within the time limit
+    let found = false;
 
-    // Timeout function to stop the process after 5 seconds
     const timeout = setTimeout(() => {
       if (!found) {
         toast.error("Transaction not found. Please try again.");
         setIsLoading(false);
       }
-    }, 5000);
+    }, 10000);
 
     try {
       const res = await lookup_mpesa_payment(
@@ -105,26 +128,24 @@ const PaymentOptions = ({
           console.log("We have found ", res);
           setFoundTransaction(res as Payment);
           setTransactionFoundDialog(true);
-          found = true; // Mark transaction as found
+          found = true;
         }
       }
     } catch (error) {
       console.error("Error looking up M-Pesa transaction:", error);
       toast.error("An error occurred during the lookup. Please try again.");
     } finally {
-      clearTimeout(timeout); // Clear the timeout if the process completes within 5 seconds
+      clearTimeout(timeout);
       setIsLoading(false);
     }
   };
 
   const handleManualSubmit = (ttp: string) => {
-    // Check for empty or invalid amount
     if (!amnt || amnt.trim() === "" || parseFloat(amnt) <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
 
-    // Check for required transaction number (except for CASH payments)
     if (!ttp.includes("CASH")) {
       if (!transactionNumber || transactionNumber.trim() === "") {
         toast.error("Please enter a transaction number");
@@ -136,37 +157,49 @@ const PaymentOptions = ({
         return;
       }
     }
-    const paid: PaymentProps = {
-      item: {
-        Auto: transactionNumber,
-        name: removeSpecialCharacters(pName),
-        TransAmount: amnt,
-        TransID: transactionNumber,
-        TransTime: Date.now(),
-      },
-      paymentType: ttp,
+
+    const payment = {
+      Auto: transactionNumber,
+      name: removeSpecialCharacters(pName),
+      TransAmount: amnt,
+      TransID: transactionNumber,
+      TransTime: Date.now(),
     };
-    addItemToPayments(paid.item, paid.paymentType);
-    setAmnt("");
-    setAmount("");
-    setTransactionNumber("");
-    setPName("");
-    setManualDialogOpen(false);
-    toast.success("Payment added successfully");
+
+    validateAndAddPayment({
+      item: payment,
+      paymentType: ttp,
+      balance
+    });
+    if (!showAmountAlert) {
+      setAmnt("");
+      setAmount("");
+      setTransactionNumber("");
+      setPName("");
+      setManualDialogOpen(false);
+    }
   };
+
 
   const handleTransactionFound = () => {
     if (!foundTransaction) {
       toast.error("No transaction details found");
       return;
     }
-    addItemToPayments(foundTransaction, "MPESA");
-    setAmount("");
-    setMpesaDialogOpen(false);
-    setLookupRef("");
-    setTransactionFoundDialog(false);
-    toast.success("M-Pesa payment added successfully");
+  
+    validateAndAddPayment({
+      item: foundTransaction,
+      paymentType: "MPESA",
+      balance
+    });
+    if (!showAmountAlert) {
+      setAmount("");
+      setMpesaDialogOpen(false);
+      setLookupRef("");
+      setTransactionFoundDialog(false);
+    }
   };
+
   return (
     <div className="mx-auto grid w-full max-w-md grid-cols-1 gap-4">
       {getPaymentList().map((paymentOption) => (
@@ -381,6 +414,40 @@ const PaymentOptions = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={showAmountAlert}
+        onOpenChange={(open) => {
+          if (!open) {
+            cancelPendingPayment();
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Higher Amount Warning</AlertDialogTitle>
+            <AlertDialogDescription>
+              The payment amount (KES {pendingPayment?.item.TransAmount}) is higher than the remaining balance (KES {pendingPayment?.requiredAmount}). Do you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelPendingPayment}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              confirmPendingPayment();
+              setAmount("");
+              setMpesaDialogOpen(false);
+              setManualDialogOpen(false);
+              setTransactionFoundDialog(false);
+              toast.success("Payment added successfully");
+            }}>
+              Proceed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 };

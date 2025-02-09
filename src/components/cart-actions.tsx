@@ -31,7 +31,7 @@ import {
 //   DropdownMenuTrigger,
 //   DropdownMenuSeparator,
 // } from "~/components/ui/dropdown-menu";
-import { cn } from "~/lib/utils";
+import { cn, SYSTEM_HOLD_REASONS } from "~/lib/utils";
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
 import { usePayStore } from "~/store/pay-store";
@@ -68,6 +68,8 @@ import {
 } from "~/hooks/use-unsynced-invoices";
 import { sync_invoice } from "~/lib/actions/pay.actions";
 import { Skeleton } from "./ui/skeleton";
+import CartCounter from "./CartCounter";
+import HoldCartDialog from "~/hawk-tuah/components/HoldCartDialog";
 
 const CartActions = () => {
   const {
@@ -81,12 +83,13 @@ const CartActions = () => {
     setSelectedCartItem,
     setCurrentCustomer,
     deleteItemFromCart,
+    clearCart,
     setCopiedCartItems,
   } = useCartStore((state) => state);
   const { mutate: updateCartMutate } = useUpdateCart();
   const router = useRouter();
   const sidebar = useStore(useSidebarToggle, (state) => state);
-  const [isLoading, setIsLoading] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { paymentCarts } = usePayStore();
   const { site_url, site_company, account, clear_auth_session } =
     useAuthStore();
@@ -109,6 +112,19 @@ const CartActions = () => {
   const { unsyncedInvoices: offlineInvoices, loading: offlineLoading } =
     useOfflineInvoices();
   const [syncing, setSyncing] = useState<boolean>(false);
+  const [isHoldDialogOpen, setIsHoldDialogOpen] = useState(false);
+
+  type ServerResponse = {
+    message: string;
+    Message?: string;
+    invNo?: string;
+    delNo?: string;
+    vat?: number;
+    ttpAuto?: any;
+    items?: string[];
+    reason?: string;
+    [key: string]: any;
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -212,34 +228,132 @@ const CartActions = () => {
     }
   }, []);
 
+  // const handleLogout = async () => {
+  //   if (currentCart) {
+  //     const res = await handleHoldCart(SYSTEM_HOLD_REASONS.LOGOUT);
+  //     console.log("Server response: ", res);
+
+  //     if (!res || typeof res !== "object") {
+  //       toast.error("Invalid response received from server");
+  //       return;
+  //     }
+
+  //     if (res.status?.toLowerCase() === "failed") {
+  //       const errorMessage = res.Message || res.reason || "Unknown error occurred";
+
+  //       if (errorMessage.includes("The user has no active shift.")) {
+  //         toast.error("Please start your shift!");
+  //         // clearCart()
+  //         return;
+  //       }
+
+  //       toast.error(errorMessage);
+  //       return;
+  //     }
+
+  //     // Handle success response
+  //     if (res.message?.toLowerCase() === "success") {
+  //       clear_auth_session();
+  //       router.push("/sign-in");
+  //       return;
+  //     }
+
+  //     // Fallback for unexpected responses
+  //     toast.error("Unexpected response from server");
+  //     console.error("Unexpected response structure: ", res);
+  //     return;
+  //   }
+
+  //   // If no cart, proceed with logout
+  //   clear_auth_session();
+  //   router.push("/sign-in");
+  // };
+
   const handleLogout = async () => {
     if (currentCart) {
-      const res = await handleHoldCart();
-      if (res) {
-        clear_auth_session();
-        router.push("/sign-in");
-      } else {
-        toast.error("Unable to hold cart");
-      }
-    } else {
+      // Prevent logout if cart exists
+      toast.error("Please hold or process the current cart before logging out");
+      return;
+    }
+
+    try {
+      // No cart exists, proceed with logout
       clear_auth_session();
       router.push("/sign-in");
+      window.location.reload();
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to logout. Please try again.");
     }
-    clear_auth_session();
   };
 
-  const handleHoldCart = async () => {
-    if (isLoading) {
-      return;
-    }
+  const handleHoldCart = async (systemReason?: typeof SYSTEM_HOLD_REASONS[keyof typeof SYSTEM_HOLD_REASONS]) => {
+    if (isLoading) return null;
+
     if (!currentCart) {
       toast.error("Please add items to cart");
-      // setIsLoading(false);
-      return;
+      return null;
     }
+
     if (!currentCustomer) {
       toast.error("Please select a customer");
-      // setIsLoading(false);
+      return null;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await submit_hold_direct_sale_request(
+        site_url!,
+        site_company!.company_prefix,
+        account!.id,
+        account!.user_id,
+        currentCart.items,
+        currentCustomer,
+        null,
+        currentCustomer.br_name,
+        currentCart.cart_id,
+        systemReason,
+      );
+      console.log("result", result);
+
+      const response = result as ServerResponse;
+
+      console.log("Server response", response);
+
+      if (response.status?.toLowerCase() === "failed") {
+        const errorMessage = response.Message || response.reason || "Cart failed to hold";
+        // clearCart();
+        toast.warning(errorMessage);
+        return response;
+      }
+
+      if (!result) {
+        toast.error("Hold Action failed");
+        return null;
+      }
+
+      holdCart();
+      toast.success("Cart held successfully");
+      return response;
+    } catch (error) {
+      console.error("Error holding cart", error);
+      toast.error("Something went wrong");
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleHoldCartWithReasons = async (selectedReasons: string[]): Promise<void> => {
+    if (isLoading) return;
+
+    if (!currentCart) {
+      toast.error("Please add items to cart");
+      return;
+    }
+
+    if (!currentCustomer) {
+      toast.error("Please select a customer");
       return;
     }
 
@@ -255,26 +369,33 @@ const CartActions = () => {
         null,
         currentCustomer.br_name,
         currentCart.cart_id,
+        selectedReasons,
       );
-      console.log("result", result);
+
+      const response = result as ServerResponse;
+
+      if (response.status?.toLowerCase() === "failed") {
+        const errorMessage = response.Message || response.reason || "Cart failed to hold";
+        toast.warning(errorMessage);
+        return;
+      }
+
       if (!result) {
-        // sentry.captureException(result);
-        toast.error("Hold  Action failed");
-        setIsLoading(false);
-        return false;
+        toast.error("Hold Action failed");
+        return;
       }
 
       holdCart();
-
+      setIsHoldDialogOpen(false);
       toast.success("Cart held successfully");
-      return true;
     } catch (error) {
+      console.error("Error holding cart", error);
       toast.error("Something went wrong");
-      return false;
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleAutoSync = async () => {
     console.log("handleAutoSync");
@@ -496,48 +617,87 @@ const CartActions = () => {
   //   }
   // };
 
-  const handleCheckOut = async () => {
-    console.log("checkout");
-    const shift = localStorage.getItem("start_shift");
-    const s: CheckInResponse = JSON.parse(shift!);
-    if (currentCart) {
-      const res = await handleHoldCart();
-      if (res) {
-        const response = await submit_end_shift(
-          site_url!,
-          site_company!.company_prefix,
-          account!.id,
-          s.id,
-        );
-        console.log(" checkout response", response);
+  // const handleCheckOut = async () => {
+  //   console.log("checkout");
+  //   const shift = localStorage.getItem("start_shift");
+  //   const s: CheckInResponse = JSON.parse(shift!);
+  //   if (currentCart) {
+  //     const res = await handleHoldCart(SYSTEM_HOLD_REASONS.END_SHIFT);
+  //     if (res) {
+  //       const response = await submit_end_shift(
+  //         site_url!,
+  //         site_company!.company_prefix,
+  //         account!.id,
+  //         s.id,
+  //       );
+  //       console.log(" checkout response", response);
 
-        if (response) {
-          localStorage.removeItem("start_shift");
-          toast.success("Shift ended");
-          router.push("/dashboard");
-        } else {
-          toast.error("Failed to End shift");
-        }
-      } else {
-        toast.error("Unable to hold cart");
+  //       if (response) {
+  //         localStorage.removeItem("start_shift");
+  //         toast.success("Shift ended");
+  //         router.push("/dashboard");
+  //       } else {
+  //         toast.error("Failed to End shift");
+  //       }
+  //     } else {
+  //       toast.error("Unable to hold cart");
+  //       return;
+  //     }
+  //   } else {
+  //     const response = await submit_end_shift(
+  //       site_url!,
+  //       site_company!.company_prefix,
+  //       account!.id,
+  //       s.id,
+  //     );
+  //     console.log(" checkout response", response);
+
+  //     if (response) {
+  //       localStorage.removeItem("start_shift");
+  //       toast.success("Shift ended");
+  //       router.push("/dashboard");
+  //     } else {
+  //       toast.error("Failed to End shift");
+  //     }
+  //   }
+  // };
+
+  const handleCheckOut = async () => {
+    try {
+      // Get shift data from localStorage
+      const shiftData = localStorage.getItem("start_shift");
+      if (!shiftData) {
+        toast.error("No active shift found");
         return;
       }
-    } else {
+
+      const shift: CheckInResponse = JSON.parse(shiftData);
+
+      // Check for current cart
+      if (currentCart) {
+        toast.error("Please hold or process the current cart before ending your shift");
+        return;
+      }
+
+      // Proceed with ending shift
       const response = await submit_end_shift(
         site_url!,
         site_company!.company_prefix,
         account!.id,
-        s.id,
+        shift.id,
       );
-      console.log(" checkout response", response);
 
       if (response) {
         localStorage.removeItem("start_shift");
         toast.success("Shift ended");
         router.push("/dashboard");
       } else {
-        toast.error("Failed to End shift");
+        toast.error("Failed to end shift");
       }
+
+    } catch (error) {
+      console.error("Error ending shift:", error);
+      toast.error("Failed to end shift. Please try again.");
     }
   };
 
@@ -887,6 +1047,8 @@ const CartActions = () => {
         </Dialog>
       </div>
 
+      <CartCounter />
+
       <div className=" grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <Card
           onClick={handleCheckOut}
@@ -963,7 +1125,7 @@ const CartActions = () => {
 
         <Card
           className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-          onClick={() => handleHoldCart()}
+          onClick={() => setIsHoldDialogOpen(true)}
         >
           <CardHeader className="flex-col items-center justify-center  p-2 ">
             <h6 className="self-start text-left text-xs font-semibold text-muted-foreground">
@@ -1035,6 +1197,14 @@ const CartActions = () => {
             </h4>
           </CardHeader>
         </Card> */}
+        <HoldCartDialog
+          isOpen={isHoldDialogOpen}
+          onClose={() => setIsHoldDialogOpen(false)}
+          onConfirm={handleHoldCartWithReasons}
+          siteUrl={site_url!}
+          companyPrefix={site_company!.company_prefix}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

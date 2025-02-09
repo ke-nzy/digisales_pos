@@ -62,6 +62,11 @@ export function getMenuList(
                 label: "Branch Inventory",
                 active: pathname === "/inventory",
               },
+              {
+                href: "/all-inventory",
+                label: "All Inventory",
+                active: pathname === "/all-inventory",
+              },
               // {
               //   href: "/inventory/stocktake",
               //   label: "Stock Take",
@@ -181,6 +186,11 @@ export function getMenuList(
                 active: pathname === "/inventory",
               },
               // {
+              //   href: "/all-inventory",
+              //   label: "All Inventory",
+              //   active: pathname === "/all-inventory",
+              // },
+              // {
               //   href: "/inventory/stocktake",
               //   label: "Stock Take",
               //   active: pathname === "/inventory/stocktake",
@@ -299,6 +309,11 @@ export function getMenuList(
                 label: "Branch Inventory",
                 active: pathname === "/inventory",
               },
+              // {
+              //   href: "/all-inventory",
+              //   label: "All Inventory",
+              //   active: pathname === "/all-inventory",
+              // },
             ],
           },
         ],
