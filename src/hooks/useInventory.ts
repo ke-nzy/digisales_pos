@@ -44,15 +44,17 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
     account!,
     site_url!,
   );
+
   const branchInventory = await fetch_branch_inventory(
     site_company!,
     account!,
     site_url!,
   );
+
   const item_inventory = await fetch_all_item_inventory(
     site_company!,
-    account!,
     site_url!,
+    account!,
   );
 
   await setInventory("inventory", sellable || []);
@@ -87,7 +89,7 @@ export const fetchItemDetails = async (stock_id?: string, kit?: string, forceRef
 
       // Handle response and store it in IndexedDB
       const sellable = await fetch_all_sellable_items(site_company!, account!, site_url!);
-      const item_inventory = await fetch_all_item_inventory(site_company!, account!, site_url!);
+      const item_inventory = await fetch_all_item_inventory(site_company!, site_url!, account!);
 
       await setInventory("inventory", sellable || []);
       await setPriceList("priceList", item_inventory || []);

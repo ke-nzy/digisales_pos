@@ -166,7 +166,7 @@ const ItemSearchBox = () => {
           name="item-search"
           autoFocus={true}
           type="search"
-          placeholder="Search..."
+          placeholder="Search for product..."
           className="pl-8 sm:w-[300px] md:w-full"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
