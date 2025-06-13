@@ -10,7 +10,11 @@
  */
 
 import axios from 'axios';
-import { DiscountRule, DiscountRulesResponse, DiscountServiceState } from '../types/discount-types';
+import {
+    DiscountRule,
+    DiscountRulesResponse,
+    DiscountServiceState
+} from '../types/discount-types';
 
 export class DiscountService {
     private static instance: DiscountService;
@@ -24,13 +28,88 @@ export class DiscountService {
     private refreshInterval: NodeJS.Timeout | null = null;
     private readonly REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
     private readonly MAX_RETRIES = 3;
+    private readonly STORAGE_KEY = 'discount_rules_cache';
+    private readonly STORAGE_TIMESTAMP_KEY = 'discount_rules_timestamp';
 
     // Singleton pattern for global discount management
     public static getInstance(): DiscountService {
         if (!DiscountService.instance) {
             DiscountService.instance = new DiscountService();
+            // 🎯 TRY TO RESTORE FROM STORAGE ON FIRST INSTANCE
+            DiscountService.instance.restoreFromStorage();
         }
         return DiscountService.instance;
+    }
+
+    /**
+     * Restore discount rules from localStorage (called on page refresh)
+     */
+    private restoreFromStorage(): void {
+        try {
+            if (typeof window === 'undefined') return;
+
+            const storedRules = localStorage.getItem(this.STORAGE_KEY);
+            const storedTimestamp = localStorage.getItem(this.STORAGE_TIMESTAMP_KEY);
+
+            if (storedRules && storedTimestamp) {
+                const rules = JSON.parse(storedRules) as DiscountRule[];
+                const timestamp = new Date(storedTimestamp);
+
+                // Check if stored data is still valid (within last hour)
+                const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+                if (timestamp > oneHourAgo && rules.length > 0) {
+                    this.state.rules = rules;
+                    this.state.last_updated = timestamp;
+                    console.log(`🔄 Restored ${rules.length} discount rules from storage`);
+                    console.log('📊 Restored Rules Summary:', {
+                        total: rules.length,
+                        item: rules.filter(r => r.discount_type === 'item').length,
+                        category: rules.filter(r => r.discount_type === 'category').length,
+                        bulk: rules.filter(r => r.discount_type === 'bulk').length
+                    });
+                } else {
+                    console.log('⚠️ Stored discount rules are too old, will fetch fresh data');
+                    this.clearStorage();
+                }
+            } else {
+                console.log('ℹ️ No stored discount rules found');
+            }
+        } catch (error) {
+            console.error('❌ Failed to restore discount rules from storage:', error);
+            this.clearStorage();
+        }
+    }
+
+    /**
+     * Save discount rules to localStorage
+     */
+    private saveToStorage(): void {
+        try {
+            if (typeof window === 'undefined') return;
+
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state.rules));
+            localStorage.setItem(this.STORAGE_TIMESTAMP_KEY, this.state.last_updated?.toISOString() || new Date().toISOString());
+
+            console.log(`💾 Saved ${this.state.rules.length} discount rules to storage`);
+        } catch (error) {
+            console.error('❌ Failed to save discount rules to storage:', error);
+        }
+    }
+
+    /**
+     * Clear stored discount rules
+     */
+    private clearStorage(): void {
+        try {
+            if (typeof window === 'undefined') return;
+
+            localStorage.removeItem(this.STORAGE_KEY);
+            localStorage.removeItem(this.STORAGE_TIMESTAMP_KEY);
+            console.log('🧹 Cleared stored discount rules');
+        } catch (error) {
+            console.error('❌ Failed to clear discount rules storage:', error);
+        }
     }
 
     /**
@@ -67,7 +146,7 @@ export class DiscountService {
             console.log(`🔄 Fetching discount rules for branch: ${branch_code}`);
 
             const form_data = new FormData();
-            form_data.append("tp", "getBranchDiscounts"); // TODO: Confirm parameter name
+            form_data.append("tp", "get_discounts_by_branch");
             form_data.append("cp", company_prefix);
             form_data.append("branch_code", branch_code);
 
@@ -80,6 +159,9 @@ export class DiscountService {
                 this.state.rules = response.data.data;
                 this.state.last_updated = new Date();
                 this.state.is_loading = false;
+
+                // 🎯 SAVE TO STORAGE FOR PERSISTENCE
+                this.saveToStorage();
 
                 console.log(`✅ Loaded ${this.state.rules.length} discount rules`);
                 this.logDiscountRulesSummary();
@@ -176,14 +258,16 @@ export class DiscountService {
         company_prefix: string,
         branch_code: string
     ): void {
-
         if (this.refreshInterval) {
             clearInterval(this.refreshInterval);
         }
 
-        this.refreshInterval = setInterval(async () => {
-            console.log('🔄 Periodic discount rules refresh...');
-            await this.fetchDiscountRules(site_url, company_prefix, branch_code);
+        this.refreshInterval = setInterval(() => {
+            // Handle async function inside the sync callback
+            void (async () => {
+                console.log('🔄 Periodic discount rules refresh...');
+                await this.fetchDiscountRules(site_url, company_prefix, branch_code);
+            })();
         }, this.REFRESH_INTERVAL);
     }
 
@@ -209,6 +293,7 @@ export class DiscountService {
             error: null
         };
         this.stopPeriodicRefresh();
+        this.clearStorage(); // 🎯 ALSO CLEAR STORAGE
         console.log('🧹 Discount service cache cleared');
     }
 

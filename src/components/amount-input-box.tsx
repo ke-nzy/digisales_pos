@@ -29,6 +29,9 @@ import { addInvoice } from "~/utils/indexeddb";
 import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
 import { checkItemQuantities, highlightProblematicItems } from "./temporaryFixes";
 import { useInventory, useItemDetails } from "~/hooks/useInventory";
+import { EnhancedPaymentSummary, useEnhancedPaymentCalculations } from "~/hawk-tuah/components/enhancedAmountInput";
+import { submit_direct_sale_request_enhanced } from "~/hawk-tuah/actions/enhancedSubmission";
+import EnhancedTransactionReceiptPDF from "~/hawk-tuah/components/enhancedReceiptPdf";
 
 interface AmountInputProps {
   value: string;
@@ -59,6 +62,7 @@ const AmountInput = ({
   const totalPaid = tallyTotalAmountPaid(paymentCarts);
   const { currentCart, clearCart, currentCustomer, setCurrentCustomer } =
     useCartStore();
+  console.log("Current cart: ", currentCart)
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [isPrinted, setIsPrinted] = useState<boolean>(false);
@@ -231,9 +235,12 @@ const AmountInput = ({
     }
   }, [currentCart, router, paidStatus]);
 
-  const total = calculateCartTotal(currentCart!);
+  // const total = calculateCartTotal(currentCart!);
   const discount = calculateDiscount(currentCart!);
-  const balance = total - discount - paid;
+  // const balance = total - discount - paid;
+  const calculations = useEnhancedPaymentCalculations();
+  const total = calculations.finalTotal;
+  const balance = total - paid;
 
   // const updateCashPayments = (
   //   paymentCart: PaymentCart[],
@@ -726,7 +733,7 @@ const AmountInput = ({
         toast.error("Please select a customer.");
         throw new Error("Customer not selected.");
       }
-      if (!totalPaid || totalPaid < total - discount) {
+      if (!totalPaid || totalPaid < calculations.finalTotal) {
         toast.error("Insufficient payment. Please check the total amount.");
         throw new Error("Insufficient funds.");
       }
@@ -735,13 +742,15 @@ const AmountInput = ({
       window.addEventListener("beforeunload", beforeUnloadHandler);
 
       // Finalize payments for submission
-      const payments = updateCashPayments(paymentCarts, total);
+      // const payments = updateCashPayments(paymentCarts, total);
+      const payments = updateCashPayments(paymentCarts, calculations.finalTotal);
+      // console.log("Payments to be submitted:", payments);
 
       const startApiTime = Date.now();
 
       // Wrap the API call in a Promise.race with the timeout
       const result = await Promise.race([
-        submit_direct_sale_request(
+        submit_direct_sale_request_enhanced(  // ✅ NEW ENHANCED FUNCTION
           site_url!,
           site_company!.company_prefix,
           account!.id,
@@ -847,7 +856,7 @@ const AmountInput = ({
 
       // Generate PDF for printing
       const pdfBlob = await pdf(
-        <TransactionReceiptPDF
+        <EnhancedTransactionReceiptPDF 
           data={data}
           receipt_info={receipt_info!}
           account={account!}
@@ -942,7 +951,8 @@ const AmountInput = ({
   return (
     <div className="flex h-full w-full flex-col space-y-6">
       <div className="flex-grow">
-        <div className="flex w-full flex-col space-y-4 py-4">
+
+        {/* <div className="flex w-full flex-col space-y-4 py-4">
           <Label className="text-xl">Payment</Label>
           <div className="flex w-full flex-row justify-between">
             <span>SubTotal</span>
@@ -973,7 +983,18 @@ const AmountInput = ({
               KES {total - discount - paid}
             </span>
           </div>
+        </div> */}
+
+        <div className="flex w-full flex-col space-y-4 py-4">
+          <Label className="text-xl">Payment</Label>
+          <EnhancedPaymentSummary
+            paid={paid}
+            value={value}
+            onChange={onChange}
+          />
+          <Separator className="my-4" />
         </div>
+
         <div className="flex w-full flex-col space-y-2">
           <div className="font-semibold">Payment Details</div>
           {paymentCarts.map((cart, index) => (

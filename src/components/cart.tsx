@@ -10,6 +10,7 @@ import { CartTable } from "./cart-table";
 import { DataTable } from "./data-table";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "~/store/auth-store";
+import { enhancedCartColumns } from "~/hawk-tuah/components/cartColumns";
 
 const ShoppingCart = () => {
   const { currentCart, setSelectedCartItem } = useCartStore();
@@ -37,7 +38,7 @@ const ShoppingCart = () => {
     >
       <CardContent className="overflow-y-auto">
         <DataTable
-          columns={cartColumns}
+          columns={enhancedCartColumns} 
           data={currentCart?.items ?? []}
           filCol="description"
           onRowClick={(rowData) => setSelectedCartItem(rowData)}

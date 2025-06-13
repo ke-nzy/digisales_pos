@@ -118,6 +118,34 @@ export async function fetch_item_details(
   }
 }
 
+export async function fetch_branch_discount_rules(
+  site_url: string,
+  company_prefix: string,
+  branch_code: string,
+) {
+  const form_data = new FormData();
+  form_data.append("tp", "get_discounts_by_branch"); 
+  form_data.append("cp", company_prefix);
+  form_data.append("branch_code", branch_code); // (TODO): Confirm paramenter name was inserted by backend team
+
+  try {
+    const response = await axios.postForm<{ status: string, data: any[] }>(
+      `${site_url}process.php`,
+      form_data,
+    );
+
+    if (response.data.status === "SUCCESS") {
+      return response.data.data;
+    }
+
+    console.error("Failed to fetch discount rules:", response.data);
+    return [];
+  } catch (error) {
+    console.error("Error fetching discount rules:", error);
+    return [];
+  }
+}
+
 export async function fetch_branch_inventory(
   site_company: SiteCompany,
   account: UserAccountInfo,

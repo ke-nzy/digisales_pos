@@ -8,6 +8,7 @@ import { DateRangePicker } from "~/components/common/date-range-picker";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
+import { cleanupDiscountsForShift, initializeDiscountsForShift } from "~/hawk-tuah/services/shift-discount-integration";
 import {
   useDailySalesTargetReport,
   useHeldTransactionsReport,
@@ -90,6 +91,7 @@ const DashBoard = () => {
       localStorage.setItem("roles", JSON.stringify(response));
     }
   };
+
   const handleCheckin = async () => {
     if (shift_started) {
       router.push("/");
@@ -100,9 +102,24 @@ const DashBoard = () => {
         site_company!.company_prefix,
         account!.id,
       );
+
       if (response?.id) {
         set_shift_started(true);
         toast.success("Shift started");
+
+        // ADD: Initialize discount service after successful shift start
+        try {
+          const discountInitialized = await initializeDiscountsForShift();
+          if (discountInitialized) {
+            console.log('✅ Discount system ready');
+          } else {
+            console.warn('⚠️ Discount system failed to initialize (POS will work without discounts)');
+          }
+        } catch (error) {
+          console.error('❌ Discount initialization error:', error);
+          // Don't block shift start if discount service fails
+        }
+
         router.push("/");
       } else {
         try {
@@ -115,6 +132,7 @@ const DashBoard = () => {
       }
     }
   };
+
   const handleBMCheckin = async () => {
     if (shift_started) {
       await handleCheckOut();
@@ -136,6 +154,7 @@ const DashBoard = () => {
       }
     }
   };
+
   const handleCheckOut = async () => {
     console.log("checkout");
     const shift = localStorage.getItem("start_shift");
@@ -147,9 +166,19 @@ const DashBoard = () => {
       account!.id,
       s.id,
     );
+
     console.log(" checkout response", response);
 
     if (response) {
+      // ADD: Cleanup discount service before ending shift
+      try {
+        cleanupDiscountsForShift();
+        console.log('✅ Discount service cleanup completed');
+      } catch (error) {
+        console.error('❌ Discount cleanup error:', error);
+        // Don't block shift end if cleanup fails
+      }
+
       localStorage.removeItem("start_shift");
       set_shift_started(false);
       toast.success("Shift ended");
@@ -158,6 +187,7 @@ const DashBoard = () => {
       toast.error("Failed to End shift");
     }
   };
+
   const completedTrnasactions = posTransactionsReport.length;
   const heldTrnasactions = heldTransactionsReport.filter(
     (item) => item.status === "0",

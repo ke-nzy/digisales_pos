@@ -3,6 +3,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ContentLayout } from "~/components/common/content-layout";
+import { useDiscountRestoration } from "~/hawk-tuah/hooks/useDiscountRestoration";
+import { useEnhancedInventory } from "~/hawk-tuah/hooks/useEnhancedInventory";
 
 import { useAuthStore } from "~/store/auth-store";
 const ItemSearchBox = dynamic(() => import("~/components/item-searchbox"), {
@@ -21,9 +23,18 @@ const TotalSummary = dynamic(() => import("~/components/total-summary"), {
 
 export default function HomePage() {
   const { site_company, account } = useAuthStore();
+  const { isInitialized } = useEnhancedInventory();
   const shift = localStorage.getItem("start_shift");
   const roles = localStorage.getItem("roles");
   const router = useRouter();
+
+  useDiscountRestoration();
+
+  useEffect(() => {
+    if (site_company && account && !isInitialized) {
+      console.log('🎯 Initializing enhanced inventory...');
+    }
+  }, [site_company, account, isInitialized]);
 
   useEffect(() => {
     const shift = localStorage.getItem("start_shift");

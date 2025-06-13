@@ -3,7 +3,7 @@ import { ScanBarcodeIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { useInventory, useItemDetails } from "~/hooks/useInventory";
+import { getEnhancedItemData, useInventory, useItemDetails } from "~/hooks/useInventory";
 import { useCartStore } from "~/store/cart-store";
 import { toast } from "sonner";
 import { useAuthStore } from "~/store/auth-store";
@@ -30,10 +30,12 @@ import { paymentColumns } from "~/lib/utils";
 import { usePayStore } from "~/store/pay-store";
 import { useUpdateCart } from "../hooks/use-cart";
 import { useRouter } from "next/navigation";
+import { useEnhancedInventory } from "~/hawk-tuah/hooks/useEnhancedInventory";
 
 const ItemSearchBox = () => {
   const { addItemToPayments } = usePayStore();
   const { inventory, loading, error } = useInventory();
+  const { getItemWithDiscounts } = useEnhancedInventory();
   const { site_url, site_company, account } = useAuthStore.getState();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const { addItemToCart, currentCart } = useCartStore();
@@ -75,42 +77,54 @@ const ItemSearchBox = () => {
       router.replace("/sign-in");
     }
   }, [account, site_company]);
+
   useEffect(() => {
     if (currentCart) {
       handleUpdateCart(currentCart.cart_id, currentCart);
     }
   }, [currentCart]);
-  useEffect(() => {
-    // console.log(
-    //   "item",
-    //   inventory.find((invItem) => invItem.stock_id.startsWith("C")),
-    // );
-    if (item) {
-      console.log("item", item);
-      if (details !== null && details !== undefined) {
-        console.log("details", details);
-        if (details.quantity_available <= 0) {
-          toast.error("Item is out of stock");
-          return;
-        }
-        const directSalesItem: DirectSales = {
-          __typename: "direct_sales",
-          user: "current_user",
-          max_quantity: details.quantity_available,
-          item,
-          details,
-          quantity: 1,
-          discount: "0.00",
-        };
 
-        addItemToCart(directSalesItem);
+  useEffect(() => {
+    const addItemWithEnhancement = async () => {
+      if (item) {
+        console.log("item", item);
+        if (details !== null && details !== undefined) {
+          console.log("details", details);
+          if (details.quantity_available <= 0) {
+            toast.error("Item is out of stock");
+            return;
+          }
+
+          // 🎯 GET ENHANCED DATA WITH DISCOUNTS
+          const enhancedData = await getItemWithDiscounts(item.stock_id);
+
+          const directSalesItem: DirectSales = {
+            __typename: "direct_sales",
+            user: "current_user",
+            max_quantity: details.quantity_available,
+            item,
+            details: enhancedData ? {
+              price: enhancedData.has_discount ? enhancedData.discounted_price : parseFloat(enhancedData.price),
+              quantity_available: parseFloat(enhancedData.balance),
+              tax_mode: parseInt(details.tax_mode.toString())
+            } : details,
+            quantity: 1,
+            discount: "0.00",
+            enhanced_item: enhancedData,
+          };
+
+          addItemToCart(directSalesItem);
+          setSearchTerm("");
+        }
+      } else if (searchTerm.length >= 13) {
+        // Handle barcode scenarios
+      } else if (searchTerm.length >= 15) {
+        toast.error("Item not found in inventory");
         setSearchTerm("");
       }
-    } else if (searchTerm.length >= 13) {
-    } else if (searchTerm.length >= 15) {
-      toast.error("Item not found in inventory");
-      setSearchTerm(""); // Clear the input field
-    }
+    };
+
+    addItemWithEnhancement();
   }, [searchTerm, item, details]);
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { IDBPDatabase, openDB } from "idb";
+import { EnhancedPriceList } from "~/hawk-tuah/types/discount-types";
 
 interface InventoryItem {
   stock_id: string;
@@ -105,7 +106,7 @@ export const getPriceList = async (
 
 export const getItemPriceDetails = async (
   stock_id: string,
-): Promise<PriceList | undefined> => {
+): Promise<EnhancedPriceList | null | undefined> => {
   if (!dbPromise) return; 
   const db = await dbPromise;
   const tx = db.transaction("priceList", "readonly");
