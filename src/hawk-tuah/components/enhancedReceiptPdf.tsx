@@ -1,8 +1,10 @@
 /**
- * Enhanced Transaction Receipt PDF
- * Located at: hawk-tuah/components/enhanced-receipt-pdf.tsx
+ * Complete Clean Receipt PDF with Duplicate Support
+ * Located at: hawk-tuah/components/complete-clean-receipt-pdf.tsx
  * 
- * Displays full discount transparency with original vs final prices
+ * Clean receipt design with duplicate copy support and QR fallback
+ * USING THE EXACT WORKING QR PATTERN FROM OLD CODE
+ * Now with MINIMAL item separation - everything else EXACTLY the same
  */
 
 import React, { useState, useEffect } from "react";
@@ -17,8 +19,10 @@ import {
 import QRCode from "qrcode";
 import { toast } from "sonner";
 import { formatMoney } from "../utils/formatters";
+import EnhancedSeparatedItemsSection from "./enhancedSeparatedItemsSection";
 
-// Enhanced receipt calculation
+const DEFAULT_QR_CODE_DATA = "ESD Device Unreachable";
+
 interface EnhancedReceiptCalculations {
     items: Array<{
         id: string;
@@ -30,6 +34,7 @@ interface EnhancedReceiptCalculations {
         manualDiscount: number;
         totalDiscount: number;
         lineTotal: number;
+        tax: number;
         hasDiscount: boolean;
     }>;
     totals: {
@@ -40,39 +45,40 @@ interface EnhancedReceiptCalculations {
         totalSavings: number;
         finalTotal: number;
         tax: number;
+        grandTotal: number;
     };
 }
 
 /**
- * Calculate enhanced receipt data from submission response
+ * Calculate receipt data using server response values directly
  */
 function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedReceiptCalculations {
     const salesInfo = data[0];
     const items: TransactionInvItem[] = salesInfo.pitems.length > 0 ? JSON.parse(salesInfo.pitems) : [];
 
-    // Parse discount summary if available (from our enhanced submission)
+    // Parse enhanced discount summary
     let discountSummary = null;
     try {
-        if (data.discount_summary) {
-            discountSummary = typeof data.discount_summary === 'string'
-                ? JSON.parse(data.discount_summary)
-                : data.discount_summary;
+        if (salesInfo.discount_summary) {
+            discountSummary = typeof salesInfo.discount_summary === 'string'
+                ? JSON.parse(salesInfo.discount_summary)
+                : salesInfo.discount_summary;
         }
     } catch (error) {
-        console.log('No enhanced discount summary found, using item-level data');
+        console.log('Using item-level discount data');
     }
 
-    // Process each item
+    // Process each item with enhanced details
     const enhancedItems = items.map(item => {
         const quantity = parseFloat(item.quantity);
         const finalPrice = parseFloat(item.price);
         const lineTotal = quantity * finalPrice;
         const totalDiscount = parseFloat(item.discount || "0");
+        const tax = parseFloat(item.tax || "0");
 
-        // Try to extract original price if available (from our enhanced submission)
         const originalPrice = item.original_price
             ? parseFloat(item.original_price)
-            : finalPrice + (totalDiscount / quantity); // Estimate if not available
+            : finalPrice + (totalDiscount / quantity);
 
         const automaticDiscount = item.automatic_discount
             ? parseFloat(item.automatic_discount)
@@ -92,20 +98,22 @@ function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedRe
             manualDiscount,
             totalDiscount,
             lineTotal,
+            tax,
             hasDiscount: totalDiscount > 0
         };
     });
 
-    // Calculate totals
-    const subtotal = enhancedItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
-    const finalTotal = enhancedItems.reduce((sum, item) => sum + item.lineTotal, 0);
-    const totalAutomaticDiscounts = enhancedItems.reduce((sum, item) => sum + item.automaticDiscount, 0);
-    const totalManualDiscounts = enhancedItems.reduce((sum, item) => sum + item.manualDiscount, 0);
-
-    // Use enhanced summary if available, otherwise calculate from items
+    // Use server response values directly
+    const subtotal = discountSummary?.subtotal || enhancedItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
+    const finalTotal = parseFloat(salesInfo.ptotal); // Use ptotal directly from server
+    const totalAutomaticDiscounts = discountSummary?.automatic_discounts || enhancedItems.reduce((sum, item) => sum + item.automaticDiscount, 0);
+    const totalManualDiscounts = discountSummary?.manual_discounts || enhancedItems.reduce((sum, item) => sum + item.manualDiscount, 0);
     const bulkDiscount = discountSummary?.bulk_discount || 0;
     const totalSavings = totalAutomaticDiscounts + totalManualDiscounts + bulkDiscount;
-    const tax = parseFloat(salesInfo.vat_amount || "0");
+    const totalTax = parseFloat(salesInfo.vat_amount || "0");
+
+    // finalTotal from server already includes tax
+    const grandTotal = finalTotal;
 
     return {
         items: enhancedItems,
@@ -116,7 +124,8 @@ function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedRe
             bulkDiscount,
             totalSavings,
             finalTotal,
-            tax
+            tax: totalTax,
+            grandTotal
         }
     };
 }
@@ -132,419 +141,477 @@ const EnhancedTransactionReceiptPDF = ({
     account: UserAccountInfo;
     duplicate: boolean;
 }) => {
-    const [qrCodeUrl, setQrCodeUrl] = useState(data.qrCode || "");
+    // EXACT SAME PATTERN AS WORKING OLD CODE  
+    const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+    const [qrCodeStatus, setQrCodeStatus] = useState<'loading' | 'success' | 'error'>('loading');
+
+    console.log("Data received for the receipt: ", data)
+    console.log("Received QR data:", qrCodeUrl);
 
     const salesInfo = data[0];
     const payments: Payment[] = salesInfo.payments.length > 0 ? JSON.parse(salesInfo.payments) : [];
     const enhancedData = calculateEnhancedReceiptData(data);
 
-    // Generate QR Code
+    // EXACT SAME FUNCTION AS WORKING OLD CODE
+    const generateDefaultQRCode = async (): Promise<string> => {
+        try {
+            const code = await QRCode.toDataURL(DEFAULT_QR_CODE_DATA);
+            console.log("Generated default QR code:", code.substring(0, 50) + "...");
+            return code;
+        } catch (error) {
+            console.error("Failed to generate default QR code:", error);
+            throw error;
+        }
+    };
+
+    // 3. Enhanced useEffect with better state management:
     useEffect(() => {
-        const generateQRCode = async () => {
+        const generateKraCode = async () => {
             try {
-                const qrData = data.qrCode || "ESD Device Unreachable";
-                const code = await QRCode.toDataURL(qrData);
-                setQrCodeUrl(code);
+                setQrCodeStatus('loading');
+                let generatedCode = "";
+
+                if (data.qrCode && data.qrCode.length > 0) {
+                    console.log("Generating QR from data.qrCode:", data.qrCode.substring(0, 50) + "...");
+                    generatedCode = await QRCode.toDataURL(data.qrCode);
+                } else {
+                    console.log("No QR data, generating default");
+                    generatedCode = await generateDefaultQRCode();
+                }
+
+                console.log("Setting QR code URL:", generatedCode.substring(0, 50) + "...");
+                setQrCodeUrl(generatedCode);
+                setQrCodeStatus('success');
+
             } catch (error) {
                 console.error("Failed to generate QR code:", error);
+                setQrCodeStatus('error');
+                try {
+                    const fallbackCode = await generateDefaultQRCode();
+                    setQrCodeUrl(fallbackCode);
+                    setQrCodeStatus('success');
+                } catch (fallbackError) {
+                    console.error("Failed to generate fallback QR code:", fallbackError);
+                    setQrCodeUrl("");
+                    setQrCodeStatus('error');
+                }
             }
         };
-        void generateQRCode();
+
+        void generateKraCode();
     }, [data.qrCode]);
 
-    // Calculate receipt size dynamically
+    // Calculate dynamic receipt size
     function getReceiptSize(): [number, number] {
-        const baseHeight = 500;
-        const itemsHeight = enhancedData.items.length * 12;
-        const discountHeight = (enhancedData.totals.totalSavings > 0) ? 40 : 0;
+        const baseHeight = 550;
+        const itemsHeight = enhancedData.items.length * 15;
+        const discountHeight = (enhancedData.totals.totalSavings > 0) ? 50 : 0;
         const paymentsHeight = payments.length * 12;
-
         return [200, baseHeight + itemsHeight + discountHeight + paymentsHeight];
     }
 
-    const totalPaid = payments.reduce((sum, payment) => {
-        const amount = typeof payment.TransAmount === "string"
-            ? parseFloat(payment.TransAmount)
-            : payment.TransAmount;
-        const balance = payment.balance !== undefined
-            ? (typeof payment.balance === "string" ? parseFloat(payment.balance) : payment.balance)
-            : 0;
-        return sum + (isNaN(amount) ? 0 : amount) + (isNaN(balance) ? 0 : balance);
-    }, 0);
+    // Get balance directly from server response
+    const getBalanceFromPayments = () => {
+        if (payments.length > 0 && payments[0].balance !== undefined) {
+            return typeof payments[0].balance === "string"
+                ? parseFloat(payments[0].balance)
+                : payments[0].balance;
+        }
+        return 0;
+    };
 
-    const balance = enhancedData.totals.finalTotal - totalPaid;
+    const balance = getBalanceFromPayments();
+    const dumbassShit = QRCode.toDataURL(DEFAULT_QR_CODE_DATA);
 
-    return (
-        <Document>
-            <Page size={getReceiptSize()} style={{ padding: 2 }}>
-                {/* Header Section */}
-                <View style={{ paddingVertical: 2, alignItems: "center" }}>
-                    <Text style={[styles.text, { fontWeight: "bold", marginBottom: 4 }]}>
-                        {receipt_info.name}
-                    </Text>
-                    <Text style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}>
-                        Email: {receipt_info.email}
-                    </Text>
-                    <Text style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}>
-                        Phone: {receipt_info.phone_number}
-                    </Text>
-                    <Text style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}>
-                        KRA Pin: {receipt_info.receipt}
-                    </Text>
-                    <Text style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}>
-                        Till Number: {account.default_till}
-                    </Text>
+    // Receipt Page Component
+    const ReceiptPage = ({ isOriginal }: { isOriginal: boolean }) => (
+        <Page size={getReceiptSize()} style={styles.page}>
+
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.companyName}>{receipt_info.name}</Text>
+                <Text style={styles.headerSubtext}>CASH RECEIPT</Text>
+                {!isOriginal && <Text style={styles.duplicateText}>DUPLICATE COPY</Text>}
+            </View>
+
+            {/* Company Info */}
+            <View style={styles.companyInfo}>
+                <Text style={styles.bodyText}>Email: {receipt_info.email}</Text>
+                <Text style={styles.bodyText}>Phone: {receipt_info.phone_number}</Text>
+                <Text style={styles.bodyText}>KRA PIN: {receipt_info.receipt}</Text>
+                <Text style={styles.bodyText}>Till No: {account.default_till}</Text>
+            </View>
+
+            <View style={styles.dottedLine} />
+
+            {/* Transaction Info */}
+            <View style={styles.transactionInfo}>
+                <View style={styles.infoRow}>
+                    <Text style={styles.bodyText}>Receipt #:</Text>
+                    <Text style={styles.bodyText}>{salesInfo.rcp_no}</Text>
                 </View>
-
-                {/* Customer Info */}
-                <View style={{ paddingVertical: 1 }}>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.text}>Customer:</Text>
-                        <Text style={styles.text}>{salesInfo.customername || "N/A"}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.text}>Customer Pin:</Text>
-                        <Text style={styles.text}>{salesInfo.pin || "N/A"}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.text}>Print Date:</Text>
-                        <Text style={styles.text}>{new Date().toLocaleString()}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.text}>Cashier:</Text>
-                        <Text style={styles.text}>{account.real_name}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.text}>Branch:</Text>
-                        <Text style={styles.text}>{account.default_store_name}</Text>
-                    </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.bodyText}>Date:</Text>
+                    <Text style={styles.bodyText}>{new Date(salesInfo.pdate).toLocaleDateString()}</Text>
                 </View>
-
-                {/* Transaction Info */}
-                <View style={styles.transactionHeader}>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>
-                        Trans ID: {salesInfo.id}
-                    </Text>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>
-                        {duplicate ? "Transaction Receipt" : "Transaction Receipt - Reprint"}
-                    </Text>
+                <View style={styles.infoRow}>
+                    <Text style={styles.bodyText}>Time:</Text>
+                    <Text style={styles.bodyText}>{new Date(salesInfo.pdate).toLocaleTimeString()}</Text>
                 </View>
-
-                {/* Items Section */}
-                <View style={{ paddingVertical: 1 }}>
-                    <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
-                        Items
-                    </Text>
-
-                    {/* Items Header */}
-                    <View style={styles.tableRow}>
-                        <View style={[styles.tableCol, { width: "45%" }, styles.leftBorder]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Name</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: "10%" }]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Qty</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: "22.5%" }]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Price(KES)</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: "22.5%" }]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Total(KES)</Text>
-                        </View>
-                    </View>
-
-                    {/* Items Data */}
-                    {enhancedData.items.map((item, index) => (
-                        <View key={item.id}>
-                            {/* Main item row */}
-                            <View style={styles.tableRow}>
-                                <View style={[styles.tableCol, { width: "45%" }, styles.leftBorder]}>
-                                    <Text style={styles.text}>{item.name}</Text>
-                                    {item.hasDiscount && (
-                                        <Text style={[styles.text, { fontSize: 6, color: "#22c55e" }]}>
-                                            💰 Saved: {formatMoney(item.totalDiscount)}
-                                        </Text>
-                                    )}
-                                </View>
-                                <View style={[styles.tableCol, { width: "10%" }]}>
-                                    <Text style={styles.text}>{item.quantity}</Text>
-                                </View>
-                                <View style={[styles.tableCol, { width: "22.5%" }]}>
-                                    {item.hasDiscount ? (
-                                        <View>
-                                            <Text style={[styles.text, { fontSize: 6, textDecoration: "line-through" }]}>
-                                                {item.originalPrice}
-                                            </Text>
-                                            <Text style={[styles.text, { color: "#22c55e" }]}>
-                                                {item.finalPrice}
-                                            </Text>
-                                        </View>
-                                    ) : (
-                                        <Text style={styles.text}>{item.finalPrice}</Text>
-                                    )}
-                                </View>
-                                <View style={[styles.tableCol, { width: "22.5%" }]}>
-                                    <Text style={[styles.text, item.hasDiscount ? { color: "#22c55e" } : {}]}>
-                                        {item.lineTotal}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    ))}
-
-                    {/* Subtotal Row */}
-                    <View style={[styles.tableRow, { borderTop: "0.5px solid #000", marginTop: 2 }]}>
-                        <View style={[{ width: "55%" }]} />
-                        <View style={[{ width: "22.5%" }]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Subtotal:</Text>
-                        </View>
-                        <View style={[{ width: "22.5%", border: "0.5px solid #000" }]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>
-                                {enhancedData.totals.subtotal}
-                            </Text>
-                        </View>
-                    </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.bodyText}>Cashier:</Text>
+                    <Text style={styles.bodyText}>{data[0].uname}</Text>
                 </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.bodyText}>Customer:</Text>
+                    <Text style={styles.bodyText}>{salesInfo.customername || "WALK-IN"}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.bodyText}>Branch:</Text>
+                    <Text style={styles.bodyText}>{salesInfo.branch_name}</Text>
+                </View>
+            </View>
 
-                {/* Discount Breakdown (if any discounts) */}
-                {enhancedData.totals.totalSavings > 0 && (
-                    <View style={{ paddingVertical: 1, backgroundColor: "#f8f9fa" }}>
-                        <Text style={[styles.text, { fontWeight: "bold", marginBottom: 1 }]}>
-                            💰 Discount Breakdown
-                        </Text>
+            <View style={styles.dottedLine} />
+
+            {/* Items List - NOW WITH MINIMAL SEPARATION */}
+            <EnhancedSeparatedItemsSection
+                items={enhancedData.items}
+                showDiscounts={true}
+            />
+
+            <View style={styles.dottedLine} />
+
+            {/* Discount Summary */}
+            {enhancedData.totals.totalSavings > 0 && (
+                <>
+                    <View style={styles.savingsSection}>
+                        <Text style={styles.savingsTitle}>Savings Breakdown:</Text>
 
                         {enhancedData.totals.totalAutomaticDiscounts > 0 && (
-                            <View style={styles.discountRow}>
-                                <Text style={[styles.text, { width: "70%" }]}>Automatic Discounts:</Text>
-                                <Text style={[styles.text, { color: "#22c55e" }]}>
-                                    -{formatMoney(enhancedData.totals.totalAutomaticDiscounts)}
-                                </Text>
+                            <View style={styles.savingsRow}>
+                                <Text style={styles.bodyText}>Auto Discounts:</Text>
+                                <Text style={styles.savingsAmount}>-{formatMoney(enhancedData.totals.totalAutomaticDiscounts)}</Text>
                             </View>
                         )}
 
                         {enhancedData.totals.totalManualDiscounts > 0 && (
-                            <View style={styles.discountRow}>
-                                <Text style={[styles.text, { width: "70%" }]}>Manual Discounts:</Text>
-                                <Text style={[styles.text, { color: "#22c55e" }]}>
-                                    -{formatMoney(enhancedData.totals.totalManualDiscounts)}
-                                </Text>
+                            <View style={styles.savingsRow}>
+                                <Text style={styles.bodyText}>Manual Discounts:</Text>
+                                <Text style={styles.savingsAmount}>-{formatMoney(enhancedData.totals.totalManualDiscounts)}</Text>
                             </View>
                         )}
 
                         {enhancedData.totals.bulkDiscount > 0 && (
-                            <View style={styles.discountRow}>
-                                <Text style={[styles.text, { width: "70%" }]}>Bulk Discount:</Text>
-                                <Text style={[styles.text, { color: "#22c55e" }]}>
-                                    -{formatMoney(enhancedData.totals.bulkDiscount)}
-                                </Text>
+                            <View style={styles.savingsRow}>
+                                <Text style={styles.bodyText}>Bulk Discount:</Text>
+                                <Text style={styles.savingsAmount}>-{formatMoney(enhancedData.totals.bulkDiscount)}</Text>
                             </View>
                         )}
 
-                        <View style={[styles.discountRow, { borderTop: "0.5px solid #22c55e", paddingTop: 1 }]}>
-                            <Text style={[styles.text, { fontWeight: "bold", width: "70%" }]}>Total Savings:</Text>
-                            <Text style={[styles.text, { fontWeight: "bold", color: "#22c55e" }]}>
-                                {formatMoney(enhancedData.totals.totalSavings)}
-                            </Text>
+                        <View style={styles.totalSavingsRow}>
+                            <Text style={styles.boldText}>Total Savings:</Text>
+                            <Text style={styles.totalSavingsAmount}>{formatMoney(enhancedData.totals.totalSavings)}</Text>
                         </View>
+                    </View>
+                    <View style={styles.dottedLine} />
+                </>
+            )}
+
+            {/* Totals */}
+            <View style={styles.totalsSection}>
+                {enhancedData.totals.totalSavings > 0 && (
+                    <View style={styles.totalRow}>
+                        <Text style={styles.bodyText}>Sub Total (Before Discounts):</Text>
+                        <Text style={styles.bodyText}>{formatMoney(enhancedData.totals.subtotal)}</Text>
                     </View>
                 )}
+                <View style={styles.totalRow}>
+                    <Text style={styles.boldText}>Total (Inc. VAT):</Text>
+                    <Text style={styles.boldText}>{formatMoney(enhancedData.totals.grandTotal)}</Text>
+                </View>
+                <View style={styles.totalRow}>
+                    <Text style={styles.bodyText}>VAT Amount (16%):</Text>
+                    <Text style={styles.bodyText}>{formatMoney(enhancedData.totals.tax)}</Text>
+                </View>
+            </View>
 
-                {/* Payments Section */}
-                <View style={{ paddingVertical: 1 }}>
-                    <Text style={[styles.text, { marginBottom: 1, fontWeight: "bold" }]}>
-                        Payments
-                    </Text>
+            <View style={styles.dottedLine} />
 
-                    <View style={styles.tableRow}>
-                        <View style={[styles.tableCol, { width: "50%" }, styles.leftBorder]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Type</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: "50%" }]}>
-                            <Text style={[styles.text, { fontWeight: "bold" }]}>Amount</Text>
-                        </View>
-                    </View>
+            {/* Payment Info */}
+            <View style={styles.paymentSection}>
+                {payments.map((payment, index) => {
+                    const amount = typeof payment.TransAmount === "string"
+                        ? parseFloat(payment.TransAmount)
+                        : payment.TransAmount;
 
-                    {payments.map((payment, index) => {
-                        const transAmount = typeof payment.TransAmount === "string"
-                            ? parseFloat(payment.TransAmount)
-                            : payment.TransAmount;
-                        const balance = payment.balance !== undefined
-                            ? (typeof payment.balance === "string" ? parseFloat(payment.balance) : payment.balance)
-                            : 0;
-                        const totalAmount = (isNaN(transAmount) ? 0 : transAmount) + (isNaN(balance) ? 0 : balance);
+                    const paymentBalance = payment.balance !== undefined
+                        ? (typeof payment.balance === "string" ? parseFloat(payment.balance) : payment.balance)
+                        : 0;
 
-                        return (
-                            <View style={styles.tableRow} key={index}>
-                                <View style={[styles.tableCol, { width: "50%" }, styles.leftBorder]}>
-                                    <Text style={styles.text}>{payment.Transtype}</Text>
+                    const totalPaidByCustomer = amount + paymentBalance;
+
+                    return (
+                        <View key={index}>
+                            <View style={styles.totalRow}>
+                                <Text style={styles.bodyText}>{payment.Transtype}:</Text>
+                                <Text style={styles.bodyText}>{formatMoney(amount)}</Text>
+                            </View>
+                            {paymentBalance > 0 && (
+                                <View style={styles.totalRow}>
+                                    <Text style={styles.bodyText}>Amount Paid:</Text>
+                                    <Text style={styles.bodyText}>{formatMoney(totalPaidByCustomer)}</Text>
                                 </View>
-                                <View style={[styles.tableCol, { width: "50%" }]}>
-                                    <Text style={styles.text}>{totalAmount}</Text>
-                                </View>
-                            </View>
-                        );
-                    })}
-                </View>
+                            )}
+                        </View>
+                    );
+                })}
 
-                {/* Totals Section */}
-                <View style={{ alignItems: "flex-end", paddingVertical: 2 }}>
-                    <TotalRowItem label="Item Count" value={`${enhancedData.items.reduce((sum, item) => sum + item.quantity, 0)}`} />
-
-                    {enhancedData.totals.totalSavings > 0 && (
-                        <>
-                            <TotalRowItem label="Before Discounts" value={`${formatMoney(enhancedData.totals.subtotal)}`} />
-                            <TotalRowItem label="Total Savings" value={`${formatMoney(enhancedData.totals.totalSavings)}`} />
-                        </>
-                    )}
-
-                    <TotalRowItem label="Subtotal" value={`${formatMoney(enhancedData.totals.finalTotal)}`} />
-                    <TotalRowItem label="Tax 16%" value={`${formatMoney(enhancedData.totals.tax)}`} />
-                    <TotalRowItem label="Total Paid" value={`${formatMoney(totalPaid)}`} />
-                    <TotalRowItem
-                        label="Balance"
-                        value={`${formatMoney(balance)}`}
-                        isLast={true}
-                        isNegative={balance < 0}
-                    />
-                </View>
-
-                {/* QR Code and Control Info */}
-                <View style={{ width: "100%", paddingVertical: 4, flexDirection: "row", justifyContent: "space-between" }}>
-                    <Image src={qrCodeUrl} style={{ maxHeight: 70, maxWidth: 70 }} />
-
-                    <View style={{ width: "60%", padding: 2, justifyContent: "center", flexDirection: "column" }}>
-                        {data.middlewareInvoiceNumber && (
-                            <View style={{ paddingVertical: 1 }}>
-                                <Text style={styles.text}>Middleware Invoice:</Text>
-                                <Text style={[styles.text, { fontWeight: "bold" }]}>
-                                    {data.middlewareInvoiceNumber}
-                                </Text>
-                            </View>
-                        )}
-
-                        {data.qrDate && (
-                            <View style={{ paddingVertical: 1 }}>
-                                <Text style={styles.text}>QR Date:</Text>
-                                <Text style={[styles.text, { fontWeight: "bold" }]}>{data.qrDate}</Text>
-                            </View>
-                        )}
-
-                        {data.controlCode && (
-                            <View style={{ paddingVertical: 1 }}>
-                                <Text style={styles.text}>Control Code:</Text>
-                                <Text style={[styles.text, { fontWeight: "bold" }]}>{data.controlCode}</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-
-                {/* Footer */}
-                <View style={{ alignItems: "center", marginBottom: 3 }}>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>
-                        Thank you for doing business with us
+                <View style={styles.totalRow}>
+                    <Text style={styles.bodyText}>Balance:</Text>
+                    <Text style={[styles.bodyText, balance < 0 && styles.negativeText]}>
+                        {formatMoney(balance)}
                     </Text>
-                    <Text style={[styles.text, { fontWeight: "bold", fontSize: 9 }]}>
-                        NO REFUND, NO EXCHANGE
-                    </Text>
+                </View>
+            </View>
 
-                    {enhancedData.totals.totalSavings > 0 && (
-                        <Text style={[styles.text, { color: "#22c55e", fontWeight: "bold", marginTop: 2 }]}>
-                            🎉 You saved {formatMoney(enhancedData.totals.totalSavings)} today!
+            {/* Special Messages */}
+            {enhancedData.totals.totalSavings > 0 && (
+                <>
+                    <View style={styles.dottedLine} />
+                    <View style={styles.savingsHighlight}>
+                        <Text style={styles.savingsHighlightText}>
+                            YOU SAVED {formatMoney(enhancedData.totals.totalSavings)}!
                         </Text>
-                    )}
-                </View>
-            </Page>
-
-            {/* Duplicate Copy (if requested) */}
-            {duplicate && (
-                <Page size={getReceiptSize()} style={{ padding: 2 }}>
-                    {/* Same content but marked as "Copy" */}
-                    {/* Implementation would be similar to above but with "Copy" label */}
-                </Page>
+                    </View>
+                </>
             )}
+
+            <View style={styles.dottedLine} />
+
+            {/* QR Code and Control Info */}
+            <View style={styles.qrSection}>
+                {/* Simple, reliable conditional rendering */}
+                {qrCodeUrl && qrCodeUrl.length > 50 ? (
+                    <Image
+                        src={qrCodeUrl}
+                        style={{ width: 70, height: 70 }}
+                        alt="QR Code"
+                    />
+                ) : (
+                    <Image
+                        src={dumbassShit}
+                        style={styles.qrCode}
+                        alt="QR Code Placeholder"
+                    />
+                )}
+
+                {(data.middlewareInvoiceNumber || data.controlCode || data.qrDate) && (
+                    <View style={styles.controlInfo}>
+                        {data.middlewareInvoiceNumber && (
+                            <Text style={styles.controlText}>Middleware: {data.middlewareInvoiceNumber}</Text>
+                        )}
+                        {data.controlCode && (
+                            <Text style={styles.controlText}>Control: {data.controlCode}</Text>
+                        )}
+                        {data.qrDate && (
+                            <Text style={styles.controlText}>QR Date: {data.qrDate}</Text>
+                        )}
+                    </View>
+                )}
+            </View>
+
+            <View style={styles.dottedLine} />
+
+            {/* Footer */}
+            <View style={styles.footer}>
+                <Text style={styles.thankYouText}>THANK YOU FOR SHOPPING!</Text>
+                <Text style={styles.policyText}>NO REFUND • NO EXCHANGE</Text>
+                <Text style={styles.visitText}>Visit us again!</Text>
+            </View>
+
+        </Page>
+    );
+
+    return (
+        <Document>
+            {/* Original Receipt */}
+            <ReceiptPage isOriginal={true} />
+
+            {/* Duplicate Copy */}
+            {duplicate && <ReceiptPage isOriginal={false} />}
         </Document>
     );
 };
 
-// Styles
+// EXACT ORIGINAL STYLES - no changes
 const styles = StyleSheet.create({
-    text: { fontSize: 8 },
+    page: {
+        padding: 10,
+        backgroundColor: '#ffffff',
+        fontFamily: 'Helvetica',
+    },
+
+    // Header Styles
+    header: {
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    companyName: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 2,
+    },
+    headerSubtext: {
+        fontSize: 10,
+        textAlign: 'center',
+        marginBottom: 2,
+    },
+    duplicateText: {
+        fontSize: 8,
+        color: '#666',
+        textAlign: 'center',
+    },
+
+    // Company Info
+    companyInfo: {
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+
+    // Dotted Line Separator
+    dottedLine: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#000',
+        borderStyle: 'dotted',
+        marginVertical: 4,
+    },
+
+    // Transaction Info
+    transactionInfo: {
+        marginBottom: 6,
+    },
     infoRow: {
-        justifyContent: "space-between",
-        paddingVertical: 1,
-        flexDirection: "row",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 1,
     },
-    transactionHeader: {
-        borderBottomWidth: 0.2,
-        borderBottomColor: "#000",
-        borderTopColor: "#000",
-        borderTopWidth: 0.2,
-        paddingVertical: 1,
-        flexDirection: "column",
+
+    // Savings Section
+    savingsSection: {
+        marginBottom: 6,
     },
-    tableRow: { flexDirection: "row" },
-    tableCol: {
-        paddingHorizontal: 1,
-        borderTopColor: "#000",
-        borderTopWidth: 0.5,
-        padding: 1,
-        borderRightWidth: 0.5,
-        borderRightColor: "#000",
+    savingsTitle: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        marginBottom: 2,
     },
-    leftBorder: {
-        borderLeftWidth: 0.3,
-        borderLeftColor: "#000",
+    savingsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 1,
     },
-    discountRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingVertical: 0.5,
+    savingsAmount: {
+        fontSize: 8,
+        color: '#228B22',
+    },
+    totalSavingsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 2,
+        paddingTop: 2,
+        borderTopWidth: 1,
+        borderTopColor: '#000',
+        borderStyle: 'dotted',
+    },
+    totalSavingsAmount: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: '#228B22',
+    },
+
+    // Totals Section
+    totalsSection: {
+        marginBottom: 6,
+    },
+    totalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 1,
+    },
+
+    // Payment Section
+    paymentSection: {
+        marginBottom: 6,
+    },
+
+    // Savings Highlight
+    savingsHighlight: {
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    savingsHighlightText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#228B22',
+        textAlign: 'center',
+    },
+
+    // QR Section
+    qrSection: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    qrContainer: {
+        alignItems: 'center',
+    },
+    qrCode: {
+        width: 50,
+        height: 50,
+    },
+    controlInfo: {
+        flex: 1,
+        paddingLeft: 8,
+    },
+    controlText: {
+        fontSize: 7,
+        marginBottom: 1,
+    },
+
+    // Footer
+    footer: {
+        alignItems: 'center',
+    },
+    thankYouText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 2,
+    },
+    policyText: {
+        fontSize: 8,
+        textAlign: 'center',
+        marginBottom: 2,
+    },
+    visitText: {
+        fontSize: 8,
+        textAlign: 'center',
+    },
+
+    // Common Text Styles
+    bodyText: {
+        fontSize: 8,
+    },
+    boldText: {
+        fontSize: 8,
+        fontWeight: 'bold',
+    },
+    negativeText: {
+        color: '#DC143C',
     },
 });
-
-// Total Row Component
-interface TotalRowItemProps {
-    label: string;
-    value: string;
-    isLast?: boolean;
-    isNegative?: boolean;
-}
-
-function TotalRowItem({ label, value, isLast, isNegative }: TotalRowItemProps) {
-    return (
-        <View style={[
-            {
-                flexDirection: "row",
-                width: "70%",
-                borderTopColor: "#000",
-                borderTopWidth: 0.2,
-                borderRightColor: "#000",
-                borderRightWidth: 0.2,
-                borderLeftColor: "#000",
-                borderLeftWidth: 0.2,
-            },
-            isLast && {
-                borderBottomWidth: 0.2,
-                borderBottomColor: "#000",
-            },
-        ]}>
-            <View style={{
-                width: "50%",
-                borderRightWidth: 0.2,
-                borderRightColor: "#000",
-                padding: 1,
-            }}>
-                <Text style={[styles.text, { fontWeight: "bold" }]}>{label}</Text>
-            </View>
-            <View style={{ width: "50%", padding: 1 }}>
-                <Text style={[
-                    styles.text,
-                    isNegative ? { color: "#ef4444" } : {},
-                ]}>
-                    {value}
-                </Text>
-            </View>
-        </View>
-    );
-}
 
 export default EnhancedTransactionReceiptPDF;

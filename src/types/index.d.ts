@@ -297,7 +297,7 @@ declare type SalesReceiptInformation = {
   delNo: string;
   vat: number;
   ttpAuto: string | null;
-  weight: string;
+  weight: number;
   posSaleInsertId: number;
   qrCode: string;
   qrDate: string;
@@ -391,6 +391,11 @@ declare type TransactionReportItem = {
   weight: number;
   status?: string;
   vat_amount?: string;
+  discount_summary?: string;
+  rcp_no: string;
+  cycle_id?: string;
+  offline?: string;
+  trans_time?: string;
 };
 declare type CheckInResponse = {
   id: string;

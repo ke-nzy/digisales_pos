@@ -6,13 +6,60 @@ import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
 import { useAuthStore } from "~/store/auth-store";
 import { toDate } from "~/lib/utils";
 import { pdf } from "@react-pdf/renderer";
-import TransactionReceiptPDF from "~/components/thermal-receipt";
 import { toast } from "sonner";
 import { Separator } from "~/components/ui/separator";
 import { Banknote, PrinterIcon, ShoppingCartIcon } from "lucide-react";
 import { Card, CardHeader } from "~/components/ui/card";
 import { useRouter } from "next/navigation";
 import { usePayStore } from "~/store/pay-store";
+import EnhancedTransactionReceiptPDF from "~/hawk-tuah/components/enhancedReceiptPdf";
+
+// Transform TransactionReportItem to SalesReceiptInformation format
+const transformToReceiptFormat = (trans: TransactionReportItem): SalesReceiptInformation => {
+  return {
+    "0": {
+      id: trans.id,
+      rcp_no: trans.rcp_no,
+      ptype: trans.ptype,
+      ptotal: trans.ptotal,
+      payments: trans.payments,
+      pitems: trans.pitems,
+      cp: trans.cp || "0_",
+      uname: trans.uname,
+      uid: trans.uid,
+      pdate: trans.pdate,
+      print: trans.print || "1",
+      customername: trans.customername,
+      customerid: trans.customerid,
+      booking: trans.booking || "1",
+      dispatch: trans.dispatch || "0",
+      salepersonId: trans.salepersonId || "0",
+      salepersonName: trans.salepersonName || "",
+      unique_identifier: trans.unique_identifier,
+      cycle_id: trans.cycle_id,
+      branch_code: trans.branch_code,
+      shift_no: trans.shift_no,
+      vat_amount: trans.vat_amount,
+      pin: trans.pin || "-",
+      offline: trans.offline || "0",
+      trans_time: trans.trans_time,
+      discount_summary: trans.discount_summary,
+      status: trans.status || "1",
+      branch_name: trans.branch_name
+    },
+    message: "Success",
+    invNo: trans.rcp_no,
+    delNo: trans.rcp_no,
+    vat: parseFloat(trans.vat_amount || "0"),
+    ttpAuto: null,
+    weight: 0,
+    posSaleInsertId: parseInt(trans.id),
+    qrCode: "",
+    qrDate: "",
+    controlCode: "",
+    middlewareInvoiceNumber: ""
+  };
+};
 
 const Paid = () => {
   const [isNavigating, setIsNavigating] = useState(false);
@@ -43,14 +90,14 @@ const Paid = () => {
     }
   };
 
-  // console.log("Transaction history data: ", trans);
+  console.log("Transaction history data: ", trans);
 
   const parseTransactionDetails = (trans: TransactionReportItem | null | undefined): Payment[] => {
     try {
       if (!trans?.payments) {
         return [];
       }
-      
+
       const payments = JSON.parse(trans.payments) as Payment[];
       return Array.isArray(payments) ? payments : [];
     } catch (error) {
@@ -60,11 +107,11 @@ const Paid = () => {
   };
 
   const transactionDetails = parseTransactionDetails(trans);
-  
+
   // console.log("Transaction details: ", transactionDetails);
 
 
-  const handlePrint = async (data: TransactionReportItem) => {
+  const handlePrint = async (data: TransactionReportItem | SalesReceiptInformation) => {
     try {
       console.log("handlePrint", data);
 
@@ -75,9 +122,19 @@ const Paid = () => {
         return;
       }
 
+      // Transform data to correct format if needed
+      let receiptData: SalesReceiptInformation;
+      if ('0' in data) {
+        // Already in correct format (from localStorage)
+        receiptData = data as SalesReceiptInformation;
+      } else {
+        // Transform API data to correct format
+        receiptData = transformToReceiptFormat(data as TransactionReportItem);
+      }
+
       const pdfBlob = await pdf(
-        <TransactionReceiptPDF
-          data={data}
+        <EnhancedTransactionReceiptPDF
+          data={receiptData}
           receipt_info={receipt_info!}
           account={account!}
           duplicate={true}
@@ -86,12 +143,11 @@ const Paid = () => {
 
       const url = URL.createObjectURL(pdfBlob);
       const iframe = document.createElement("iframe");
-      iframe.style.display = "none"; // Initially hide the iframe
+      iframe.style.display = "none";
       document.body.appendChild(iframe);
 
       return new Promise<void>((resolve, reject) => {
         iframe.onload = () => {
-          // Set up cleanup function
           const cleanup = () => {
             if (document.body.contains(iframe)) {
               document.body.removeChild(iframe);
@@ -101,7 +157,6 @@ const Paid = () => {
           };
 
           try {
-            // Configure iframe after it's loaded
             iframe.style.position = "fixed";
             iframe.style.display = "block";
             iframe.style.width = "100%";
@@ -111,13 +166,11 @@ const Paid = () => {
             iframe.focus();
             iframe.contentWindow!.print();
 
-            // Set up cleanup timeout
             const printTimeout = setTimeout(() => {
               cleanup();
               console.log("Print preview closed after timeout");
             }, 60000);
 
-            // Handle after print
             iframe.contentWindow!.onafterprint = () => {
               clearTimeout(printTimeout);
               cleanup();
@@ -129,7 +182,6 @@ const Paid = () => {
           }
         };
 
-        // Set src after setting up onload
         iframe.src = url;
       });
     } catch (error) {
@@ -190,9 +242,13 @@ const Paid = () => {
       }
       return;
     }
-    transaction
-      ? await handlePrint(transaction as TransactionReportItem)
-      : await handlePrint(trans!);
+
+    // Prefer localStorage data (already in correct format)
+    if (transaction) {
+      await handlePrint(transaction);
+    } else if (trans) {
+      await handlePrint(trans);
+    }
   };
 
   useEffect(() => {
@@ -352,7 +408,7 @@ const Paid = () => {
               <div className="grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
                 <Card
                   className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-                  onClick={() => handlePrint(trans!)}
+                  onClick={() => triggerPrint()}
                 >
                   <CardHeader className="flex-col items-center justify-center p-2 ">
                     <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">
