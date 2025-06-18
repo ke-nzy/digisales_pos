@@ -261,6 +261,7 @@ declare type TransactionInvItem = {
   mode_prices: string;
   posBatchSelect: string;
   price: string;
+  discounted_price: string;
   quantity: string;
   quantityAval: string;
   rate: string;

@@ -1,16 +1,16 @@
 "use client";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import axios from "axios"; // Ensure axios is imported
+// import { Input } from "./ui/input";
+import axios from "axios";
 
 import { useCartStore } from "~/store/cart-store";
 import {
-  toDate,
-  calculateCartTotal,
+  // toDate,
+  // calculateCartTotal,
   calculateDiscount,
-  cn,
+  // cn,
   generateRandomString,
   tallyTotalAmountPaid,
 } from "~/lib/utils";
@@ -18,16 +18,16 @@ import { Separator } from "./ui/separator";
 import { toast } from "sonner";
 import { useAuthStore } from "~/store/auth-store";
 import { usePayStore } from "~/store/pay-store";
-import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
+// import { submit_direct_sale_request } from "~/lib/actions/pay.actions";
 import { useRouter } from "next/navigation";
 import { Loader2, Trash2Icon } from "lucide-react";
 import { Button } from "./ui/button";
-import TransactionReceiptPDF from "./sales-themal-receipt";
+// import TransactionReceiptPDF from "./sales-themal-receipt";
 import { pdf } from "@react-pdf/renderer";
-import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
-import { addInvoice } from "~/utils/indexeddb";
-import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
-import { checkItemQuantities, highlightProblematicItems } from "./temporaryFixes";
+// import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
+// import { addInvoice } from "~/utils/indexeddb";
+// import OfflineTransactionReceiptPDF from "./pdfs/offlineprint";
+// import { checkItemQuantities, highlightProblematicItems } from "./temporaryFixes";
 import { useInventory, useItemDetails } from "~/hooks/useInventory";
 import { EnhancedPaymentSummary, useEnhancedPaymentCalculations } from "~/hawk-tuah/components/enhancedAmountInput";
 import { submit_direct_sale_request_enhanced } from "~/hawk-tuah/actions/enhancedSubmission";

@@ -136,7 +136,8 @@ export function formatItemsForSubmission(
             rate: item.rate,
             deposit: "",
             total: item.line_total.toFixed(2), // Line total using final price
-            price: item.final_price.toFixed(2), // Final discounted price
+            price: item.original_price.toFixed(2), // Price before discounts, I know, does the same as original_price but what do I know, you have to follow the rules!!
+            discounted_price: item.final_price.toFixed(2), // Final price after all discounts
             posBatchSelect: "",
             bottles_issued: "", // Will be filled from original item if needed
             bottles_returned: "", // Will be filled from original item if needed

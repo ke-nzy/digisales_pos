@@ -71,7 +71,7 @@ function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedRe
     // Process each item with enhanced details
     const enhancedItems = items.map(item => {
         const quantity = parseFloat(item.quantity);
-        const finalPrice = parseFloat(item.price);
+        const finalPrice = parseFloat(item.discounted_price || "0");
         const lineTotal = quantity * finalPrice;
         const totalDiscount = parseFloat(item.discount || "0");
         const tax = parseFloat(item.tax || "0");
@@ -151,6 +151,7 @@ const EnhancedTransactionReceiptPDF = ({
     const salesInfo = data[0];
     const payments: Payment[] = salesInfo.payments.length > 0 ? JSON.parse(salesInfo.payments) : [];
     const enhancedData = calculateEnhancedReceiptData(data);
+    console.log("Enhanced receipt data:", enhancedData);
 
     // EXACT SAME FUNCTION AS WORKING OLD CODE
     const generateDefaultQRCode = async (): Promise<string> => {
