@@ -328,12 +328,12 @@ const EnhancedTransactionReceiptPDF = ({
                     </View>
                 )}
                 <View style={styles.totalRow}>
-                    <Text style={styles.boldText}>Total (Inc. VAT):</Text>
-                    <Text style={styles.boldText}>{formatMoney(enhancedData.totals.grandTotal)}</Text>
-                </View>
-                <View style={styles.totalRow}>
                     <Text style={styles.bodyText}>VAT Amount (16%):</Text>
                     <Text style={styles.bodyText}>{formatMoney(enhancedData.totals.tax)}</Text>
+                </View>
+                <View style={styles.totalRow}>
+                    <Text style={styles.boldText}>Total (Inc. VAT):</Text>
+                    <Text style={styles.boldText}>{formatMoney(enhancedData.totals.grandTotal)}</Text>
                 </View>
             </View>
 

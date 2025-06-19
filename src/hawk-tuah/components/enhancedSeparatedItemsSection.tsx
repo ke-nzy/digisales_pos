@@ -3,6 +3,7 @@
  * Located at: hawk-tuah/components/enhancedSeparatedItemsSection.tsx
  * 
  * MINIMAL separation - just separates bags from other items
+ * NOW WITH quantity counts for each section
  * Uses EXACT original formatting and styling - no changes whatsoever
  */
 
@@ -36,7 +37,7 @@ interface EnhancedSeparatedItemsSectionProps {
 }
 
 /**
- * Component to render items separated by category - MINIMAL changes
+ * Component to render items separated by category with quantity counts
  * Just separates bags (CR0001, CR0002) from other items
  * Everything else stays EXACTLY the same as original
  */
@@ -49,94 +50,186 @@ export const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSecti
 
     /**
      * Separate items into bags and other items based on item IDs
+     * Also calculate total quantities for each section with error handling
      */
     const separateItems = () => {
-        const bags = items.filter(item => BAG_ITEM_IDS.includes(item.id));
-        const otherItems = items.filter(item => !BAG_ITEM_IDS.includes(item.id));
+        try {
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                return {
+                    bags: [],
+                    otherItems: [],
+                    bagsQuantity: 0,
+                    otherItemsQuantity: 0
+                };
+            }
 
-        return { bags, otherItems };
+            const bags = items.filter(item => BAG_ITEM_IDS.includes(item.id));
+            const otherItems = items.filter(item => !BAG_ITEM_IDS.includes(item.id));
+
+            // Calculate total quantities with error handling
+            const calculateTotalQuantity = (itemArray: EnhancedReceiptItem[]) => {
+                try {
+                    return itemArray.reduce((total, item) => {
+                        const quantity = typeof item.quantity === 'string'
+                            ? parseFloat(item.quantity)
+                            : item.quantity;
+
+                        // Handle invalid quantities
+                        if (isNaN(quantity) || quantity < 0) {
+                            console.warn(`Invalid quantity for item ${item.id}: ${item.quantity}`);
+                            return total;
+                        }
+
+                        return total + quantity;
+                    }, 0);
+                } catch (error) {
+                    console.error('Error calculating total quantity:', error);
+                    return 0;
+                }
+            };
+
+            const bagsQuantity = calculateTotalQuantity(bags);
+            const otherItemsQuantity = calculateTotalQuantity(otherItems);
+
+            return {
+                bags,
+                otherItems,
+                bagsQuantity,
+                otherItemsQuantity
+            };
+        } catch (error) {
+            console.error('Error separating items:', error);
+            return {
+                bags: [],
+                otherItems: [],
+                bagsQuantity: 0,
+                otherItemsQuantity: 0
+            };
+        }
     };
 
-    const { bags, otherItems } = separateItems();
+    const { bags, otherItems, bagsQuantity, otherItemsQuantity } = separateItems();
+
+    /**
+     * Render individual item with original formatting and error handling
+     */
+    const renderItem = (item: EnhancedReceiptItem, index: number) => {
+        try {
+            if (!item || !item.id) {
+                console.warn('Invalid item data:', item);
+                return null;
+            }
+
+            // Safe quantity parsing
+            const displayQuantity = (() => {
+                try {
+                    const qty = typeof item.quantity === 'string'
+                        ? parseFloat(item.quantity)
+                        : item.quantity;
+                    return isNaN(qty) ? 0 : qty;
+                } catch {
+                    return 0;
+                }
+            })();
+
+            // Safe price formatting
+            const safeFormatMoney = (value: number) => {
+                try {
+                    return formatMoney(isNaN(value) ? 0 : value);
+                } catch (error) {
+                    console.warn('Error formatting money:', error);
+                    return '0.00';
+                }
+            };
+
+            return (
+                <View key={item.id} style={styles.itemContainer}>
+                    <View style={styles.itemRow}>
+                        <Text style={styles.itemCode}>{index + 1}</Text>
+                        <Text style={styles.itemQty}>{displayQuantity}</Text>
+                        <Text style={styles.itemName}>{item.name || 'Unknown Item'}</Text>
+                        <Text style={styles.itemPrice}>{safeFormatMoney(item.finalPrice)}</Text>
+                    </View>
+
+                    {item.hasDiscount && item.totalDiscount > 0 && (
+                        <View style={styles.discountRow}>
+                            <Text style={styles.originalPriceText}>
+                                Original: {safeFormatMoney(item.originalPrice)}
+                            </Text>
+                            <Text style={styles.savingsText}>
+                                Saved: {safeFormatMoney(item.totalDiscount)}
+                            </Text>
+                        </View>
+                    )}
+
+                    <View style={styles.itemTotalRow}>
+                        <Text style={styles.itemTotal}>
+                            Total: {safeFormatMoney(item.lineTotal)}
+                        </Text>
+                    </View>
+                </View>
+            );
+        } catch (error) {
+            console.error('Error rendering item:', error, item);
+            return (
+                <View key={item?.id || `error-${index}`} style={styles.itemContainer}>
+                    <Text style={styles.errorText}>Error displaying item</Text>
+                </View>
+            );
+        }
+    };
 
     return (
         <View style={styles.container}>
             {/* Items Header - EXACT original */}
             <View style={styles.itemsHeader}>
-                <Text style={styles.headerText}>ITEM    QTY    DESCRIPTION            COST</Text>
+                <Text style={styles.headerText}>ITEM    QTY    DESCRIPTION              COST</Text>
             </View>
 
-            {/* Items List - EXACT original rendering */}
+            {/* Items List with total quantity counts */}
             <View style={styles.itemsList}>
-                {/* Other Items First */}
-                {otherItems.map((item, index) => (
-                    <View key={item.id} style={styles.itemContainer}>
-                        <View style={styles.itemRow}>
-                            <Text style={styles.itemCode}>{index + 1}</Text>
-                            <Text style={styles.itemQty}>{item.quantity}</Text>
-                            <Text style={styles.itemName}>{item.name}</Text>
-                            <Text style={styles.itemPrice}>{formatMoney(item.finalPrice)}</Text>
-                        </View>
-
-                        {item.hasDiscount && (
-                            <View style={styles.discountRow}>
-                                <Text style={styles.originalPriceText}>
-                                    Original: {formatMoney(item.originalPrice)}
-                                </Text>
-                                <Text style={styles.savingsText}>
-                                    Saved: {formatMoney(item.totalDiscount)}
-                                </Text>
-                            </View>
-                        )}
-
-                        <View style={styles.itemTotalRow}>
-                            <Text style={styles.itemTotal}>
-                                Total: {formatMoney(item.lineTotal)}
+                {/* Other Items Section */}
+                {otherItems.length > 0 && (
+                    <>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionHeaderText}>
+                                Items ({otherItemsQuantity} qty)
                             </Text>
                         </View>
-                    </View>
-                ))}
+                        {otherItems.map((item, index) => renderItem(item, index)).filter(Boolean)}
+                    </>
+                )}
 
-                {/* Simple separator if both sections exist */}
+                {/* Separator if both sections exist */}
                 {otherItems.length > 0 && bags.length > 0 && (
-                    <View style={styles.dottedLine} />
+                    <View style={styles.sectionSeparator} />
                 )}
 
                 {/* Bags Section */}
-                {bags.map((item, index) => (
-                    <View key={item.id} style={styles.itemContainer}>
-                        <View style={styles.itemRow}>
-                            <Text style={styles.itemCode}>{otherItems.length + index + 1}</Text>
-                            <Text style={styles.itemQty}>{item.quantity}</Text>
-                            <Text style={styles.itemName}>{item.name}</Text>
-                            <Text style={styles.itemPrice}>{formatMoney(item.finalPrice)}</Text>
-                        </View>
-
-                        {item.hasDiscount && (
-                            <View style={styles.discountRow}>
-                                <Text style={styles.originalPriceText}>
-                                    Original: {formatMoney(item.originalPrice)}
-                                </Text>
-                                <Text style={styles.savingsText}>
-                                    Saved: {formatMoney(item.totalDiscount)}
-                                </Text>
-                            </View>
-                        )}
-
-                        <View style={styles.itemTotalRow}>
-                            <Text style={styles.itemTotal}>
-                                Total: {formatMoney(item.lineTotal)}
+                {bags.length > 0 && (
+                    <>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionHeaderText}>
+                                Packaging ({bagsQuantity} qty)
                             </Text>
                         </View>
+                        {bags.map((item, index) => renderItem(item, otherItems.length + index)).filter(Boolean)}
+                    </>
+                )}
+
+                {/* Fallback if no items */}
+                {otherItems.length === 0 && bags.length === 0 && (
+                    <View style={styles.noItemsContainer}>
+                        <Text style={styles.noItemsText}>No items to display</Text>
                     </View>
-                ))}
+                )}
             </View>
         </View>
     );
 };
 
 /**
- * EXACT original styles - no changes at all
+ * EXACT original styles with minimal additions for section headers
  */
 const styles = StyleSheet.create({
     container: {
@@ -205,12 +298,39 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // Only ONE addition - simple dotted line separator
-    dottedLine: {
+    // NEW: Minimal section headers
+    sectionHeader: {
+        marginBottom: 3,
+        marginTop: 2,
+    },
+    sectionHeaderText: {
+        fontSize: 8,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+
+    // Enhanced separator for sections
+    sectionSeparator: {
         borderBottomWidth: 1,
         borderBottomColor: '#000',
         borderStyle: 'dotted',
-        marginVertical: 4,
+        marginVertical: 6,
+    },
+
+    // Error handling styles
+    errorText: {
+        fontSize: 8,
+        color: '#DC143C',
+        fontStyle: 'italic',
+    },
+    noItemsContainer: {
+        alignItems: 'center',
+        marginVertical: 10,
+    },
+    noItemsText: {
+        fontSize: 8,
+        color: '#666',
+        fontStyle: 'italic',
     },
 });
 
