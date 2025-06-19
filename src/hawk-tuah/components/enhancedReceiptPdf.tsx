@@ -249,7 +249,7 @@ const EnhancedTransactionReceiptPDF = ({
             <View style={styles.transactionInfo}>
                 <View style={styles.infoRow}>
                     <Text style={styles.bodyText}>Receipt #:</Text>
-                    <Text style={styles.bodyText}>{salesInfo.rcp_no}</Text>
+                    <Text style={styles.bodyText}>{salesInfo.id}</Text>
                 </View>
                 <View style={styles.infoRow}>
                     <Text style={styles.bodyText}>Date:</Text>
