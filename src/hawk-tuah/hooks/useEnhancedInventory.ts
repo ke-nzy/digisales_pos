@@ -1,8 +1,11 @@
 /**
  * Enhanced Inventory Hook - Integrates discount system with inventory
- * Located at: hawk-tuah/hooks/use-enhanced-inventory.ts
  * 
  * Provides enhanced inventory data with discount information
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import { useState, useEffect, useCallback } from 'react';

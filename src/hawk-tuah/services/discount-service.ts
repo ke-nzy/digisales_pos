@@ -1,12 +1,15 @@
 /**
  * Discount Service - Manages discount rules fetching and caching
- * Located at: hawk-tuah/services/discount-service.ts
  * 
  * Handles:
  * - Fetching discount rules from backend
  * - Periodic refresh during shift
  * - Caching for performance
  * - Error handling and fallbacks
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import axios from 'axios';

@@ -1,10 +1,12 @@
 /**
  * Complete Clean Receipt PDF with Duplicate Support
- * Located at: hawk-tuah/components/complete-clean-receipt-pdf.tsx
  * 
  * Clean receipt design with duplicate copy support and QR fallback
  * USING THE EXACT WORKING QR PATTERN FROM OLD CODE
- * Now with MINIMAL item separation - everything else EXACTLY the same
+ * 
+ * @author Kennedy Ngugi
+ * @date 19-06-2025
+ * @version 2.0.0
  */
 
 import React, { useState, useEffect } from "react";
@@ -17,7 +19,6 @@ import {
     StyleSheet,
 } from "@react-pdf/renderer";
 import QRCode from "qrcode";
-import { toast } from "sonner";
 import { formatMoney } from "../utils/formatters";
 import EnhancedSeparatedItemsSection from "./enhancedSeparatedItemsSection";
 

@@ -1,8 +1,11 @@
 /**
  * Enhanced Direct Sale Submission
- * Located at: hawk-tuah/actions/enhancedSubmission.ts
  * 
  * Modified submission function that uses final discounted prices
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import axios from 'axios';

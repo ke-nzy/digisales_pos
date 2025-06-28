@@ -1,8 +1,11 @@
 /**
  * Enhanced Total Summary - Shows detailed discount breakdown
- * Located at: hawk-tuah/components/discountCalculator.tsx
  * 
  * Replaces the existing TotalSummary with enhanced discount display
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import React from "react";
@@ -27,7 +30,7 @@ import { formatMoney } from "../utils/formatters";
 const EnhancedTotalSummary = () => {
     const { currentCart } = useCartStore();
 
-    if (!currentCart || !currentCart.items || currentCart.items.length === 0) {
+    if (!currentCart || currentCart.items.length === 0) {
         return null;
     }
 
@@ -38,12 +41,6 @@ const EnhancedTotalSummary = () => {
     return (
         <div className="sticky bottom-0 left-0 right-0 mt-6 flex-col border-0 px-6 text-sm text-card-foreground">
             <ul className="grid gap-2 sm:justify-end md:items-end">
-
-                {/* Subtotal */}
-                <li className="flex flex-row items-center justify-between gap-8">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="text-right">{formatMoney(calculations.subtotal)}</span>
-                </li>
 
                 {/* Item Discounts */}
                 {calculations.totalItemDiscounts > 0 && (
@@ -74,6 +71,12 @@ const EnhancedTotalSummary = () => {
                         </span>
                     </li>
                 )}
+
+                {/* Subtotal */}
+                <li className="flex flex-row items-center justify-between gap-8">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-right">{formatMoney(calculations.subtotal)}</span>
+                </li>
 
                 {/* Bulk Discount */}
                 {calculations.bulkDiscount.bulk_discount_amount > 0 && (

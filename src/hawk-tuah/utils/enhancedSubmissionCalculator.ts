@@ -1,8 +1,11 @@
 /**
  * Enhanced Submission Calculator
- * Located at: hawk-tuah/utils/enhancedSubmissionCalculator.ts
  * 
  * Calculates final prices for backend submission including all discounts
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import { calculateEnhancedCartTotals } from "./discountCalculator";

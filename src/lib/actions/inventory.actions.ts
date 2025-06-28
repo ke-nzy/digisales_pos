@@ -1,6 +1,21 @@
 // Get All Sellable Items
 
 import axios from "axios";
+import { EnhancedPriceList } from "~/hawk-tuah/types/discount-types";
+
+export interface EnhancedInventoryResponse {
+  items: EnhancedPriceList[];
+  statistics: {
+    total_items: number;
+    items_with_approved_discount: number;
+    total_discount_amount: number;
+    carrier_bags_excluded: number;
+    approved_discounts_applied: number;
+  };
+  timestamp: string;
+  branch_code: string;
+  approval_filter: string;
+}
 
 export async function fetch_all_sellable_items(
   site_company: SiteCompany,
@@ -38,7 +53,7 @@ export async function fetch_all_item_inventory(
   site_company: SiteCompany,
   site_url: string,
   account: UserAccountInfo,
-) {
+): Promise<EnhancedInventoryResponse | null> {
   const form_data = new FormData();
   form_data.append("tp", "loadItemsAllWithPriceAndBalance");
   form_data.append("cp", site_company.company_prefix);
@@ -47,7 +62,7 @@ export async function fetch_all_item_inventory(
   form_data.append("type", "Sales");
 
   try {
-    const response = await axios.postForm<PriceList[]>(
+    const response = await axios.postForm<EnhancedInventoryResponse>(
       `${site_url}process.php`,
       form_data,
     );
@@ -55,8 +70,7 @@ export async function fetch_all_item_inventory(
 
     if ((response as unknown as string) === "") {
       console.error("tp: loadItemsAll failed");
-      //    Add sentry here
-      return [];
+      return null; // Fix: Return null instead of [] for consistency with return type
     }
     return response.data;
   } catch (error) {

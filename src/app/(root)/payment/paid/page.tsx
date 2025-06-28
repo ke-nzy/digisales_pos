@@ -2,19 +2,327 @@
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import { fetch_pos_transactions_report } from "~/lib/actions/user.actions";
-
 import { useAuthStore } from "~/store/auth-store";
 import { toDate } from "~/lib/utils";
 import { pdf } from "@react-pdf/renderer";
 import { toast } from "sonner";
 import { Separator } from "~/components/ui/separator";
-import { Banknote, PrinterIcon, ShoppingCartIcon } from "lucide-react";
-import { Card, CardHeader } from "~/components/ui/card";
+import {
+  Banknote,
+  Printer,
+  ShoppingCart,
+  CheckCircle2,
+  Receipt,
+  AlertCircle,
+  TrendingDown,
+  Tag,
+  Percent
+} from "lucide-react";
+import { Card, CardHeader, CardContent } from "~/components/ui/card";
 import { useRouter } from "next/navigation";
 import { usePayStore } from "~/store/pay-store";
 import EnhancedTransactionReceiptPDF from "~/hawk-tuah/components/enhancedReceiptPdf";
+import { formatMoney } from "~/hawk-tuah/utils/formatters";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 
-// Transform TransactionReportItem to SalesReceiptInformation format
+/**
+ * Enhanced Transaction Summary Hook - Uses actual transaction data for 100% accuracy
+ */
+const useTransactionSummary = (trans: TransactionReportItem | null) => {
+  const [summary, setSummary] = useState({
+    items: [] as TransactionInvItem[],
+    payments: [] as Payment[],
+    originalSubtotal: 0,
+    subtotalAfterItemDiscounts: 0,
+    automaticDiscounts: 0,
+    manualDiscounts: 0,
+    bulkDiscountAmount: 0,
+    finalTotal: 0,
+    totalSavings: 0,
+    quantity: 0,
+    totalPaid: 0,
+    change: 0,
+    vatAmount: 0,
+    isValid: false,
+    error: null as string | null
+  });
+
+  useEffect(() => {
+    if (!trans) {
+      setSummary(prev => ({ ...prev, isValid: false, error: "No transaction data available" }));
+      return;
+    }
+
+    try {
+      // Parse transaction items and payments safely
+      const items: TransactionInvItem[] = trans.pitems ? JSON.parse(trans.pitems) : [];
+      const payments: Payment[] = trans.payments ? JSON.parse(trans.payments) : [];
+      console.log("payments response: ", payments);
+
+      // Calculate original subtotal (before any discounts)
+      const originalSubtotal = items.reduce((acc, item) => {
+        const originalPrice = parseFloat(item.original_price || item.price || "0");
+        const quantity = parseInt(item.quantity || "0");
+        return acc + (originalPrice * quantity);
+      }, 0);
+
+      const quantity = items.reduce((acc, item) => acc + parseInt(item.quantity || "0"), 0);
+
+      // Parse discount summary from the actual transaction data
+      let subtotalAfterItemDiscounts = 0;
+      let automaticDiscounts = 0;
+      let manualDiscounts = 0;
+      let bulkDiscountAmount = 0;
+      let finalTotal = 0;
+
+      if (trans.discount_summary) {
+        try {
+          const discountSummary = JSON.parse(trans.discount_summary);
+          subtotalAfterItemDiscounts = parseFloat(discountSummary.subtotal || "0");
+          automaticDiscounts = parseFloat(discountSummary.automatic_discounts || "0");
+          manualDiscounts = parseFloat(discountSummary.manual_discounts || "0");
+          bulkDiscountAmount = parseFloat(discountSummary.bulk_discount || "0");
+          finalTotal = parseFloat(discountSummary.final_total || trans.ptotal || "0");
+        } catch (discountError) {
+          console.warn("Could not parse discount summary, calculating from items");
+          // Fallback to item-level calculation
+          subtotalAfterItemDiscounts = items.reduce((acc, item) => {
+            const discountedPrice = parseFloat(item.discounted_price || item.price || "0");
+            const quantity = parseInt(item.quantity || "0");
+            return acc + (discountedPrice * quantity);
+          }, 0);
+
+          automaticDiscounts = items.reduce((acc, item) => {
+            return acc + parseFloat(item.automatic_discount || "0");
+          }, 0);
+
+          manualDiscounts = items.reduce((acc, item) => {
+            return acc + parseFloat(item.manual_discount || "0");
+          }, 0);
+
+          finalTotal = parseFloat(trans.ptotal || "0");
+          bulkDiscountAmount = subtotalAfterItemDiscounts - finalTotal - manualDiscounts;
+        }
+      } else {
+        // Complete fallback calculation
+        subtotalAfterItemDiscounts = items.reduce((acc, item) => {
+          const total = parseFloat(item.total || "0");
+          return acc + total;
+        }, 0);
+        finalTotal = parseFloat(trans.ptotal || "0");
+      }
+
+      const totalSavings = automaticDiscounts + manualDiscounts + bulkDiscountAmount;
+
+      const change = payments.length > 0 ? parseFloat(payments[0].balance || "0") : 0;
+      const totalPaid = finalTotal + change; // Caveman math: what they paid = cost + change....no judgement here punk!
+      const vatAmount = parseFloat(trans.vat_amount || "0");
+
+      setSummary({
+        items,
+        payments,
+        originalSubtotal,
+        subtotalAfterItemDiscounts,
+        automaticDiscounts,
+        manualDiscounts,
+        bulkDiscountAmount,
+        finalTotal,
+        totalSavings,
+        quantity,
+        totalPaid,
+        change,
+        vatAmount,
+        isValid: true,
+        error: null
+      });
+
+    } catch (error) {
+      console.error("Error parsing transaction data:", error);
+      setSummary(prev => ({
+        ...prev,
+        isValid: false,
+        error: "Failed to parse transaction data"
+      }));
+    }
+  }, [trans]);
+
+  return summary;
+};
+
+/**
+ * Enhanced Transaction Summary Component - Uses component theming (CSS variables)
+ */
+const EnhancedTransactionSummary = ({ summary }: { summary: ReturnType<typeof useTransactionSummary> }) => {
+  if (!summary.isValid) {
+    return (
+      <Alert className="border-destructive/50 text-destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          {summary.error || "Unable to load transaction summary"}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Items List */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <Receipt className="h-4 w-4" />
+          Items ({summary.quantity})
+        </h3>
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {summary.items.map((item, index) => (
+            <Card key={item.item_option_id || index} className="p-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm font-medium leading-tight">
+                    {item.item_option}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <span>{item.quantity} × {formatMoney(parseFloat(item.original_price || item.price))}</span>
+                    {parseFloat(item.automatic_discount || "0") > 0 && (
+                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Tag className="h-3 w-3" />
+                        -{formatMoney(parseFloat(item.automatic_discount))}
+                      </span>
+                    )}
+                    {parseFloat(item.manual_discount || "0") > 0 && (
+                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                        Manual: -{formatMoney(parseFloat(item.manual_discount))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  {parseFloat(item.original_price || item.price) !== parseFloat(item.discounted_price || item.price) ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground line-through">
+                        {formatMoney(parseFloat(item.original_price || item.price) * parseInt(item.quantity))}
+                      </p>
+                      <p className="text-sm font-semibold text-green-600">
+                        {formatMoney(parseFloat(item.total || "0"))}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold">
+                      {formatMoney(parseFloat(item.total || "0"))}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Payment Breakdown */}
+      <div className="space-y-3">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Original Subtotal</span>
+          <span className="font-medium">{formatMoney(summary.originalSubtotal)}</span>
+        </div>
+
+        {/* Discount Breakdown */}
+        {summary.totalSavings > 0 && (
+          <Card className="dark:bg-gradient-to-b from-green-50 to-green-100 bg-gradient-to-b border-green-200">
+            <CardContent className="p-3 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-green-800">
+                <TrendingDown className="h-4 w-4" />
+                Discounts Applied
+              </div>
+
+              {summary.automaticDiscounts > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-green-700 flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
+                    Item Discounts
+                  </span>
+                  <span className="text-green-700 font-medium">-{formatMoney(summary.automaticDiscounts)}</span>
+                </div>
+              )}
+
+              {summary.manualDiscounts > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-green-700 flex items-center gap-1">
+                    <Percent className="h-3 w-3" />
+                    Manual Discounts
+                  </span>
+                  <span className="text-green-700 font-medium">-{formatMoney(summary.manualDiscounts)}</span>
+                </div>
+              )}
+
+              {summary.bulkDiscountAmount > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-green-700 flex items-center gap-1">
+                    <TrendingDown className="h-3 w-3" />
+                    Bulk Discount
+                  </span>
+                  <span className="text-green-700 font-medium">-{formatMoney(summary.bulkDiscountAmount)}</span>
+                </div>
+              )}
+
+              <Separator className="bg-green-200" />
+              <div className="flex justify-between text-sm font-semibold text-green-800">
+                <span>Total Savings</span>
+                <span>{formatMoney(summary.totalSavings)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Subtotal after discounts */}
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Subtotal</span>
+          <span className="font-medium">{formatMoney(summary.subtotalAfterItemDiscounts)}</span>
+        </div>
+
+        {/* VAT */}
+        {summary.vatAmount > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">VAT</span>
+            <span className="font-medium">{formatMoney(summary.vatAmount)}</span>
+          </div>
+        )}
+
+        {/* Final Total */}
+        <Card className="bg-primary dark:bg-gradient-to-b from-green-50 to-green-100 text-primary-foreground">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-semibold">Total</span>
+              <span className="text-2xl font-bold">{formatMoney(summary.finalTotal)}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Payment Methods */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">Payment Methods</h4>
+          {summary.payments.map((payment, index) => (
+            <Card key={payment.TransTime || index} className="bg-blue-50 dark:bg-gradient-to-b from-green-50 to-green-100 border-blue-200">
+              <CardContent className="p-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-blue-700">{payment.Transtype}</span>
+                  <span className="font-medium text-blue-900">{formatMoney(parseFloat(payment.TransAmount))}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          <div className="flex justify-between text-sm font-semibold pt-2 border-t">
+            <span className="text-muted-foreground">Total Paid</span>
+            <span>{formatMoney(summary.totalPaid)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Transform function (keeping your existing logic)
 const transformToReceiptFormat = (trans: TransactionReportItem): SalesReceiptInformation => {
   return {
     "0": {
@@ -61,74 +369,82 @@ const transformToReceiptFormat = (trans: TransactionReportItem): SalesReceiptInf
   };
 };
 
-const Paid = () => {
+const EnhancedPaid = () => {
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { site_company, site_url, account, receipt_info } = useAuthStore();
   const { paidStatus, setPaidStatus } = usePayStore();
-  const [trans, setTrans] = React.useState<
-    TransactionReportItem | null | undefined
-  >(null);
-  const tr = localStorage.getItem("transaction_history");
-  const transaction = tr ? JSON.parse(tr) : null;
+  const [trans, setTrans] = useState<TransactionReportItem | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const router = useRouter();
-  const handleFetchLatestTransaction = async () => {
-    console.log("handleFetchLatestTransaction");
+  const summary = useTransactionSummary(trans);
+  // console.log("Transaction Summary:", summary);
 
-    const pos_transactions_report = await fetch_pos_transactions_report(
-      site_company!,
-      account!,
-      site_url!,
-      toDate(new Date()),
-      toDate(new Date()),
-    );
-    if (!pos_transactions_report) {
-      setTrans(null);
-      return null;
-    } else {
-      setTrans(pos_transactions_report[0]);
-      return pos_transactions_report[0];
-    }
-  };
-
-  console.log("Transaction history data: ", trans);
-
-  const parseTransactionDetails = (trans: TransactionReportItem | null | undefined): Payment[] => {
+  // Get transaction from localStorage as fallback
+  const getStoredTransaction = (): TransactionReportItem | null => {
     try {
-      if (!trans?.payments) {
-        return [];
-      }
-
-      const payments = JSON.parse(trans.payments) as Payment[];
-      return Array.isArray(payments) ? payments : [];
+      const tr = localStorage.getItem("transaction_history");
+      return tr ? JSON.parse(tr) : null;
     } catch (error) {
-      console.error('Error parsing transaction payments:', error);
-      return [];
+      console.error("Error parsing stored transaction:", error);
+      return null;
     }
   };
 
-  const transactionDetails = parseTransactionDetails(trans);
+  const storedTransaction = getStoredTransaction();
 
-  // console.log("Transaction details: ", transactionDetails);
+  const handleFetchLatestTransaction = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
+      const pos_transactions_report = await fetch_pos_transactions_report(
+        site_company!,
+        account!,
+        site_url!,
+        toDate(new Date()),
+        toDate(new Date()),
+      );
+
+      if (!pos_transactions_report || pos_transactions_report.length === 0) {
+        // Fallback to stored transaction
+        const stored = getStoredTransaction();
+        if (stored) {
+          setTrans(stored);
+        } else {
+          setError("No transaction data available");
+        }
+      } else {
+        setTrans(pos_transactions_report[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+      setError("Failed to load transaction data");
+
+      // Fallback to stored transaction
+      const stored = getStoredTransaction();
+      if (stored) {
+        setTrans(stored);
+        setError(null);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handlePrint = async (data: TransactionReportItem | SalesReceiptInformation) => {
     try {
-      console.log("handlePrint", data);
-
-      // If we're navigating away, save the print data and return
       if (isNavigating) {
         localStorage.setItem('pending_print', JSON.stringify(data));
         window.location.href = '/';
         return;
       }
 
-      // Transform data to correct format if needed
       let receiptData: SalesReceiptInformation;
       if ('0' in data) {
-        // Already in correct format (from localStorage)
         receiptData = data as SalesReceiptInformation;
       } else {
-        // Transform API data to correct format
         receiptData = transformToReceiptFormat(data as TransactionReportItem);
       }
 
@@ -152,7 +468,6 @@ const Paid = () => {
             if (document.body.contains(iframe)) {
               document.body.removeChild(iframe);
               URL.revokeObjectURL(url);
-              console.log("Print cleanup completed");
             }
           };
 
@@ -168,7 +483,6 @@ const Paid = () => {
 
             const printTimeout = setTimeout(() => {
               cleanup();
-              console.log("Print preview closed after timeout");
             }, 60000);
 
             iframe.contentWindow!.onafterprint = () => {
@@ -191,254 +505,217 @@ const Paid = () => {
     }
   };
 
-  // Add this effect to handle pending prints
+  const handleNewSale = () => {
+    setIsNavigating(true);
+    setPaidStatus(false);
+    window.location.href = '/';
+  };
+
+  const triggerPrint = async () => {
+    try {
+      if (isNavigating) {
+        const printData = storedTransaction || trans;
+        if (printData) {
+          localStorage.setItem('pending_print', JSON.stringify(printData));
+          window.location.href = '/';
+        }
+        return;
+      }
+
+      if (storedTransaction) {
+        await handlePrint(storedTransaction);
+      } else if (trans) {
+        await handlePrint(trans);
+      } else {
+        toast.error("No transaction data available for printing");
+      }
+    } catch (error) {
+      toast.error("Failed to print receipt");
+    }
+  };
+
+  // Handle pending prints
   useEffect(() => {
     const pendingPrint = localStorage.getItem('pending_print');
     if (pendingPrint) {
       try {
-        // Parse and cast as TransactionReportItem
-        const printData = JSON.parse(pendingPrint) as TransactionReportItem;
-
-        // Optional: Validate the structure of printData if necessary
-        if (isValidTransactionReportItem(printData)) {
-          handlePrint(printData).catch(console.error);
-        } else {
-          console.error("Invalid data structure for TransactionReportItem:", printData);
-        }
+        const printData = JSON.parse(pendingPrint);
+        handlePrint(printData).catch(console.error);
       } catch (error) {
         console.error("Error parsing pending print data:", error);
       } finally {
-        // Clear pending print from localStorage
         localStorage.removeItem('pending_print');
       }
     }
   }, []);
 
-  // Helper function to validate the TransactionReportItem structure
-  function isValidTransactionReportItem(data: any): data is TransactionReportItem {
-    return (
-      data && typeof data === 'object' &&
-      'property1' in data && // Replace with actual properties of TransactionReportItem
-      'property2' in data // Continue adding property checks as needed
-    );
-  }
-  // Run once on component mount
-
-  // Update your navigation handler
-  const handleNewSale = () => {
-    setIsNavigating(true);
-    setPaidStatus(false);
-    window.location.href = '/'; // Use window.location instead of router.push
-  };
-
-  // Update your Card click handler
-  const triggerPrint = async () => {
-    console.log("triggerPrint");
-    if (isNavigating) {
-      const printData = transaction || trans;
-      if (printData) {
-        localStorage.setItem('pending_print', JSON.stringify(printData));
-        window.location.href = '/';
-      }
-      return;
-    }
-
-    // Prefer localStorage data (already in correct format)
-    if (transaction) {
-      await handlePrint(transaction);
-    } else if (trans) {
-      await handlePrint(trans);
-    }
-  };
-
+  // Fetch transaction on mount
   useEffect(() => {
-    handleFetchLatestTransaction().catch((error) => {
-      console.error("Failed to fetch transactions:", error);
-      toast.error("Failed to fetch transactions");
-    });
+    handleFetchLatestTransaction();
   }, []);
 
-  useEffect(() => {
-    // if (paidStatus) {
-    //   setTimeout(() => {
-    //     setPaidStatus(false);
-    //     router.push("/");
-    //   }, 10000);
-    // }
-    // if (!paidStatus) {
-    //   router.push("/");
-    // }
-    console.log("paidStatus", paidStatus);
-  }, [paidStatus]);
-
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "n" || event.key === "N") {
-        console.log("keydown", "n");
-
-        event.preventDefault(); // Optional: Prevents the default browser action for F1
-        setPaidStatus(false);
-        router.push("/");
+        event.preventDefault();
+        handleNewSale();
       }
       if (event.key === "p" || event.key === "P") {
-        console.log("keydown", "p");
+        event.preventDefault();
         void triggerPrint();
       }
     };
 
-    // window.addEventListener("keypress", () => console.log("keypress"));
-    // window.addEventListener("keyup", () => console.log("keyup"));
-    // window.addEventListener("keydown", () => console.log("keydown"));
-
     window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [trans, storedTransaction]);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  if (isLoading) {
+    return (
+      <DashboardLayout title="Payment Received">
+        <main className="flex min-h-[100vh] flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading transaction details...</p>
+            </div>
+          </div>
+        </main>
+      </DashboardLayout>
+    );
+  }
 
-  const items: TransactionInvItem[] = JSON.parse(trans?.pitems || "[]");
-  const payments: Payment[] = JSON.parse(trans?.payments || "[]");
-  const discount = items.reduce((acc, item) => {
-    return acc + parseInt(item.discount || "0");
-  }, 0);
-  const quantity = items.reduce((acc, item) => {
-    return acc + parseInt(item.quantity || "0");
-  }, 0);
-  const paid = payments.reduce((acc, pymnt) => {
-    return acc + Number(pymnt.TransAmount);
-  }, 0);
-  const balance = payments.reduce((acc, pymnt) => {
-    return acc + Number(pymnt.balance || 0);
-  }, 0);
   return (
-    <DashboardLayout title={"Payment Received"}>
-      <div className="flex h-full gap-12 max-lg:gap-4 max-sm:flex-col">
-        <div className="border border-zinc-400 sm:sticky sm:top-0 sm:h-screen sm:min-w-[300px] lg:min-w-[370px]">
-          <div className="relative h-full">
-            <div className="no-scrollbar px-4 py-8 sm:h-[calc(100vh-60px)] sm:overflow-auto">
-              <div className="space-y-2">
-                {items.length > 0 &&
-                  items.map((x) => (
-                    <div
-                      key={x.item_option_id}
-                      className=" flex flex-col items-start gap-1"
-                    >
-                      <p className="text-xs">{x.item_option}</p>
-                      <span className="flex flex-row items-center justify-between space-x-4 text-xs font-bold">
-                        <p>
-                          {x.quantity} x KES {x.price}
-                        </p>
-                        <p>
-                          KES{" "}
-                          {(parseInt(x.quantity) * parseFloat(x.price)).toFixed(
-                            2,
-                          )}
-                        </p>
-                      </span>
-                    </div>
-                  ))}
+    <DashboardLayout title="Payment Received">
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
+
+          {/* Left Column - Transaction Summary */}
+          <Card className="h-full">
+            <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 dark:bg-background text-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Transaction Summary</h2>
+                <CheckCircle2 className="h-6 w-6" />
               </div>
-            </div>
-          </div>
-          <div className=" w-full bg-white p-4 md:absolute md:bottom-0 md:left-0">
-            <span className="flex flex-row flex-wrap items-center justify-between space-x-4 text-sm font-bold">
-              <p>SubTotal</p>
-              <p>{trans?.ptotal}</p>
-            </span>
-            <span className="flex flex-row flex-wrap items-center justify-between space-x-4 text-sm font-bold">
-              <p>Discount</p>
-              <p>{discount}</p>
-            </span>
-            <span className="flex flex-row flex-wrap items-center justify-between space-x-4 text-sm font-bold">
-              <p>Item Count</p>
-              <p>{quantity}</p>
-            </span>
-            <div className="my-2 rounded-lg border border-dashed border-zinc-400 " />
-            <span className="flex flex-row flex-wrap items-center justify-between space-x-4 text-sm font-bold">
-              <p>Total</p>
-              <p>{trans?.ptotal}</p>
-            </span>
-            <p className="text-sm text-muted-foreground">Paid </p>
-            <Separator />
+              {trans && (
+                <div className="space-y-1 text-gray-100">
+                  <p className="text-sm">Receipt #{trans.rcp_no}</p>
+                  <p className="text-xs">{trans.pdate} • {trans.branch_name}</p>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent className="p-6">
+              <EnhancedTransactionSummary summary={summary} />
+            </CardContent>
+          </Card>
 
-            {payments.length > 0 &&
-              payments.map((x) => (
-                <span
-                  key={x.TransTime}
-                  className="flex flex-row flex-wrap  items-center justify-between space-x-4  text-xs font-bold"
-                >
-                  <p>{x.Transtype}</p>
-                  <p>{x.TransAmount}</p>
-                </span>
-              ))}
+          {/* Right Column - Actions & Change */}
+          <div className="space-y-6">
 
-            <Separator />
-            <span className="flex flex-row items-center justify-between space-x-4 text-sm font-bold">
-              <p>Total Paid</p>
-              <p>KES {paid}</p>
-            </span>
+            {/* Change Display */}
+            <Card>
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+                    <Banknote className="h-10 w-10 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">
+                    Change Due
+                  </h3>
+                  <p className="text-4xl font-bold text-green-600 mb-6">
+                    {formatMoney(summary.change)}
+                  </p>
+                  <Card className="bg-muted">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Total Paid</p>
+                          <p className="font-semibold">{formatMoney(summary.totalPaid)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Amount Due</p>
+                          <p className="font-semibold">{formatMoney(summary.finalTotal)}</p>
+                        </div>
+                      </div>
+                      {summary.totalSavings > 0 && (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <TrendingDown className="h-4 w-4" />
+                              Customer Saved
+                            </span>
+                            <span className="text-lg font-bold text-green-600">
+                              {formatMoney(summary.totalSavings)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Cards */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4 text-center">
+                  What would you like to do next?
+                </h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Card
+                    className="cursor-pointer hover:bg-accent transition-all duration-200 hover:scale-105 hover:shadow-md border-2 hover:border-primary/20"
+                    onClick={() => triggerPrint()}
+                  >
+                    <CardContent className="p-6 text-center">
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="bg-blue-100 p-3 rounded-full">
+                          <Printer className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Reprint Receipt</h4>
+                          <p className="text-sm text-muted-foreground">Press P</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card
+                    className="cursor-pointer hover:bg-accent transition-all duration-200 hover:scale-105 hover:shadow-md border-2 hover:border-primary/20"
+                    onClick={handleNewSale}
+                  >
+                    <CardContent className="p-6 text-center">
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="bg-green-100 p-3 rounded-full">
+                          <ShoppingCart className="h-8 w-8 text-green-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">New Sale</h4>
+                          <p className="text-sm text-muted-foreground">Press N</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Error Display */}
+            {error && (
+              <Alert className="border-destructive/50 text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </div>
-        <div className="sticky top-0 h-max w-full max-w-4xl rounded-md px-4 py-8">
-          <div className="flex flex-col items-start justify-center  py-4">
-            <p className=" p-2 font-light">Action</p>
-            <Separator />
-          </div>
-          <div className="flex h-full flex-col items-start justify-between p-6">
-            <div className="flex min-h-56 w-full flex-row items-center justify-center">
-              <span>
-                <Banknote className=" h-16 w-16 text-black" />
-              </span>
-              <span className="ml-2 flex flex-row text-lg  font-medium">
-                Change:
-                <p className="text-xl font-semibold text-green-700">
-                  KES {transactionDetails[0]?.balance || "0"}
-                </p>
-              </span>
-            </div>
-            <div className="w-full flex-grow flex-col items-center justify-between p-6">
-              <h6 className="text-center text-xl font-light">
-                Would you like to print this receipt again?
-              </h6>
-              {/* <div className="flex flex-row justify-center space-x-3  p-4">
-                <Button>Reprint</Button>
-                <Button>New Sale</Button>
-              </div> */}
-              <div className="grid w-full max-w-6xl gap-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
-                <Card
-                  className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-                  onClick={() => triggerPrint()}
-                >
-                  <CardHeader className="flex-col items-center justify-center p-2 ">
-                    <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">
-                      P
-                    </h6>
-                    <PrinterIcon className="h-8 w-8 " />
-                    <h4 className="text-center text-sm font-normal">Reprint</h4>
-                  </CardHeader>
-                </Card>
-                <Card
-                  className="cursor-pointer rounded-none hover:bg-accent focus:bg-accent"
-                  onClick={handleNewSale}
-                >
-                  <CardHeader className="flex-col items-center justify-center  p-2 ">
-                    <h6 className="self-start text-left text-sm font-semibold text-muted-foreground">
-                      N
-                    </h6>
-                    <ShoppingCartIcon className="h-8 w-8 " />
-                    <h4 className="text-center text-sm font-normal">
-                      New Sale
-                    </h4>
-                  </CardHeader>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </DashboardLayout>
   );
 };
 
-export default Paid;
+export default EnhancedPaid;

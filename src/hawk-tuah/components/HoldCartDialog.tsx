@@ -1,3 +1,11 @@
+/** 
+ * @author Kennedy Ngugi
+ * @date 26-11-2024 // Date might be fake, cannot remember the exact date uwu!
+ * @description Dialog component for holding a cart with authentication and reason selection
+ * @version 1.0.0
+ *
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog';

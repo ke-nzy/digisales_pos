@@ -1,3 +1,9 @@
+/**
+ * @author Kennedy Ngugi
+ * @date 15-06-2025 // Date might be fake, cannot remember the exact date uwu!
+ * 
+ */
+
 export function formatMoney(amount: number | string, currency = 'KES'): string {
     const value = typeof amount === 'string' ? parseFloat(amount) : amount;
 

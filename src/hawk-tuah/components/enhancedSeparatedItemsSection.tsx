@@ -1,10 +1,12 @@
 /**
  * Enhanced Separated Items Section Component
- * Located at: hawk-tuah/components/enhancedSeparatedItemsSection.tsx
  * 
  * MINIMAL separation - just separates bags from other items
  * NOW WITH quantity counts for each section
- * Uses EXACT original formatting and styling - no changes whatsoever
+ * 
+ * @author Kennedy Ngugi
+ * @date 19-06-2025
+ * @version 2.0.0
  */
 
 import React from "react";

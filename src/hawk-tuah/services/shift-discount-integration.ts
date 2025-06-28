@@ -1,8 +1,11 @@
 /**
  * Shift-Discount Integration Service
- * Located at: hawk-tuah/services/shift-discount-integration.ts
  * 
  * Integrates discount service with existing shift management
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import { discountService } from './discount-service';

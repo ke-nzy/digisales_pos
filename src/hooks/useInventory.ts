@@ -42,7 +42,11 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
 
   // Store both for different use cases
   await setInventory("inventory", sellable || []);
-  await setPriceList("priceList", enhancedInventory || []); // Now has discount data
+  
+  // console.log('enhancedInventory type:', typeof enhancedInventory);
+  // console.log('enhancedInventory value:', enhancedInventory);
+  console.log('Is array?', Array.isArray(enhancedInventory));
+  await setPriceList("priceList", enhancedInventory?.items || []); // (KENZY) extracts the item array from the response, should now work correctly, bloody hell! (27-06-2025)
   await setMetadata("metadata", now.toISOString());
 
   list = sellable || [];
@@ -86,7 +90,7 @@ export const fetchItemDetails = async (stock_id?: string, kit?: string, forceRef
       const item_inventory = await fetch_all_item_inventory(site_company!, site_url!, account!);
 
       await setInventory("inventory", sellable || []);
-      await setPriceList("priceList", item_inventory || []);
+      await setPriceList("priceList", item_inventory?.items || []); 
       await setMetadata("metadata", now.toISOString());
 
       details = item_details;
@@ -125,7 +129,6 @@ export const useInventory = () => {
     queryFn: fetchInventoryData,
   });
 
-  // Log the final inventory data, loading state, and any errors
   // console.log("Inventory Data:", data);
   console.log("Is Loading:", isLoading);
   console.log("Error:", error);

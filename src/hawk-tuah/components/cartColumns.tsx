@@ -1,8 +1,11 @@
 /**
  * Enhanced Cart Columns - Shows discounts transparently
- * Located at: hawk-tuah/components/cartColumns.tsx
  * 
  * Replaces the existing cartColumns with enhanced discount display
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import React from "react";

@@ -1,8 +1,11 @@
 /**
  * Enhanced Amount Input - Integrates discount system with payment processing
- * Located at: hawk-tuah/components/discountCalculator.tsx
  * 
  * This replaces the payment calculations in your existing AmountInput component
+ * 
+ * @author Kennedy Ngugi
+ * @date 15-06-2025
+ * @version 1.0.0
  */
 
 import { useCartStore } from "~/store/cart-store";
