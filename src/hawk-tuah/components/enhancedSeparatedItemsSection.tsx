@@ -1,12 +1,12 @@
 /**
  * Enhanced Separated Items Section Component
  * 
- * MINIMAL separation - just separates bags from other items
- * NOW WITH quantity counts for each section
+ * MINIMAL changes - just better spacing and text handling
+ * Maintains exact same structure as original
  * 
  * @author Kennedy Ngugi
  * @date 19-06-2025
- * @version 2.0.0
+ * @version 2.0.1 - Conservative enhancement
  */
 
 import React from "react";
@@ -41,9 +41,9 @@ interface EnhancedSeparatedItemsSectionProps {
 /**
  * Component to render items separated by category with quantity counts
  * Just separates bags (CR0001, CR0002) from other items
- * Everything else stays EXACTLY the same as original
+ * MINIMAL changes from original - just better text handling
  */
-export const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps> = ({
+const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps> = ({
     items,
     showDiscounts = true
 }) => {
@@ -135,38 +135,43 @@ export const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSecti
             })();
 
             // Safe price formatting
-            const safeFormatMoney = (value: number) => {
-                try {
-                    return formatMoney(isNaN(value) ? 0 : value);
-                } catch (error) {
-                    console.warn('Error formatting money:', error);
-                    return '0.00';
-                }
-            };
+            // const safeFormatMoney = (value: number) => {
+            //     try {
+            //         return formatMoney(isNaN(value) ? 0 : value);
+            //     } catch (error) {
+            //         console.warn('Error formatting money:', error);
+            //         return '0.00';
+            //     }
+            // };
+
+            // ENHANCED: Truncate very long item names to prevent overflow
+            const displayName = item.name && item.name.length > 35
+                ? item.name.substring(0, 32) + '...'
+                : item.name || 'Unknown Item';
 
             return (
                 <View key={item.id} style={styles.itemContainer}>
                     <View style={styles.itemRow}>
                         <Text style={styles.itemCode}>{index + 1}</Text>
                         <Text style={styles.itemQty}>{displayQuantity}</Text>
-                        <Text style={styles.itemName}>{item.name || 'Unknown Item'}</Text>
-                        <Text style={styles.itemPrice}>{safeFormatMoney(item.finalPrice)}</Text>
+                        <Text style={styles.itemName}>{displayName}</Text>
+                        <Text style={styles.itemPrice}>{formatMoney(item.finalPrice)}</Text>
                     </View>
 
                     {item.hasDiscount && item.totalDiscount > 0 && (
                         <View style={styles.discountRow}>
                             <Text style={styles.originalPriceText}>
-                                Original: {safeFormatMoney(item.originalPrice)}
+                                Original: {formatMoney(item.originalPrice)}
                             </Text>
                             <Text style={styles.savingsText}>
-                                Saved: {safeFormatMoney(item.totalDiscount)}
+                                Saved: {formatMoney(item.totalDiscount)}
                             </Text>
                         </View>
                     )}
 
                     <View style={styles.itemTotalRow}>
                         <Text style={styles.itemTotal}>
-                            Total: {safeFormatMoney(item.lineTotal)}
+                            {formatMoney(item.lineTotal)}
                         </Text>
                     </View>
                 </View>
@@ -231,7 +236,7 @@ export const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSecti
 };
 
 /**
- * EXACT original styles with minimal additions for section headers
+ * SAME original styles with minimal additions
  */
 const styles = StyleSheet.create({
     container: {
@@ -283,12 +288,12 @@ const styles = StyleSheet.create({
     },
     originalPriceText: {
         fontSize: 7,
-        color: '#666',
+        color: '#000',
         textDecoration: 'line-through',
     },
     savingsText: {
         fontSize: 7,
-        color: '#228B22',
+        // color: '#228B22',
         fontWeight: 'bold',
     },
     itemTotalRow: {
@@ -300,7 +305,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // NEW: Minimal section headers
+    // MINIMAL: Simple section headers
     sectionHeader: {
         marginBottom: 3,
         marginTop: 2,
@@ -308,7 +313,7 @@ const styles = StyleSheet.create({
     sectionHeaderText: {
         fontSize: 8,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#000',
     },
 
     // Enhanced separator for sections

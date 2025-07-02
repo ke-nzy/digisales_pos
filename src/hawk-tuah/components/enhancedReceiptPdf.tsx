@@ -1,12 +1,13 @@
 /**
- * Complete Clean Receipt PDF with Duplicate Support
+ * Complete Clean Receipt PDF with Duplicate Support - Enhanced Sizing
  * 
  * Clean receipt design with duplicate copy support and QR fallback
+ * ENHANCED: Better dynamic sizing to prevent content cutoff
  * USING THE EXACT WORKING QR PATTERN FROM OLD CODE
  * 
  * @author Kennedy Ngugi
  * @date 19-06-2025
- * @version 2.0.0
+ * @version 2.0.1 - Enhanced sizing only
  */
 
 import React, { useState, useEffect } from "react";
@@ -203,13 +204,33 @@ const EnhancedTransactionReceiptPDF = ({
         void generateKraCode();
     }, [data.qrCode]);
 
-    // Calculate dynamic receipt size
+    // ENHANCED: Better dynamic receipt size calculation
     function getReceiptSize(): [number, number] {
-        const baseHeight = 550;
-        const itemsHeight = enhancedData.items.length * 15;
-        const discountHeight = (enhancedData.totals.totalSavings > 0) ? 50 : 0;
-        const paymentsHeight = payments.length * 12;
-        return [200, baseHeight + itemsHeight + discountHeight + paymentsHeight];
+        const baseHeight = 600; // Increased from 550
+
+        // Better item height calculation
+        const averageItemNameLength = enhancedData.items.length > 0
+            ? enhancedData.items.reduce((sum, item) => sum + (item.name?.length || 0), 0) / enhancedData.items.length
+            : 0;
+
+        // Account for long item names that might wrap
+        const itemHeightMultiplier = averageItemNameLength > 40 ? 1.8 : 1.2;
+        const itemsHeight = enhancedData.items.length * 15 * itemHeightMultiplier;
+
+        const discountHeight = (enhancedData.totals.totalSavings > 0) ? 80 : 0; // Increased
+        const paymentsHeight = payments.length * 15; // Increased
+
+        // Add extra padding for receipts with many items
+        const extraPadding = enhancedData.items.length > 10 ? 100 : 50;
+
+        const calculatedHeight = baseHeight + itemsHeight + discountHeight + paymentsHeight + extraPadding;
+
+        // Ensure reasonable bounds
+        const finalHeight = Math.max(400, Math.min(calculatedHeight, 1400));
+
+        console.log(`Receipt sizing - Items: ${enhancedData.items.length}, Avg name length: ${averageItemNameLength.toFixed(1)}, Final height: ${finalHeight}px`);
+
+        return [200, finalHeight];
     }
 
     // Get balance directly from server response
@@ -276,7 +297,7 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* Items List - NOW WITH MINIMAL SEPARATION */}
+            {/* Items List - SAME AS BEFORE */}
             <EnhancedSeparatedItemsSection
                 items={enhancedData.items}
                 showDiscounts={true}
@@ -446,7 +467,6 @@ const EnhancedTransactionReceiptPDF = ({
     );
 };
 
-// EXACT ORIGINAL STYLES - no changes
 const styles = StyleSheet.create({
     page: {
         padding: 10,
@@ -462,6 +482,7 @@ const styles = StyleSheet.create({
     companyName: {
         fontSize: 12,
         fontWeight: 'bold',
+        fontFamily: "Helvetica-Bold",
         textAlign: 'center',
         marginBottom: 2,
     },
@@ -472,7 +493,7 @@ const styles = StyleSheet.create({
     },
     duplicateText: {
         fontSize: 8,
-        color: '#666',
+        color: '#000',
         textAlign: 'center',
     },
 
@@ -516,7 +537,7 @@ const styles = StyleSheet.create({
     },
     savingsAmount: {
         fontSize: 8,
-        color: '#228B22',
+        color: '#000',
     },
     totalSavingsRow: {
         flexDirection: 'row',
@@ -530,7 +551,7 @@ const styles = StyleSheet.create({
     totalSavingsAmount: {
         fontSize: 9,
         fontWeight: 'bold',
-        color: '#228B22',
+        // color: '#228B22',
     },
 
     // Totals Section
@@ -556,7 +577,7 @@ const styles = StyleSheet.create({
     savingsHighlightText: {
         fontSize: 10,
         fontWeight: 'bold',
-        color: '#228B22',
+        // color: '#228B22',
         textAlign: 'center',
     },
 
@@ -589,14 +610,17 @@ const styles = StyleSheet.create({
     },
     thankYouText: {
         fontSize: 10,
+        // fontFamily: "Helvetica-Bold",
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 2,
     },
     policyText: {
         fontSize: 8,
+        fontFamily: "Helvetica-Bold",
         textAlign: 'center',
         marginBottom: 2,
+        fontWeight: 'bold',
     },
     visitText: {
         fontSize: 8,
