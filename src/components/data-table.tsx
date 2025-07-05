@@ -225,24 +225,6 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableFooter>
-          {/* <TableFooter>
-            {table.getFooterGroups().map((footerGroup) => (
-              <TableRow key={footerGroup.id}>
-                {footerGroup.headers.map((footer) => {
-                  return (
-                    <TableCell key={footer.id}>
-                      {footer.isPlaceholder
-                        ? null
-                        : flexRender(
-                            footer.column.columnDef.footer,
-                            footer.getContext(),
-                          )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableFooter> */}
         </Table>
       </div>
     </>

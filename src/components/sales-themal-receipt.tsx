@@ -345,6 +345,7 @@ const TransactionReceiptPDF = ({
               <Text style={[styles.text, { fontWeight: "bold" }]}>Amount</Text>
             </View>
           </View>
+
           {payments.map((item, index, array) => {
             const transAmount =
               typeof item.TransAmount === "string"
@@ -384,6 +385,7 @@ const TransactionReceiptPDF = ({
               </View>
             );
           })}
+
         </View>
         <View style={{ alignItems: "flex-end" }}>
           <TotalRowItem label={"Total Item Count"} value={`${totalQuantity}`} />
@@ -495,6 +497,8 @@ const TransactionReceiptPDF = ({
           </Text>
         </View>
       </Page>
+
+
       {duplicate && (
         <Page
           size={get_printout_size(items, payments)}

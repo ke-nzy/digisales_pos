@@ -121,14 +121,21 @@ declare type InventoryItem = {
 };
 
 declare type PriceList = {
-  balance: string;
-  description: string;
-  kit: string;
-  mb_flag: string;
-  price: string;
-  rate: string;
   stock_id: string;
+  description: string;
+  rate: string;
+  kit: string;
   units: string;
+  mb_flag: string;
+  branch_code: string;
+  category_id: string;
+  branch_name: string;
+  balance: string;
+  price: string;
+  discount_percent: number;
+  discounted_price: number;
+  discount_details: DiscountDetails | null;
+  has_discount: boolean;
 };
 
 declare type PricingMode = {
@@ -164,6 +171,16 @@ declare type CustomerBranch = {
   lat: string;
   lon: string;
 };
+
+declare type DiscountDetails = {
+  discount_id: string;
+  discount_type: 'item' | 'category' | 'bulk';
+  discount_percent: number;
+  discount_amount: number;
+  lower_limit: number;
+  upper_limit: number;
+}
+
 declare type DirectSalesType = {
   __typename: "direct_sales";
   customer: Customer;
@@ -173,7 +190,25 @@ declare type DirectSalesType = {
   bottles_returned?: string;
   max_quantity: number;
   discount?: string;
+  enhanced_item: {
+    stock_id: string;
+    description: string;
+    rate: string;
+    kit: string;
+    units: string;
+    mb_flag: string;
+    branch_code: string;
+    category_id: string;
+    branch_name: string;
+    balance: string;
+    price: string;
+    discount_percent: number;
+    discounted_price: number;
+    discount_details: DiscountDetails | null;
+    has_discount: boolean;
+  };
 };
+
 declare type OrderEntryItem = {
   item: InventoryItem;
   details: ProductPriceDetails;
@@ -226,11 +261,15 @@ declare type TransactionInvItem = {
   mode_prices: string;
   posBatchSelect: string;
   price: string;
+  discounted_price: string;
   quantity: string;
   quantityAval: string;
   rate: string;
   tax: string;
   total: number;
+  original_price: string;
+  automatic_discount: string;
+  manual_discount: string;
 };
 declare type DirectSalesType = {
   __typename: "direct_sales";
@@ -259,7 +298,7 @@ declare type SalesReceiptInformation = {
   delNo: string;
   vat: number;
   ttpAuto: string | null;
-  weight: string;
+  weight: number;
   posSaleInsertId: number;
   qrCode: string;
   qrDate: string;
@@ -269,6 +308,8 @@ declare type SalesReceiptInformation = {
   mpesaRef: string | null;
   status: "Success" | "Failed";
   "0": TransactionReportItem;
+  discount_summary: string;
+
 };
 declare type OfflineSalesReceiptInformation = {
   offline: true;
@@ -351,6 +392,11 @@ declare type TransactionReportItem = {
   weight: number;
   status?: string;
   vat_amount?: string;
+  discount_summary?: string;
+  rcp_no: string;
+  cycle_id?: string;
+  offline?: string;
+  trans_time?: string;
 };
 declare type CheckInResponse = {
   id: string;
@@ -405,8 +451,8 @@ declare type LookUpResponse = {
 declare type ConversationResponse = {
   ResponseTime: string;
   TransAction:
-    | "The transaction receipt number does not exist."
-    | "Transaction Verified";
+  | "The transaction receipt number does not exist."
+  | "Transaction Verified";
 };
 
 declare type Shift = {

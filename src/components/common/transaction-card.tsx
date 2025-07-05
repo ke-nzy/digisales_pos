@@ -53,6 +53,55 @@ import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
 import { set } from "date-fns";
 import { Checkbox } from "../ui/checkbox";
+import EnhancedTransactionReceiptPDF from "~/hawk-tuah/components/enhancedReceiptPdf";
+
+// Transform TransactionReportItem to SalesReceiptInformation format
+const transformToReceiptFormat = (trans: TransactionReportItem): SalesReceiptInformation => {
+  return {
+    "0": {
+      id: trans.id,
+      rcp_no: trans.rcp_no,
+      ptype: trans.ptype,
+      ptotal: trans.ptotal,
+      payments: trans.payments,
+      pitems: trans.pitems,
+      cp: trans.cp || "0_",
+      uname: trans.uname,
+      uid: trans.uid,
+      pdate: trans.pdate,
+      print: trans.print || "1",
+      customername: trans.customername,
+      customerid: trans.customerid,
+      booking: trans.booking || "1",
+      dispatch: trans.dispatch || "0",
+      salepersonId: trans.salepersonId || "0",
+      salepersonName: trans.salepersonName || "",
+      unique_identifier: trans.unique_identifier,
+      cycle_id: trans.cycle_id,
+      branch_code: trans.branch_code,
+      shift_no: trans.shift_no,
+      vat_amount: trans.vat_amount,
+      pin: trans.pin || "-",
+      offline: trans.offline || "0",
+      trans_time: trans.trans_time,
+      discount_summary: trans.discount_summary,
+      status: trans.status || "1",
+      branch_name: trans.branch_name
+    },
+    message: "Success",
+    invNo: trans.rcp_no,
+    delNo: trans.rcp_no,
+    vat: parseFloat(trans.vat_amount || "0"),
+    ttpAuto: null,
+    weight: 0,
+    posSaleInsertId: parseInt(trans.id),
+    qrCode: "",
+    qrDate: "",
+    controlCode: "",
+    middlewareInvoiceNumber: ""
+  };
+};
+
 interface TransactionCardProps {
   data: TransactionReportItem;
   status?: "Completed" | "Held";
@@ -228,13 +277,16 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
     try {
       console.log("handlePrint", data);
 
+      // Transform data to correct format
+      const receiptData: SalesReceiptInformation = transformToReceiptFormat(data);
+
       const pdfBlob = await pdf(
-        <TransactionReceiptPDF
-          data={data}
+        <EnhancedTransactionReceiptPDF
+          data={receiptData}
           receipt_info={receipt_info!}
           account={account!}
           duplicate={false}
-        />,
+        />
       ).toBlob();
 
       const url = URL.createObjectURL(pdfBlob);
@@ -251,7 +303,7 @@ const TransactionCard = ({ data, status, onRefresh }: TransactionCardProps) => {
         iframe.contentWindow!.print();
         iframe.contentWindow!.onafterprint = () => {
           document.body.removeChild(iframe);
-          URL.revokeObjectURL(url); // Revoke the URL to free up resources
+          URL.revokeObjectURL(url);
         };
       };
     } catch (error) {

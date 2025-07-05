@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  font-size: 13px;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { EnhancedPriceList } from "~/hawk-tuah/types/discount-types";
 import {
   fetch_all_item_inventory,
   fetch_branch_inventory,
@@ -20,47 +21,46 @@ const fetchInventoryData = async (): Promise<InventoryItem[]> => {
   const { site_company, account, site_url } = useAuthStore.getState();
   const lastUpdate = await getMetadata("metadata");
   const now = new Date();
-  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 30); // 30 minutes ago
+  const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 30);
   let list: InventoryItem[] = [];
 
   console.log("Last Update Timestamp:", lastUpdate);
-  console.log("Current Time:", now);
-  console.log("Thirty Minutes Ago:", thirtyAgo);
 
-  // if (lastUpdate) {
-  //   if (new Date(lastUpdate) >= thirtyAgo) {
-  //     console.log("Fetching inventory from IndexedDB");
-  //     const inventory = await getInventory("inventory", "");
-  //     if (inventory) {
-  //       list = inventory;
-  //       return list;
-  //     }
-  //   }
-  // }
-
-  // console.log("Forcing fetch from API for testing.");
+  // KEEP existing sellable items for backward compatibility
   const sellable = await fetch_all_sellable_items(
     site_company!,
     account!,
     site_url!,
   );
-  const branchInventory = await fetch_branch_inventory(
+
+  // ADD: Fetch enhanced inventory with discount data
+  const enhancedInventory = await fetch_all_item_inventory(
     site_company!,
-    account!,
     site_url!,
-  );
-  const item_inventory = await fetch_all_item_inventory(
-    site_company!,
     account!,
-    site_url!,
   );
 
+  // Store both for different use cases
   await setInventory("inventory", sellable || []);
-  await setPriceList("priceList", item_inventory || []);
+  
+  // console.log('enhancedInventory type:', typeof enhancedInventory);
+  // console.log('enhancedInventory value:', enhancedInventory);
+  console.log('Is array?', Array.isArray(enhancedInventory));
+  await setPriceList("priceList", enhancedInventory?.items || []); // (KENZY) extracts the item array from the response, should now work correctly, bloody hell! (27-06-2025)
   await setMetadata("metadata", now.toISOString());
-  list = sellable || [];
 
+  list = sellable || [];
   return list;
+};
+
+export const getEnhancedItemData = async (stock_id: string): Promise<EnhancedPriceList | null | undefined> => {
+  try {
+    const enhancedInventory = await getItemPriceDetails(stock_id);
+    return enhancedInventory;
+  } catch (error) {
+    console.error('Failed to get enhanced item data:', error);
+    return null;
+  }
 };
 
 export const fetchItemDetails = async (stock_id?: string, kit?: string, forceRefresh = true): Promise<any> => {
@@ -87,10 +87,10 @@ export const fetchItemDetails = async (stock_id?: string, kit?: string, forceRef
 
       // Handle response and store it in IndexedDB
       const sellable = await fetch_all_sellable_items(site_company!, account!, site_url!);
-      const item_inventory = await fetch_all_item_inventory(site_company!, account!, site_url!);
+      const item_inventory = await fetch_all_item_inventory(site_company!, site_url!, account!);
 
       await setInventory("inventory", sellable || []);
-      await setPriceList("priceList", item_inventory || []);
+      await setPriceList("priceList", item_inventory?.items || []); 
       await setMetadata("metadata", now.toISOString());
 
       details = item_details;
@@ -129,7 +129,6 @@ export const useInventory = () => {
     queryFn: fetchInventoryData,
   });
 
-  // Log the final inventory data, loading state, and any errors
   // console.log("Inventory Data:", data);
   console.log("Is Loading:", isLoading);
   console.log("Error:", error);
