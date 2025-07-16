@@ -257,7 +257,7 @@ export async function fetch_pos_transactions_report(
   form_data.append("end_date", edate_);
 
   try {
-    const response = await axios.postForm<TransactionReportItem[]>(
+    const response = await axios.postForm<SalesReceiptInformation>(
       `${site_url}process.php`,
       form_data,
     );

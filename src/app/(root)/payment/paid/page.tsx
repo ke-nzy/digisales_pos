@@ -19,7 +19,6 @@ import {
   Percent
 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "~/components/ui/card";
-import { useRouter } from "next/navigation";
 import { usePayStore } from "~/store/pay-store";
 import EnhancedTransactionReceiptPDF from "~/hawk-tuah/components/enhancedReceiptPdf";
 import { formatMoney } from "~/hawk-tuah/utils/formatters";
@@ -377,12 +376,11 @@ const EnhancedPaid = () => {
   const [trans, setTrans] = useState<TransactionReportItem | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const router = useRouter();
   const summary = useTransactionSummary(trans);
   // console.log("Transaction Summary:", summary);
 
   // Get transaction from localStorage as fallback
-  const getStoredTransaction = (): TransactionReportItem | null => {
+  const getStoredTransaction = (): SalesReceiptInformation | null => {
     try {
       const tr = localStorage.getItem("transaction_history");
       return tr ? JSON.parse(tr) : null;
@@ -395,43 +393,39 @@ const EnhancedPaid = () => {
   const storedTransaction = getStoredTransaction();
 
   const handleFetchLatestTransaction = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
+    try {
+      // Try to get from local storage first
+      const stored = getStoredTransaction();
+      if (stored) {
+        setTrans(stored[0]);
+        return; // Exit early, don't bother fetching from server
+      }
+
+      // If not in storage, fallback to server fetch
       const pos_transactions_report = await fetch_pos_transactions_report(
         site_company!,
         account!,
         site_url!,
         toDate(new Date()),
-        toDate(new Date()),
+        toDate(new Date())
       );
 
-      if (!pos_transactions_report || pos_transactions_report.length === 0) {
-        // Fallback to stored transaction
-        const stored = getStoredTransaction();
-        if (stored) {
-          setTrans(stored);
-        } else {
-          setError("No transaction data available");
-        }
-      } else {
+      if (pos_transactions_report && pos_transactions_report.length > 0) {
         setTrans(pos_transactions_report[0]);
+      } else {
+        setError("No transaction data available");
       }
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
       setError("Failed to load transaction data");
-
-      // Fallback to stored transaction
-      const stored = getStoredTransaction();
-      if (stored) {
-        setTrans(stored);
-        setError(null);
-      }
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handlePrint = async (data: TransactionReportItem | SalesReceiptInformation) => {
     try {
@@ -551,7 +545,7 @@ const EnhancedPaid = () => {
 
   // Fetch transaction on mount
   useEffect(() => {
-    handleFetchLatestTransaction();
+    void handleFetchLatestTransaction();
   }, []);
 
   // Keyboard shortcuts
