@@ -151,6 +151,7 @@ const EnhancedTransactionReceiptPDF = ({
     console.log("Received QR data:", qrCodeUrl);
 
     const salesInfo = data[0];
+    // console.log("Sales info:", salesInfo);
     const payments: Payment[] = salesInfo.payments.length > 0 ? JSON.parse(salesInfo.payments) : [];
     const enhancedData = calculateEnhancedReceiptData(data);
     console.log("Enhanced receipt data:", enhancedData);
@@ -289,6 +290,14 @@ const EnhancedTransactionReceiptPDF = ({
                     <Text style={styles.bodyText}>Customer:</Text>
                     <Text style={styles.bodyText}>{salesInfo.customername || "WALK-IN"}</Text>
                 </View>
+
+                {salesInfo.pin && (
+                    <View style={styles.infoRow}>
+                        <Text style={styles.bodyText}>Customer Pin:</Text>
+                        <Text style={styles.bodyText}>{salesInfo.pin}</Text>
+                    </View>
+                )}
+
                 <View style={styles.infoRow}>
                     <Text style={styles.bodyText}>Branch:</Text>
                     <Text style={styles.bodyText}>{salesInfo.branch_name}</Text>

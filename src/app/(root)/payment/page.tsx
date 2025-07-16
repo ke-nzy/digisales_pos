@@ -26,7 +26,7 @@ import { Separator } from "~/components/ui/separator";
 import { Label } from "~/components/ui/label";
 import { CustomerComboBox } from "~/components/common/customercombo";
 import { useCustomers } from "~/hooks/use-customer-payments";
-import { Users2, Users2Icon } from "lucide-react";
+import { Users2 } from "lucide-react";
 import { DashboardLayout } from "~/components/common/dashboard-layout";
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
@@ -46,7 +46,7 @@ const Payment = () => {
     lon: "",
     is_farmer: "0",
     sales_type: "1",
-    pin: "-",
+    pin: "",
   });
   const [pin, setPin] = useState<string>(selectedCustomer?.pin ?? "");
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
