@@ -3,7 +3,6 @@
  * 
  * Clean receipt design with duplicate copy support and QR fallback
  * ENHANCED: Better dynamic sizing to prevent content cutoff
- * USING THE EXACT WORKING QR PATTERN FROM OLD CODE
  * 
  * @author Kennedy Ngugi
  * @date 19-06-2025
@@ -58,7 +57,6 @@ function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedRe
     const salesInfo = data[0];
     const items: TransactionInvItem[] = salesInfo.pitems.length > 0 ? JSON.parse(salesInfo.pitems) : [];
 
-    // Parse enhanced discount summary
     let discountSummary = null;
     try {
         if (salesInfo.discount_summary) {
@@ -70,7 +68,6 @@ function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedRe
         console.log('Using item-level discount data');
     }
 
-    // Process each item with enhanced details
     const enhancedItems = items.map(item => {
         const quantity = parseFloat(item.quantity);
         const finalPrice = parseFloat(item.discounted_price || "0");
@@ -105,9 +102,8 @@ function calculateEnhancedReceiptData(data: SalesReceiptInformation): EnhancedRe
         };
     });
 
-    // Use server response values directly
     const subtotal = discountSummary?.subtotal || enhancedItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
-    const finalTotal = parseFloat(salesInfo.ptotal); // Use ptotal directly from server
+    const finalTotal = parseFloat(salesInfo.ptotal);
     const totalAutomaticDiscounts = discountSummary?.automatic_discounts || enhancedItems.reduce((sum, item) => sum + item.automaticDiscount, 0);
     const totalManualDiscounts = discountSummary?.manual_discounts || enhancedItems.reduce((sum, item) => sum + item.manualDiscount, 0);
     const bulkDiscount = discountSummary?.bulk_discount || 0;
@@ -143,7 +139,6 @@ const EnhancedTransactionReceiptPDF = ({
     account: UserAccountInfo;
     duplicate: boolean;
 }) => {
-    // EXACT SAME PATTERN AS WORKING OLD CODE  
     const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
     const [qrCodeStatus, setQrCodeStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
@@ -156,7 +151,6 @@ const EnhancedTransactionReceiptPDF = ({
     const enhancedData = calculateEnhancedReceiptData(data);
     console.log("Enhanced receipt data:", enhancedData);
 
-    // EXACT SAME FUNCTION AS WORKING OLD CODE
     const generateDefaultQRCode = async (): Promise<string> => {
         try {
             const code = await QRCode.toDataURL(DEFAULT_QR_CODE_DATA);
@@ -168,7 +162,6 @@ const EnhancedTransactionReceiptPDF = ({
         }
     };
 
-    // 3. Enhanced useEffect with better state management:
     useEffect(() => {
         const generateKraCode = async () => {
             try {
@@ -207,26 +200,24 @@ const EnhancedTransactionReceiptPDF = ({
 
     // ENHANCED: Better dynamic receipt size calculation
     function getReceiptSize(): [number, number] {
-        const baseHeight = 600; // Increased from 550
+        const baseHeight = 600; 
 
         // Better item height calculation
         const averageItemNameLength = enhancedData.items.length > 0
             ? enhancedData.items.reduce((sum, item) => sum + (item.name?.length || 0), 0) / enhancedData.items.length
             : 0;
 
-        // Account for long item names that might wrap
         const itemHeightMultiplier = averageItemNameLength > 40 ? 1.8 : 1.2;
         const itemsHeight = enhancedData.items.length * 15 * itemHeightMultiplier;
 
-        const discountHeight = (enhancedData.totals.totalSavings > 0) ? 80 : 0; // Increased
-        const paymentsHeight = payments.length * 15; // Increased
+        const discountHeight = (enhancedData.totals.totalSavings > 0) ? 80 : 0; 
+        const paymentsHeight = payments.length * 15; 
 
-        // Add extra padding for receipts with many items
+        // Adds extra padding for receipts with many items
         const extraPadding = enhancedData.items.length > 10 ? 100 : 50;
 
         const calculatedHeight = baseHeight + itemsHeight + discountHeight + paymentsHeight + extraPadding;
 
-        // Ensure reasonable bounds
         const finalHeight = Math.max(400, Math.min(calculatedHeight, 1400));
 
         console.log(`Receipt sizing - Items: ${enhancedData.items.length}, Avg name length: ${averageItemNameLength.toFixed(1)}, Final height: ${finalHeight}px`);
@@ -234,7 +225,6 @@ const EnhancedTransactionReceiptPDF = ({
         return [200, finalHeight];
     }
 
-    // Get balance directly from server response
     const getBalanceFromPayments = () => {
         if (payments.length > 0 && payments[0].balance !== undefined) {
             return typeof payments[0].balance === "string"
@@ -251,14 +241,12 @@ const EnhancedTransactionReceiptPDF = ({
     const ReceiptPage = ({ isOriginal }: { isOriginal: boolean }) => (
         <Page size={getReceiptSize()} style={styles.page}>
 
-            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.companyName}>{receipt_info.name}</Text>
                 <Text style={styles.headerSubtext}>CASH RECEIPT</Text>
                 {!isOriginal && <Text style={styles.duplicateText}>DUPLICATE COPY</Text>}
             </View>
 
-            {/* Company Info */}
             <View style={styles.companyInfo}>
                 <Text style={styles.bodyText}>Email: {receipt_info.email}</Text>
                 <Text style={styles.bodyText}>Phone: {receipt_info.phone_number}</Text>
@@ -268,7 +256,6 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* Transaction Info */}
             <View style={styles.transactionInfo}>
                 <View style={styles.infoRow}>
                     <Text style={styles.bodyText}>Receipt #:</Text>
@@ -306,7 +293,6 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* Items List - SAME AS BEFORE */}
             <EnhancedSeparatedItemsSection
                 items={enhancedData.items}
                 showDiscounts={true}
@@ -314,7 +300,6 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* Discount Summary */}
             {enhancedData.totals.totalSavings > 0 && (
                 <>
                     <View style={styles.savingsSection}>
@@ -350,7 +335,6 @@ const EnhancedTransactionReceiptPDF = ({
                 </>
             )}
 
-            {/* Totals */}
             <View style={styles.totalsSection}>
                 {enhancedData.totals.totalSavings > 0 && (
                     <View style={styles.totalRow}>
@@ -370,7 +354,6 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* Payment Info */}
             <View style={styles.paymentSection}>
                 {payments.map((payment, index) => {
                     const amount = typeof payment.TransAmount === "string"
@@ -407,7 +390,6 @@ const EnhancedTransactionReceiptPDF = ({
                 </View>
             </View>
 
-            {/* Special Messages */}
             {enhancedData.totals.totalSavings > 0 && (
                 <>
                     <View style={styles.dottedLine} />
@@ -421,7 +403,6 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* QR Code and Control Info */}
             <View style={styles.qrSection}>
                 {/* Simple, reliable conditional rendering */}
                 {qrCodeUrl && qrCodeUrl.length > 50 ? (
@@ -455,7 +436,6 @@ const EnhancedTransactionReceiptPDF = ({
 
             <View style={styles.dottedLine} />
 
-            {/* Footer */}
             <View style={styles.footer}>
                 <Text style={styles.thankYouText}>THANK YOU FOR SHOPPING!</Text>
                 <Text style={styles.policyText}>NO REFUND • NO EXCHANGE</Text>
@@ -467,10 +447,8 @@ const EnhancedTransactionReceiptPDF = ({
 
     return (
         <Document>
-            {/* Original Receipt */}
             <ReceiptPage isOriginal={true} />
 
-            {/* Duplicate Copy */}
             {duplicate && <ReceiptPage isOriginal={false} />}
         </Document>
     );
@@ -483,7 +461,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Helvetica',
     },
 
-    // Header Styles
     header: {
         alignItems: 'center',
         marginBottom: 8,
@@ -506,13 +483,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 
-    // Company Info
     companyInfo: {
         alignItems: 'center',
         marginBottom: 6,
     },
 
-    // Dotted Line Separator
     dottedLine: {
         borderBottomWidth: 1,
         borderBottomColor: '#000',
@@ -520,7 +495,6 @@ const styles = StyleSheet.create({
         marginVertical: 4,
     },
 
-    // Transaction Info
     transactionInfo: {
         marginBottom: 6,
     },
@@ -530,7 +504,6 @@ const styles = StyleSheet.create({
         marginBottom: 1,
     },
 
-    // Savings Section
     savingsSection: {
         marginBottom: 6,
     },
@@ -563,7 +536,6 @@ const styles = StyleSheet.create({
         // color: '#228B22',
     },
 
-    // Totals Section
     totalsSection: {
         marginBottom: 6,
     },
@@ -573,12 +545,10 @@ const styles = StyleSheet.create({
         marginBottom: 1,
     },
 
-    // Payment Section
     paymentSection: {
         marginBottom: 6,
     },
 
-    // Savings Highlight
     savingsHighlight: {
         alignItems: 'center',
         marginBottom: 6,
@@ -590,7 +560,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 
-    // QR Section
     qrSection: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -613,7 +582,6 @@ const styles = StyleSheet.create({
         marginBottom: 1,
     },
 
-    // Footer
     footer: {
         alignItems: 'center',
     },
@@ -636,7 +604,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 
-    // Common Text Styles
     bodyText: {
         fontSize: 8,
     },

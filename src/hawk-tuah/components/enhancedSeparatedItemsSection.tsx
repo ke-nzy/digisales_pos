@@ -16,8 +16,6 @@ import {
     StyleSheet,
 } from "@react-pdf/renderer";
 import { formatMoney } from "../utils/formatters";
-
-// Enhanced item interface matching your current structure
 interface EnhancedReceiptItem {
     id: string;
     name: string;
@@ -41,13 +39,11 @@ interface EnhancedSeparatedItemsSectionProps {
 /**
  * Component to render items separated by category with quantity counts
  * Just separates bags (CR0001, CR0002) from other items
- * MINIMAL changes from original - just better text handling
  */
 const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps> = ({
     items,
     showDiscounts = true
 }) => {
-    // Configuration for item separation
     const BAG_ITEM_IDS = ["CR0001", "CR0002"];
 
     /**
@@ -68,7 +64,6 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
             const bags = items.filter(item => BAG_ITEM_IDS.includes(item.id));
             const otherItems = items.filter(item => !BAG_ITEM_IDS.includes(item.id));
 
-            // Calculate total quantities with error handling
             const calculateTotalQuantity = (itemArray: EnhancedReceiptItem[]) => {
                 try {
                     return itemArray.reduce((total, item) => {
@@ -76,7 +71,6 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
                             ? parseFloat(item.quantity)
                             : item.quantity;
 
-                        // Handle invalid quantities
                         if (isNaN(quantity) || quantity < 0) {
                             console.warn(`Invalid quantity for item ${item.id}: ${item.quantity}`);
                             return total;
@@ -122,7 +116,6 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
                 return null;
             }
 
-            // Safe quantity parsing
             const displayQuantity = (() => {
                 try {
                     const qty = typeof item.quantity === 'string'
@@ -144,7 +137,7 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
             //     }
             // };
 
-            // ENHANCED: Truncate very long item names to prevent overflow
+            // Truncates very long item names to prevent overflow
             const displayName = item.name && item.name.length > 35
                 ? item.name.substring(0, 32) + '...'
                 : item.name || 'Unknown Item';
@@ -188,14 +181,11 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
 
     return (
         <View style={styles.container}>
-            {/* Items Header - EXACT original */}
             <View style={styles.itemsHeader}>
                 <Text style={styles.headerText}>ITEM    QTY    DESCRIPTION              COST</Text>
             </View>
 
-            {/* Items List with total quantity counts */}
             <View style={styles.itemsList}>
-                {/* Other Items Section */}
                 {otherItems.length > 0 && (
                     <>
                         <View style={styles.sectionHeader}>
@@ -212,7 +202,6 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
                     <View style={styles.sectionSeparator} />
                 )}
 
-                {/* Bags Section */}
                 {bags.length > 0 && (
                     <>
                         <View style={styles.sectionHeader}>
@@ -224,7 +213,6 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
                     </>
                 )}
 
-                {/* Fallback if no items */}
                 {otherItems.length === 0 && bags.length === 0 && (
                     <View style={styles.noItemsContainer}>
                         <Text style={styles.noItemsText}>No items to display</Text>
@@ -235,15 +223,10 @@ const EnhancedSeparatedItemsSection: React.FC<EnhancedSeparatedItemsSectionProps
     );
 };
 
-/**
- * SAME original styles with minimal additions
- */
 const styles = StyleSheet.create({
     container: {
-        // No styles needed here
     },
 
-    // Items Section - EXACT original
     itemsHeader: {
         marginBottom: 4,
     },
@@ -305,7 +288,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // MINIMAL: Simple section headers
     sectionHeader: {
         marginBottom: 3,
         marginTop: 2,
@@ -316,7 +298,6 @@ const styles = StyleSheet.create({
         color: '#000',
     },
 
-    // Enhanced separator for sections
     sectionSeparator: {
         borderBottomWidth: 1,
         borderBottomColor: '#000',
@@ -324,7 +305,6 @@ const styles = StyleSheet.create({
         marginVertical: 6,
     },
 
-    // Error handling styles
     errorText: {
         fontSize: 8,
         color: '#DC143C',
