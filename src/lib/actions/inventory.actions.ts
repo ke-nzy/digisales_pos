@@ -66,7 +66,7 @@ export async function fetch_all_item_inventory(
       `${site_url}process.php`,
       form_data,
     );
-    console.log("All item inventory: ", response);
+    console.log("All item inventory: ", response.data);
 
     if ((response as unknown as string) === "") {
       console.error("tp: loadItemsAll failed");
