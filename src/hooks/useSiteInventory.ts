@@ -1,58 +1,74 @@
 "use client";
-
-/**
- * Site Inventory Hook
- *
- * Fetches full inventory across all branches (used by AllInventoryPage).
- * Uses fetchAllItemsInSiteInventory which does NOT filter by branch_code,
- * so it returns all branches - intentional for the all-branches inventory view.
- *
- * CHANGELOG:
- * - [REMOVED] IndexedDB read/write logic - system is now always-online.
- *   Cache is handled entirely by React Query's staleTime.
- * - [REMOVED] Commented-out IndexedDB cache check block (was already disabled).
- * - [FIX] Added staleTime + refetchOnWindowFocus: false to prevent
- *   unnecessary refetches on POS screen focus changes.
- *
- * @author Kennedy Ngugi
- * @updated 2026-04-09
- */
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchAllItemsInSiteInventory } from "~/lib/actions/inventory.actions";
+import {
+    fetchAllItemsInSiteInventory,
+} from "~/lib/actions/inventory.actions";
 import { useAuthStore } from "~/store/auth-store";
+import {
+    getInventory,
+    getMetadata,
+    setInventory,
+    setMetadata,
+} from "~/utils/indexeddb";
 
-// Fetches all-branch inventory. No filtering by branch_code here -
-// that filtering happens at the component level in AllInventoryPage.
-const fetchSiteInventoryData = async (): Promise<PriceList[]> => {
-    const { site_company, site_url } = useAuthStore.getState();
+const fetchSiteInventoryData = async (): Promise<InventoryItem[]> => {
+    const { site_company, account, site_url } = useAuthStore.getState();
+    const lastUpdate = await getMetadata("metadata");
+    const now = new Date();
+    const thirtyAgo = new Date(now.getTime() - 1000 * 60 * 30); // 30 minutes ago
+    let list: InventoryItem[] = [];
 
+    console.log("Last Update Timestamp:", lastUpdate);
+    console.log("Current Time:", now);
+    console.log("Thirty Minutes Ago:", thirtyAgo);
+
+    //   if (lastUpdate && new Date(lastUpdate) >= thirtyAgo) {
+    //     console.log("Fetching site inventory from IndexedDB");
+    //     const inventory = await getInventory("inventory", "");
+    //     if (inventory) {
+    //       list = inventory;
+    //       return list;
+    //     }
+    //   }
+
+    // Fetch from API if no cached data or cache is expired
     const siteInventory = await fetchAllItemsInSiteInventory(
         site_company!,
         site_url!,
+        // account!,
     );
 
-    return siteInventory ?? [];
+    // Store the fetched data
+    if (siteInventory) {
+        await setInventory("inventory", siteInventory || []);
+        await setMetadata("metadata", now.toISOString());
+        list = siteInventory || [];
+    }
+
+    return list;
 };
 
-// Used exclusively by AllInventoryPage (manager/admin inventory view).
-// Separate query key from ['inventory'] to avoid collision with
-// the POS sellable-items list used by useInventory.
 export const useSiteInventory = () => {
     const queryClient = useQueryClient();
 
-    const { data, error, isLoading } = useQuery<PriceList[], Error>({
+    const { data, error, isLoading } = useQuery<InventoryItem[], Error>({
         queryKey: ["siteInventory"],
         queryFn: fetchSiteInventoryData,
-        staleTime: 30 * 60 * 1000,   // 30 minutes
+        // ✅ ONLY CHANGE: prevents React Query from treating data as immediately
+        // stale and refetching on every component mount and window focus event.
+        // This was causing the endpoint to be hit on every alt-tab and re-render.
+        staleTime: 30 * 60 * 1000,
         refetchOnWindowFocus: false,
     });
 
+    // Log states for debugging
+    console.log("Is Loading:", isLoading);
+    console.log("Error:", error);
+
     return {
-        siteInventory: data ?? [],
+        siteInventory: data || [],
         loading: isLoading,
-        error: error?.message ?? null,
-        refetch: () =>
-            queryClient.invalidateQueries({ queryKey: ["siteInventory"] }),
+        error: error ? error.message : null,
+        refetch: () => queryClient.invalidateQueries({ queryKey: ["siteInventory"] }),
     };
 };
